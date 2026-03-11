@@ -1,0 +1,5 @@
+steps:
+  - name: "Install dependencies"
+    run: "echo 'Install project dependencies here'"
+  - name: "Run tests"
+    run: "echo 'Run project tests here'"

@@ -1,0 +1,7 @@
+steps:
+  - name: "Install dependencies"
+    run: "bundle install"
+  - name: "Setup database"
+    run: "bin/rails db:setup"
+  - name: "Run tests"
+    run: "bin/rails test"

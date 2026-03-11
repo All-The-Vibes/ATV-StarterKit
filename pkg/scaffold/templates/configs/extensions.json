@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "github.copilot",
+    "github.copilot-chat",
+    "ms-azuretools.vscode-bicep",
+    "ms-azuretools.vscode-azure-github-copilot",
+    "hashicorp.terraform"
+  ]
+}

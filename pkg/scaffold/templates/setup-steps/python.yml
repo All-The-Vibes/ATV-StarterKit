@@ -1,0 +1,5 @@
+steps:
+  - name: "Install dependencies"
+    run: "pip install -e '.[dev]'"
+  - name: "Run tests"
+    run: "pytest"
