@@ -6,6 +6,8 @@
 
 ### Option 1: Download Binary (Recommended)
 
+No dependencies required — single static binary, works immediately.
+
 Download the latest release for your platform from [GitHub Releases](https://github.com/github/atv-installer/releases):
 
 | Platform | Download |
