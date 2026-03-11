@@ -1,0 +1,47 @@
+{
+  "name": "atv-starterkit",
+  "version": "1.0.0",
+  "description": "ATV Starter Kit — scaffold a complete GitHub Copilot agentic coding environment into any project",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/All-The-Vibes/ATV-StarterKit"
+  },
+  "homepage": "https://github.com/All-The-Vibes/ATV-StarterKit#readme",
+  "bugs": {
+    "url": "https://github.com/All-The-Vibes/ATV-StarterKit/issues"
+  },
+  "keywords": [
+    "copilot",
+    "github-copilot",
+    "agentic",
+    "scaffolding",
+    "starter-kit",
+    "mcp",
+    "agents",
+    "skills"
+  ],
+  "bin": {
+    "atv-starterkit": "bin/cli.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "files": [
+    "bin/cli.js",
+    "install.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}
