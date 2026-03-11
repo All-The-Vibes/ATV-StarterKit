@@ -131,7 +131,11 @@ async function downloadFile(url, destPath) {
       resolve();
     });
     fileStream.on("error", (err) => {
-      fs.unlinkSync(destPath);
+      try {
+        fs.unlinkSync(destPath);
+      } catch (_) {
+        // File may not exist yet; ignore cleanup error
+      }
       reject(err);
     });
   });
