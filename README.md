@@ -3,7 +3,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="assets/logo-light.svg">
-  <img alt="ATV Starter Kit" src="assets/logo-dark.svg" width="500">
+  <img alt="ATV Starter Kit" src="assets/logo-dark.svg" width="700">
 </picture>
 
 # ATV Starter Kit

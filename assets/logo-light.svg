@@ -1,14 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 200">
-  <rect width="500" height="200" fill="transparent"/>
-  <text font-family="monospace" font-weight="bold" font-size="16" fill="#B8860B">
-    <tspan x="110" y="40"> █████╗  ████████╗ ██╗   ██╗</tspan>
-    <tspan x="110" y="62">██╔══██╗ ╚══██╔══╝ ██║   ██║</tspan>
-    <tspan x="110" y="84">███████║    ██║    ██║   ██║</tspan>
-    <tspan x="110" y="106">██╔══██║    ██║    ╚██╗ ██╔╝</tspan>
-    <tspan x="110" y="128">██║  ██║    ██║     ╚████╔╝</tspan>
-    <tspan x="110" y="150">╚═╝  ╚═╝    ╚═╝      ╚═══╝</tspan>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 310">
+  <rect width="720" height="310" fill="transparent"/>
+  <text font-family="'Courier New', monospace" font-weight="bold" font-size="13" fill="#B8860B">
+    <tspan x="20" y="30"> █████╗  ████████╗ ██╗   ██╗     ███████╗ ████████╗  █████╗  ██████╗</tspan>
+    <tspan x="20" y="48">██╔══██╗ ╚══██╔══╝ ██║   ██║     ██╔════╝ ╚══██╔══╝ ██╔══██╗ ██╔══██╗</tspan>
+    <tspan x="20" y="66">███████║    ██║    ██║   ██║     ███████╗    ██║    ███████║ ██████╔╝</tspan>
+    <tspan x="20" y="84">██╔══██║    ██║    ╚██╗ ██╔╝     ╚════██║    ██║    ██╔══██║ ██╔══██╗</tspan>
+    <tspan x="20" y="102">██║  ██║    ██║     ╚████╔╝      ███████║    ██║    ██║  ██║ ██║  ██║</tspan>
+    <tspan x="20" y="120">╚═╝  ╚═╝    ╚═╝      ╚═══╝       ╚══════╝    ╚═╝    ╚═╝  ╚═╝ ╚═╝  ╚═╝</tspan>
   </text>
-  <text font-family="monospace" font-size="11" fill="#8B6914" text-anchor="middle">
-    <tspan x="250" y="180">⚡ Agentic Tool &amp; Vibes ⚡</tspan>
+  <text font-family="'Courier New', monospace" font-weight="bold" font-size="13" fill="#996515">
+    <tspan x="20" y="160">████████╗ ███████╗ ██████╗      ██╗  ██╗ ██╗ ████████╗</tspan>
+    <tspan x="20" y="178">╚══██╔══╝ ██╔════╝ ██╔══██╗     ██║ ██╔╝ ██║ ╚══██╔══╝</tspan>
+    <tspan x="20" y="196">   ██║    █████╗   ██████╔╝     █████╔╝  ██║    ██║</tspan>
+    <tspan x="20" y="214">   ██║    ██╔══╝   ██╔══██╗     ██╔═██╗  ██║    ██║</tspan>
+    <tspan x="20" y="232">   ██║    ███████╗ ██║  ██║     ██║  ██╗ ██║    ██║</tspan>
+    <tspan x="20" y="250">   ╚═╝    ╚══════╝ ╚═╝  ╚═╝     ╚═╝  ╚═╝ ╚═╝    ╚═╝</tspan>
+  </text>
+  <text font-family="'Courier New', monospace" font-size="12" fill="#8B6914" text-anchor="middle">
+    <tspan x="360" y="290">⚡ One command. Instant agentic coding. ⚡</tspan>
   </text>
 </svg>
