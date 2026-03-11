@@ -1,13 +1,10 @@
 <div align="center">
 
-```
-  █████╗  ████████╗ ██╗   ██╗
- ██╔══██╗ ╚══██╔══╝ ██║   ██║
- ███████║    ██║    ██║   ██║
- ██╔══██║    ██║    ╚██╗ ██╔╝
- ██║  ██║    ██║     ╚████╔╝
- ╚═╝  ╚═╝    ╚═╝      ╚═══╝
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/logo-light.svg">
+  <img alt="ATV Starter Kit" src="assets/logo-dark.svg" width="500">
+</picture>
 
 # ATV Starter Kit
 
@@ -16,8 +13,6 @@
 [![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go&logoColor=white)](https://go.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-Powered-8957e5?style=flat-square&logo=github)](https://github.com/features/copilot)
-
-*Logo generated with [oh-my-logo](https://github.com/shinshin86/oh-my-logo) — `npx oh-my-logo "ATV" sunset --filled`*
 
 ---
 

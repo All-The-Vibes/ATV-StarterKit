@@ -54,28 +54,40 @@ func NewPrinter() *Printer {
 	return &Printer{}
 }
 
-// PrintBanner shows the ATV ASCII art logo with gradient yellow effect.
+// PrintBanner shows the ATV ASCII art logo centered in solid yellow.
 func (p *Printer) PrintBanner() {
 	art := strings.TrimRight(bannerText, "\n\r ")
 	lines := strings.Split(art, "\n")
 
-	// Top sparkle border
+	// Find the widest line for centering
+	maxWidth := 0
+	for _, line := range lines {
+		if len([]rune(line)) > maxWidth {
+			maxWidth = len([]rune(line))
+		}
+	}
+
+	// Terminal width target for centering (typical 80 cols)
+	termWidth := 70
 	border := "  ✦ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ✦"
 	fmt.Println(dimStyle.Render(border))
 	fmt.Println()
 
-	// Render each line with a gradient color (cycling through the palette)
-	for i, line := range lines {
-		style := bannerGradient[i%len(bannerGradient)]
-		fmt.Println(style.Render("  " + line))
+	// Render each line centered in solid bright yellow
+	for _, line := range lines {
+		runeLen := len([]rune(line))
+		pad := (termWidth - runeLen) / 2
+		if pad < 0 {
+			pad = 0
+		}
+		fmt.Println(bannerStyle.Render(strings.Repeat(" ", pad) + line))
 	}
 
 	fmt.Println()
-	// Bottom sparkle border
 	fmt.Println(dimStyle.Render(border))
 	fmt.Println()
-	fmt.Println(accentStyle.Render("        ⚡") + titleStyle.Render(" Agentic Tool & Vibes ") + accentStyle.Render("⚡"))
-	fmt.Println(dimStyle.Render("        One command. Instant agentic coding."))
+	fmt.Println(accentStyle.Render("              ⚡") + titleStyle.Render(" Agentic Tool & Vibes ") + accentStyle.Render("⚡"))
+	fmt.Println(dimStyle.Render("           One command. Instant agentic coding."))
 	fmt.Println()
 }
 

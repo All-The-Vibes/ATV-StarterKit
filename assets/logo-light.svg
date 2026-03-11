@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 200">
+  <rect width="500" height="200" fill="transparent"/>
+  <text font-family="monospace" font-weight="bold" font-size="16" fill="#B8860B">
+    <tspan x="110" y="40"> █████╗  ████████╗ ██╗   ██╗</tspan>
+    <tspan x="110" y="62">██╔══██╗ ╚══██╔══╝ ██║   ██║</tspan>
+    <tspan x="110" y="84">███████║    ██║    ██║   ██║</tspan>
+    <tspan x="110" y="106">██╔══██║    ██║    ╚██╗ ██╔╝</tspan>
+    <tspan x="110" y="128">██║  ██║    ██║     ╚████╔╝</tspan>
+    <tspan x="110" y="150">╚═╝  ╚═╝    ╚═╝      ╚═══╝</tspan>
+  </text>
+  <text font-family="monospace" font-size="11" fill="#8B6914" text-anchor="middle">
+    <tspan x="250" y="180">⚡ Agentic Tool &amp; Vibes ⚡</tspan>
+  </text>
+</svg>
