@@ -38,7 +38,11 @@ func WriteAll(targetDir string, catalog []Component) []WriteResult {
 
 		// Ensure parent directory exists
 		parentDir := filepath.Dir(destPath)
-		os.MkdirAll(parentDir, 0755)
+		if err := os.MkdirAll(parentDir, 0755); err != nil {
+			fmt.Fprintf(os.Stderr, "  ❌ Failed to create parent dir for %s: %v\n", comp.Path, err)
+			results = append(results, WriteResult{Path: comp.Path, Status: StatusSkipped})
+			continue
+		}
 
 		if comp.MergeJSON {
 			result := writeOrMergeJSON(destPath, comp.Path, comp.Content)
@@ -57,7 +61,10 @@ func ensureDir(fullPath, relPath string) WriteResult {
 	if _, err := os.Stat(fullPath); err == nil {
 		return WriteResult{Path: relPath, Status: StatusSkipped}
 	}
-	os.MkdirAll(fullPath, 0755)
+	if err := os.MkdirAll(fullPath, 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "  ❌ Failed to create dir %s: %v\n", relPath, err)
+		return WriteResult{Path: relPath, Status: StatusSkipped}
+	}
 	return WriteResult{Path: relPath, Status: StatusDirCreated}
 }
 

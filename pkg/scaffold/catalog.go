@@ -130,26 +130,29 @@ func mcpConfig() []Component {
 }
 
 func skills() []Component {
-	// Walk the templates/skills directory for embedded skill content
 	var comps []Component
-	fs.WalkDir(templateFS, "templates/skills", func(path string, d fs.DirEntry, err error) error {
+
+	if err := fs.WalkDir(templateFS, "templates/skills", func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() || path == "templates/skills" {
 			return nil
 		}
 		content, _ := templateFS.ReadFile(path)
-		// Convert templates/skills/ce-brainstorm/SKILL.md → .github/skills/ce-brainstorm/SKILL.md
+
 		relPath := strings.TrimPrefix(path, "templates/skills/")
 		destPath := filepath.Join(".github", "skills", relPath)
 		comps = append(comps, Component{Path: destPath, Content: content, HookType: 4})
 		return nil
-	})
+	}); err != nil {
+		panic(fmt.Sprintf("failed to walk embedded skills templates: %v", err))
+	}
+
 	return comps
 }
 
 func agents(stack detect.Stack) []Component {
-	// Walk templates/agents for embedded agent content
 	var comps []Component
-	fs.WalkDir(templateFS, "templates/agents", func(path string, d fs.DirEntry, err error) error {
+
+	if err := fs.WalkDir(templateFS, "templates/agents", func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() || path == "templates/agents" {
 			return nil
 		}
@@ -157,14 +160,16 @@ func agents(stack detect.Stack) []Component {
 		relPath := strings.TrimPrefix(path, "templates/agents/")
 		destPath := filepath.Join(".github", "agents", relPath)
 
-		// Check if this is a stack-specific agent
 		if isStackSpecific(relPath) && !isForStack(relPath, stack) {
-			return nil // skip agents not for this stack
+			return nil
 		}
 
 		comps = append(comps, Component{Path: destPath, Content: content, HookType: 5})
 		return nil
-	})
+	}); err != nil {
+		panic(fmt.Sprintf("failed to walk embedded agents templates: %v", err))
+	}
+
 	return comps
 }
 

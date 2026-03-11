@@ -14,10 +14,6 @@ import (
 var bannerText string
 
 var (
-	bannerStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("63")). // purple/indigo
-			Bold(true)
-
 	titleStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("212")). // bright blue
 			Bold(true)
@@ -43,8 +39,12 @@ func NewPrinter() *Printer {
 
 // PrintBanner shows the ATV ASCII art logo.
 func (p *Printer) PrintBanner() {
-	// Trim trailing newlines and print with style
 	art := strings.TrimRight(bannerText, "\n\r ")
+
+	bannerStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("63")).
+		Bold(true)
+
 	fmt.Println(bannerStyle.Render(art))
 	fmt.Println()
 	fmt.Println(titleStyle.Render("  ATV Starter Kit — Agentic Tool & Workflow"))
