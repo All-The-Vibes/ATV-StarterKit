@@ -45,7 +45,12 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           cd npm
-          npm version "$VERSION" --no-git-tag-version
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          if [ "$CURRENT_VERSION" != "$VERSION" ]; then
+            npm version "$VERSION" --no-git-tag-version
+          else
+            echo "Version unchanged, skipping 'npm version'"
+          fi
 
       - name: Publish to npm
         run: cd npm && npm publish --access public
