@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/huh"
-	"github.com/github/atv-installer/pkg/detect"
+	"github.com/All-The-Vibes/ATV-StarterKit/pkg/detect"
 )
 
 // WizardResult holds the user's selections from the guided wizard.

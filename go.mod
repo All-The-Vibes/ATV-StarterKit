@@ -1,4 +1,4 @@
-module github.com/github/atv-installer
+module github.com/All-The-Vibes/ATV-StarterKit
 
 go 1.26.1
 

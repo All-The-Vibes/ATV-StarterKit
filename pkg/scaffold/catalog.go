@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/github/atv-installer/pkg/detect"
+	"github.com/All-The-Vibes/ATV-StarterKit/pkg/detect"
 )
 
 //go:embed all:templates
