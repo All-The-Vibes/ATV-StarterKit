@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/github/atv-installer/pkg/detect"
-	"github.com/github/atv-installer/pkg/scaffold"
+	"github.com/All-The-Vibes/ATV-StarterKit/pkg/detect"
+	"github.com/All-The-Vibes/ATV-StarterKit/pkg/scaffold"
 )
 
 //go:embed banner.txt

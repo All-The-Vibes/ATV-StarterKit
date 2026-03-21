@@ -70,6 +70,8 @@ sudo mv atv-installer /usr/local/bin/   # macOS/Linux
 go install github.com/All-The-Vibes/ATV-StarterKit@latest
 ```
 
+This installs into your Go bin directory (`GOBIN`, or `%USERPROFILE%\\go\\bin` on Windows by default). Because the CLI entrypoint lives at the repo root, the installed executable is named after the package path, not `atv-installer`.
+
 ## ⚡ Quick Start
 
 ### One-Click Mode (Default)

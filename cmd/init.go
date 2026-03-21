@@ -1,16 +1,19 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/github/atv-installer/pkg/detect"
-	"github.com/github/atv-installer/pkg/output"
-	"github.com/github/atv-installer/pkg/scaffold"
-	"github.com/github/atv-installer/pkg/tui"
+	"github.com/All-The-Vibes/ATV-StarterKit/pkg/detect"
+	"github.com/All-The-Vibes/ATV-StarterKit/pkg/output"
+	"github.com/All-The-Vibes/ATV-StarterKit/pkg/scaffold"
+	"github.com/All-The-Vibes/ATV-StarterKit/pkg/tui"
 	"github.com/spf13/cobra"
 )
+
+const installerModulePath = "module github.com/All-The-Vibes/ATV-StarterKit"
 
 var guided bool
 
@@ -65,12 +68,25 @@ func runInit(cmd *cobra.Command, args []string) error {
 	printer.PrintResults(results)
 	printer.PrintNextSteps(env.Stack)
 
-	// Update plan checkboxes if running in-repo
-	planPath := filepath.Join(targetDir, "docs", "plans")
-	if _, err := os.Stat(planPath); err == nil {
-		// Plan directory exists — this is the atv-installer repo itself
+	// Update plan checkboxes only when running inside the installer repository.
+	if isInstallerRepo(targetDir) {
 		printer.Info("Plan directory detected. Update plan checkboxes manually.")
 	}
 
 	return nil
+}
+
+func isInstallerRepo(dir string) bool {
+	goModPath := filepath.Join(dir, "go.mod")
+	goMod, err := os.ReadFile(goModPath)
+	if err != nil {
+		return false
+	}
+
+	templatesPath := filepath.Join(dir, "pkg", "scaffold", "templates")
+	if info, err := os.Stat(templatesPath); err != nil || !info.IsDir() {
+		return false
+	}
+
+	return bytes.Contains(goMod, []byte(installerModulePath))
 }

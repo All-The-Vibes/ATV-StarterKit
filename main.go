@@ -1,6 +1,6 @@
 package main
 
-import "github.com/github/atv-installer/cmd"
+import "github.com/All-The-Vibes/ATV-StarterKit/cmd"
 
 func main() {
 	cmd.Execute()
