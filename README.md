@@ -18,6 +18,7 @@
 <p align="center">
        <a href="#quick-start">Quick start</a> ·
        <a href="#installation">Installation</a> ·
+       <a href="#uninstalling">Uninstalling</a> ·
        <a href="#the-three-pillars">Three pillars</a> ·
        <a href="#the-full-sprint">Full sprint</a> ·
        <a href="#how-learning-works">Learning</a> ·
@@ -46,6 +47,7 @@ Together they cover the full software lifecycle — from "what should I build?" 
 cd your-project
 npx atv-starterkit@latest init           # auto-detect stack, install everything
 npx atv-starterkit@latest init --guided  # interactive TUI with multi-stack selection
+npx atv-starterkit@latest uninstall      # cleanly remove everything ATV installed
 ```
 
 Then open **Copilot Chat** (⌃⌘I / Ctrl+Shift+I) and go:
@@ -95,6 +97,15 @@ cd ATV-StarterKit && go build -o atv-installer .
 - **Azure CLI** — for Azure MCP server
 
 Without Bun, text-based gstack skills still work. `agent-browser` works independently of Bun.
+
+### Uninstalling
+
+```bash
+npx atv-starterkit@latest uninstall          # remove ATV files, preserve user-modified configs
+npx atv-starterkit@latest uninstall --force  # remove everything including modified files
+```
+
+Removes `.github/skills/`, `.github/agents/`, `.github/hooks/`, `.github/copilot-*` config files, `.gstack/`, `.atv/`, and empty doc directories. Files you've customized since installation are preserved by default (checksum comparison against the install manifest). `.vscode/` is never touched.
 
 ---
 
