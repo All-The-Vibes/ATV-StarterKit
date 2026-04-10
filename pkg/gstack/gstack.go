@@ -89,6 +89,9 @@ func Install(projectDir string, mode InstallMode) *InstallResult {
 	result.Copied = copied
 	result.SkillDirs = dirs
 
+	// Step 4: Prune non-GitHub platform dirs from staging
+	pruneNonGitHubDirs(stagingDir)
+
 	return result
 }
 
@@ -373,6 +376,23 @@ func copyDir(src, dst string) {
 		} else {
 			copyFileIfExists(srcPath, dstPath)
 		}
+	}
+}
+
+// pruneNonGitHubDirs removes platform-specific and development directories
+// from the cloned .gstack/ staging area that are not needed for GitHub Copilot.
+func pruneNonGitHubDirs(gstackDir string) {
+	pruneList := []string{
+		// Non-GitHub AI platform outputs
+		".cursor", ".factory", ".kiro", ".openclaw", ".opencode", ".slate",
+		"codex", "openclaw",
+		// Build/dev artifacts
+		"node_modules", ".git", ".github",
+		// gstack internal infrastructure
+		"extension", "hosts", "contrib", "supabase", "test", "scripts", "docs",
+	}
+	for _, dir := range pruneList {
+		os.RemoveAll(filepath.Join(gstackDir, dir))
 	}
 }
 

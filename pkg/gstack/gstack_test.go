@@ -193,6 +193,72 @@ func TestFindBashSkipsWSL(t *testing.T) {
 	}
 }
 
+func TestPruneNonGitHubDirs(t *testing.T) {
+	tmpDir := t.TempDir()
+	gstackDir := filepath.Join(tmpDir, ".gstack")
+
+	// Directories that should be REMOVED
+	pruneDirs := []string{
+		".cursor/skills", ".factory/skills", ".kiro/skills",
+		".openclaw/skills", ".opencode/skills", ".slate/skills",
+		"codex", "openclaw",
+		"node_modules", ".git/objects", ".github/workflows",
+		"extension", "hosts", "contrib", "supabase", "test", "scripts", "docs",
+	}
+	for _, d := range pruneDirs {
+		if err := os.MkdirAll(filepath.Join(gstackDir, d), 0755); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Directories that should SURVIVE
+	keepDirs := []string{
+		"office-hours", "review", "ship", "bin", "browse/dist", "lib",
+		".agents/skills/gstack-review",
+	}
+	for _, d := range keepDirs {
+		if err := os.MkdirAll(filepath.Join(gstackDir, d), 0755); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Files that should survive
+	os.WriteFile(filepath.Join(gstackDir, "SKILL.md"), []byte("# gstack"), 0644)
+	os.WriteFile(filepath.Join(gstackDir, "ETHOS.md"), []byte("# ethos"), 0644)
+
+	// Run the prune
+	pruneNonGitHubDirs(gstackDir)
+
+	// Verify pruned dirs are gone
+	pruneRoots := []string{
+		".cursor", ".factory", ".kiro", ".openclaw", ".opencode", ".slate",
+		"codex", "openclaw", "node_modules", ".git", ".github",
+		"extension", "hosts", "contrib", "supabase", "test", "scripts", "docs",
+	}
+	for _, d := range pruneRoots {
+		path := filepath.Join(gstackDir, d)
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			t.Errorf("expected %s to be pruned, but it still exists", d)
+		}
+	}
+
+	// Verify kept dirs survive
+	for _, d := range keepDirs {
+		path := filepath.Join(gstackDir, d)
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			t.Errorf("expected %s to survive pruning, but it was removed", d)
+		}
+	}
+
+	// Verify kept files survive
+	for _, f := range []string{"SKILL.md", "ETHOS.md"} {
+		path := filepath.Join(gstackDir, f)
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			t.Errorf("expected %s to survive pruning, but it was removed", f)
+		}
+	}
+}
+
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsSubstring(s, substr))
 }

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.5.3] — 2026-04-09
+
+### Fixed
+
+- **Prune non-GitHub platform dirs from gstack staging** — after cloning gstack, the installer now removes `.cursor/`, `.factory/`, `.kiro/`, `.openclaw/`, `.opencode/`, `.slate/`, `codex/`, `openclaw/`, `node_modules/`, `.git/`, `.github/`, `extension/`, `hosts/`, `contrib/`, `supabase/`, `test/`, `scripts/`, and `docs/` from `.gstack/`. These are gstack's multi-platform outputs (OpenClaw, OpenCode, Cursor, Kiro, Slate, Factory) and build artifacts that are irrelevant to GitHub Copilot users.
+
 ## [2.5.1] — 2026-04-07
 
 ### Changed
