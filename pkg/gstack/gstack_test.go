@@ -223,8 +223,12 @@ func TestPruneNonGitHubDirs(t *testing.T) {
 	}
 
 	// Files that should survive
-	os.WriteFile(filepath.Join(gstackDir, "SKILL.md"), []byte("# gstack"), 0644)
-	os.WriteFile(filepath.Join(gstackDir, "ETHOS.md"), []byte("# ethos"), 0644)
+	if err := os.WriteFile(filepath.Join(gstackDir, "SKILL.md"), []byte("# gstack"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(gstackDir, "ETHOS.md"), []byte("# ethos"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Run the prune
 	pruneNonGitHubDirs(gstackDir)
