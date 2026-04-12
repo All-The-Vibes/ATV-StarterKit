@@ -84,13 +84,13 @@ func Install(projectDir string, mode InstallMode) *InstallResult {
 		}
 	}
 
-	// Step 3: Copy generated skills to .github/skills/
+	// Step 3: Prune non-GitHub platform dirs BEFORE copying to prevent leakage
+	pruneNonGitHubDirs(stagingDir)
+
+	// Step 4: Copy generated skills to .github/skills/
 	copied, dirs := copyGeneratedSkills(stagingDir, skillsTargetDir)
 	result.Copied = copied
 	result.SkillDirs = dirs
-
-	// Step 4: Prune non-GitHub platform dirs from staging
-	pruneNonGitHubDirs(stagingDir)
 
 	return result
 }
@@ -101,10 +101,14 @@ func clone(targetDir string) error {
 		return fmt.Errorf("failed to create parent directory: %w", err)
 	}
 
+	var stderr bytes.Buffer
 	cmd := exec.Command("git", "clone", "--single-branch", "--depth", "1", GstackRepo, targetDir)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
+		errDetail := firstLine(stderr.String())
+		if errDetail != "" {
+			return fmt.Errorf("git clone failed: %s", errDetail)
+		}
 		return fmt.Errorf("git clone failed (check network connection): %w", err)
 	}
 	return nil
@@ -128,7 +132,6 @@ func runSetup(gstackDir string) error {
 	var stderr bytes.Buffer
 	cmd := exec.Command(bashPath, setupPath, "--host", "codex")
 	cmd.Dir = gstackDir
-	cmd.Stdout = os.Stdout
 	cmd.Stderr = &stderr
 	// Prevent bun from walking up to the parent project's package.json.
 	// Without this, a BOM-encoded or malformed package.json in the project root
@@ -199,19 +202,27 @@ func generateDocs(gstackDir string) error {
 		return fmt.Errorf("bun not found; install bun (https://bun.sh)")
 	}
 
+	var installStderr bytes.Buffer
 	installCmd := exec.Command("bun", "install")
 	installCmd.Dir = gstackDir
-	installCmd.Stdout = os.Stdout
-	installCmd.Stderr = os.Stderr
+	installCmd.Stderr = &installStderr
 	if err := installCmd.Run(); err != nil {
+		errDetail := firstLine(installStderr.String())
+		if errDetail != "" {
+			return fmt.Errorf("bun install failed: %s", errDetail)
+		}
 		return fmt.Errorf("bun install failed: %w", err)
 	}
 
+	var genStderr bytes.Buffer
 	genCmd := exec.Command("bun", "run", "gen:skill-docs", "--host", "codex")
 	genCmd.Dir = gstackDir
-	genCmd.Stdout = os.Stdout
-	genCmd.Stderr = os.Stderr
+	genCmd.Stderr = &genStderr
 	if err := genCmd.Run(); err != nil {
+		errDetail := firstLine(genStderr.String())
+		if errDetail != "" {
+			return fmt.Errorf("gen:skill-docs failed: %s", errDetail)
+		}
 		return fmt.Errorf("gen:skill-docs failed: %w", err)
 	}
 	return nil
@@ -265,6 +276,10 @@ func copyGeneratedSkills(gstackDir, targetSkillsDir string) (bool, []string) {
 				continue
 			}
 			name := e.Name()
+			// Skip hidden dirs and known non-skill dirs that may remain
+			if strings.HasPrefix(name, ".") || isNonSkillDir(name) {
+				continue
+			}
 			srcSkill := filepath.Join(gstackDir, name, "SKILL.md")
 			if _, err := os.Stat(srcSkill); err != nil {
 				continue
@@ -382,18 +397,30 @@ func copyDir(src, dst string) {
 // pruneNonGitHubDirs removes platform-specific and development directories
 // from the cloned .gstack/ staging area that are not needed for GitHub Copilot.
 func pruneNonGitHubDirs(gstackDir string) {
-	pruneList := []string{
-		// Non-GitHub AI platform outputs
-		".cursor", ".factory", ".kiro", ".openclaw", ".opencode", ".slate",
-		"codex", "openclaw",
-		// Build/dev artifacts
-		"node_modules", ".git", ".github",
-		// gstack internal infrastructure
-		"extension", "hosts", "contrib", "supabase", "test", "scripts", "docs",
-	}
-	for _, dir := range pruneList {
+	for _, dir := range nonSkillDirs {
 		os.RemoveAll(filepath.Join(gstackDir, dir))
 	}
+}
+
+// nonSkillDirs lists directories in the gstack repo that are not skills.
+var nonSkillDirs = []string{
+	// Non-GitHub AI platform outputs
+	".cursor", ".factory", ".kiro", ".openclaw", ".opencode", ".slate",
+	"codex", "openclaw",
+	// Build/dev artifacts
+	"node_modules", ".git", ".github",
+	// gstack internal infrastructure
+	"extension", "hosts", "contrib", "supabase", "test", "scripts", "docs",
+}
+
+// isNonSkillDir returns true if the directory name is a known non-skill directory.
+func isNonSkillDir(name string) bool {
+	for _, d := range nonSkillDirs {
+		if name == d {
+			return true
+		}
+	}
+	return false
 }
 
 // findBash locates a suitable bash executable.

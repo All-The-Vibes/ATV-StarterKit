@@ -263,6 +263,55 @@ func TestPruneNonGitHubDirs(t *testing.T) {
 	}
 }
 
+func TestFallbackSkipsDotDirsAndNonSkillDirs(t *testing.T) {
+	tmpDir := t.TempDir()
+	gstackDir := filepath.Join(tmpDir, ".gstack")
+	targetSkillsDir := filepath.Join(tmpDir, ".github", "skills")
+	os.MkdirAll(targetSkillsDir, 0755)
+
+	// Create dirs that should be SKIPPED in fallback (hidden + non-skill)
+	skipDirs := []string{".openclaw", ".cursor", ".factory", "codex", "openclaw", "node_modules", "docs"}
+	for _, d := range skipDirs {
+		dirPath := filepath.Join(gstackDir, d)
+		os.MkdirAll(dirPath, 0755)
+		os.WriteFile(filepath.Join(dirPath, "SKILL.md"), []byte("# skip me"), 0644)
+	}
+
+	// Create dirs that should be COPIED in fallback (real skills)
+	keepDirs := []string{"review", "ship", "qa"}
+	for _, d := range keepDirs {
+		dirPath := filepath.Join(gstackDir, d)
+		os.MkdirAll(dirPath, 0755)
+		os.WriteFile(filepath.Join(dirPath, "SKILL.md"), []byte("# "+d), 0644)
+	}
+
+	_, dirs := copyGeneratedSkills(gstackDir, targetSkillsDir)
+
+	// Verify only the real skill dirs were copied
+	for _, d := range dirs {
+		for _, skip := range skipDirs {
+			if strings.Contains(d, skip) {
+				t.Errorf("fallback should not copy non-skill dir %q, but got %q", skip, d)
+			}
+		}
+	}
+
+	// Verify real skills were copied
+	for _, d := range keepDirs {
+		expectedName := "gstack-" + d
+		found := false
+		for _, copied := range dirs {
+			if copied == expectedName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("expected fallback to copy %q but it was not in dirs: %v", expectedName, dirs)
+		}
+	}
+}
+
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsSubstring(s, substr))
 }

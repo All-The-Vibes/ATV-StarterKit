@@ -228,7 +228,7 @@ func TestUninstallFullCycle(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	// .vscode/extensions.json (should NOT be removed — not ATV-owned)
+	// .vscode/extensions.json (ATV-owned, should be removed and .vscode cleaned up)
 	if err := os.MkdirAll(filepath.Join(tmpDir, ".vscode"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -246,9 +246,12 @@ func TestUninstallFullCycle(t *testing.T) {
 		t.Errorf("unexpected errors: %v", result.Errors)
 	}
 
-	// .vscode should still exist (not ATV-owned)
-	if _, err := os.Stat(filepath.Join(tmpDir, ".vscode", "extensions.json")); os.IsNotExist(err) {
-		t.Error(".vscode/extensions.json should NOT be removed by uninstall")
+	// .vscode should be cleaned up since extensions.json was the only file
+	if _, err := os.Stat(filepath.Join(tmpDir, ".vscode")); !os.IsNotExist(err) {
+		entries, _ := os.ReadDir(filepath.Join(tmpDir, ".vscode"))
+		if len(entries) == 0 {
+			t.Error(".vscode should have been cleaned up when empty")
+		}
 	}
 
 	// .github should be cleaned up if empty

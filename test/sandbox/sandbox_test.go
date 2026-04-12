@@ -863,8 +863,8 @@ func TestE2ELearningPipelineInstalled(t *testing.T) {
 		if !ok {
 			t.Fatal("hooks should be a JSON object")
 		}
-		// Verify all 6 hook types are configured
-		for _, hookType := range []string{"sessionStart", "sessionEnd", "userPromptSubmitted", "preToolUse", "postToolUse", "errorOccurred"} {
+		// Verify session hook types are configured (trimmed to reduce noise)
+		for _, hookType := range []string{"sessionStart", "sessionEnd"} {
 			if _, exists := hooksMap[hookType]; !exists {
 				t.Errorf("missing hook type: %s", hookType)
 			}

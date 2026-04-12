@@ -4,49 +4,17 @@
     "sessionStart": [
       {
         "type": "command",
-        "bash": "node .github/hooks/scripts/observe.js sessionStart",
-        "powershell": "node .github/hooks/scripts/observe.js sessionStart",
+        "bash": "node .github/hooks/scripts/observe.js sessionStart 2>/dev/null || true",
+        "powershell": "try { node .github/hooks/scripts/observe.js sessionStart 2>$null } catch {}",
         "timeoutSec": 5
       }
     ],
     "sessionEnd": [
       {
         "type": "command",
-        "bash": "node .github/hooks/scripts/observe.js sessionEnd",
-        "powershell": "node .github/hooks/scripts/observe.js sessionEnd",
+        "bash": "node .github/hooks/scripts/observe.js sessionEnd 2>/dev/null || true",
+        "powershell": "try { node .github/hooks/scripts/observe.js sessionEnd 2>$null } catch {}",
         "timeoutSec": 10
-      }
-    ],
-    "userPromptSubmitted": [
-      {
-        "type": "command",
-        "bash": "node .github/hooks/scripts/observe.js userPromptSubmitted",
-        "powershell": "node .github/hooks/scripts/observe.js userPromptSubmitted",
-        "timeoutSec": 5
-      }
-    ],
-    "preToolUse": [
-      {
-        "type": "command",
-        "bash": "node .github/hooks/scripts/observe.js preToolUse",
-        "powershell": "node .github/hooks/scripts/observe.js preToolUse",
-        "timeoutSec": 5
-      }
-    ],
-    "postToolUse": [
-      {
-        "type": "command",
-        "bash": "node .github/hooks/scripts/observe.js postToolUse",
-        "powershell": "node .github/hooks/scripts/observe.js postToolUse",
-        "timeoutSec": 5
-      }
-    ],
-    "errorOccurred": [
-      {
-        "type": "command",
-        "bash": "node .github/hooks/scripts/observe.js errorOccurred",
-        "powershell": "node .github/hooks/scripts/observe.js errorOccurred",
-        "timeoutSec": 5
       }
     ]
   }

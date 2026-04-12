@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.5.6] — 2026-04-12
+
+### Fixed
+
+- **Suppressed noisy gstack output during guided install** — gstack's setup generates skills for every supported host (Cursor, Slate, OpenClaw, Kiro, Factory, OpenCode) then ATV prunes them. Previously all that per-file generation output and token budget tables leaked to stdout. Now subprocess output is captured silently — users see only the TUI spinner and final summary.
+- **Copilot hooks hardened against missing node** — observer hook commands now suppress errors (`2>/dev/null || true` on bash, `try/catch` on PowerShell) so projects without Node.js don't get hook failures on every session.
+- **Removed excessive observer hooks** — stripped `userPromptSubmitted`, `preToolUse`, `postToolUse`, and `errorOccurred` hooks that fired on every interaction. Only `sessionStart` and `sessionEnd` remain, reducing hook overhead.
+- **Prune ordering fixed** — non-GitHub platform dirs are now pruned before copying skills (was after), preventing any chance of non-GitHub artifacts leaking into `.github/skills/`.
+
 ## [2.5.5] — 2026-04-09
 
 ### Added
