@@ -151,12 +151,31 @@ function extractTarGz(archivePath, destDir) {
 
 /**
  * Extract a .zip archive to a destination directory.
+ *
+ * On Windows, prefer tar.exe (ships with Windows 10+ and handles .zip via
+ * libarchive). Fall back to PowerShell Expand-Archive, which can fail to
+ * autoload Microsoft.PowerShell.Archive in some environments. Final fallback:
+ * System.IO.Compression.ZipFile via powershell.
  */
 function extractZip(archivePath, destDir) {
-  // Use PowerShell on Windows for zip extraction
   if (os.platform() === "win32") {
+    try {
+      execSync(`tar -xf "${archivePath}" -C "${destDir}"`, { stdio: "pipe" });
+      return;
+    } catch (_) {
+      // continue to next strategy
+    }
+    try {
+      execSync(
+        `powershell -NoProfile -Command "Expand-Archive -Path '${archivePath}' -DestinationPath '${destDir}' -Force"`,
+        { stdio: "pipe" }
+      );
+      return;
+    } catch (_) {
+      // continue to next strategy
+    }
     execSync(
-      `powershell -Command "Expand-Archive -Path '${archivePath}' -DestinationPath '${destDir}' -Force"`,
+      `powershell -NoProfile -Command "Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('${archivePath}', '${destDir}')"`,
       { stdio: "pipe" }
     );
   } else {
