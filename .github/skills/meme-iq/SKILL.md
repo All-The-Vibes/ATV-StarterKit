@@ -1,10 +1,12 @@
 ---
-name: meme-generation
-description: This skill should be used when generating memes using the memegen.link API. It applies when creating memes from templates, adding text to meme images, or generating humor for PR descriptions, changelogs, and team communication. Triggers on "create a meme", "make a meme", "meme", "generate meme", "funny image for PR".
+name: meme-iq
+description: "memeIQ — AI-powered meme generation using the memegen.link API. Creates memes from templates, adds text to meme images, and generates humor for PR descriptions, changelogs, and team communication. Triggers on \"create a meme\", \"make a meme\", \"meme\", \"generate meme\", \"funny image for PR\"."
 argument-hint: "[topic or context for the meme]"
 ---
 
-# Meme Generation with memegen.link
+# memeIQ — Meme Generation with memegen.link
+
+> *Your AI meme sommelier — because every PR deserves a punchline.*
 
 Generate memes using the free, public memegen.link API. No API key, no auth, no config required.
 
