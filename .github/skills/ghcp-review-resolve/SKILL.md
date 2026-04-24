@@ -151,12 +151,15 @@ while :; do
             reviewThreads(first: 100, after: $after) {
               pageInfo { hasNextPage endCursor }
               nodes {
+                id
                 isResolved
                 isOutdated
+                viewerCanResolve
                 path
                 line
                 comments(last: 1) {
                   nodes {
+                    databaseId
                     author { login }
                     updatedAt
                   }
@@ -183,6 +186,7 @@ Notes on the shape:
 
 - `comments(last: 1)` returns the most recent comment in the thread, not the oldest (GraphQL default order on this connection is oldest-first, so `first: 1` would give the wrong record for any freshness check).
 - `commit { oid }` is intentionally **not** requested — it isn't reliably available on the review-comment node across schema versions. Freshness is derived from `isOutdated` (GitHub's own signal that HEAD has moved past the comment's anchor) instead of comparing commit SHAs by hand.
+- `id` (the thread-level node ID) and `viewerCanResolve` are captured on every thread so **Step 6.7** can invoke `resolveReviewThread` without re-querying. Persist these alongside the comment `databaseId` in the per-thread record (e.g., `comments_by_id.json`: `{ comment_databaseId: { threadId, viewerCanResolve, path, line } }`).
 
 Classify each Copilot-authored thread (author login matching `github-copilot[bot]` or `copilot-pull-request-reviewer[bot]`):
 
@@ -433,7 +437,104 @@ For each accepted finding, in order by file then line:
    ```
    The `in_reply_to` field is the GitHub-supported way to thread under an existing review comment. If that call fails (some older API versions), fall back to posting a new top-level PR comment that references the original comment URL.
 
-7. **Move on** to the next finding. Do not pause for user input between findings — the whole point is one-shot resolution. If something truly blocks progress (repo credentials, missing dependency), stop the whole pipeline and report.
+   **Body formatting gotcha:** if the reply body contains shell-special characters (`&&`, `$`, backticks, etc.), pass it via a variable with `-F body="$REPLY_BODY"` rather than `-f body='…'` — `-f` interprets the string and has bitten this skill before (see earlier session note on comment 3139049925). When in doubt, write the body to a temp file and use `-F body=@reply.txt`.
+
+7. **Resolve the thread (Step 6.7).** See the dedicated section below — this is a new guardrailed step that must run before moving on.
+
+8. **Move on** to the next finding. Do not pause for user input between findings — the whole point is one-shot resolution. If something truly blocks progress (repo credentials, missing dependency), stop the whole pipeline and report.
+
+## Step 6.7 — Resolve the review thread (guardrailed)
+
+After replying on a thread, mark it resolved on GitHub so the PR page reflects reality. This is gated by **five** checks; if **any** gate fails, skip resolution and record why. Never resolve a thread that hasn't been properly addressed.
+
+**Gate checklist** (all must be `true` to proceed):
+
+| Gate | Check |
+|------|-------|
+| G1. Adjudicated real | The finding was accepted in Step 4 as a real issue (not rejected / not a false positive). |
+| G2. Fix landed | A commit addressing the finding was pushed to the PR branch in this session (Steps 6.4–6.5). |
+| G3. Verified | Step 6.3 verification passed, OR the reply body explicitly documents the limitation ("not independently verified — review reply documents intent"). |
+| G4. Reply posted | Step 6.6 successfully posted a reply on the thread (non-error HTTP 201 and the reply body is what was intended). |
+| G5. Permission | `viewerCanResolve == true` on the thread node captured in Step 0g. If `false`, the auth token lacks `Pull requests: write` for this repo — do not attempt. |
+
+If any gate fails, log `"thread <threadId> not auto-resolved: gate <G#> failed — <reason>"` and skip to the next finding. **Manual human review decides those.**
+
+**Resolution call** (when all gates pass):
+
+```bash
+# $THREAD_ID comes from the Step 0g map (reviewThreads.nodes[].id)
+bash ${CLAUDE_PLUGIN_ROOT}/skills/resolve-pr-parallel/scripts/resolve-pr-thread "$THREAD_ID"
+```
+
+That helper wraps the GraphQL `resolveReviewThread` mutation:
+
+```graphql
+mutation($threadId: ID!) {
+  resolveReviewThread(input: { threadId: $threadId }) {
+    thread { id isResolved viewerCanResolve }
+  }
+}
+```
+
+**Post-conditions and error handling:**
+
+- On success, verify `isResolved == true` in the response. If the mutation returned `200 OK` but `isResolved == false`, treat it as a failure (don't assume).
+- **Idempotency:** re-resolving an already-resolved thread is treated as a no-op success by GitHub's API (community-observed; not formally documented). If you encounter a `GraphQL error: already resolved`, log it and continue — do not retry.
+- **On transient error** (HTTP 5xx, network timeout), retry **once** with 2s backoff. On repeated failure, leave the thread unresolved and record `"resolve failed for <threadId>: <error>"` in the Step 7 summary.
+- **Never** resolve a thread authored by someone other than the Copilot reviewer — this skill only adjudicates Copilot (and, when enabled, pr-review-toolkit) findings.
+
+**Why this is guardrailed:** auto-resolving threads changes reviewer-visible state. A false positive that gets fixed + resolved + replied-to is fine; a finding that was *rejected* but accidentally resolved hides a disagreement the PR author should see on the page. The five gates exist so resolution only happens when the record shows an end-to-end honest fix.
+
+## Step 7.0 — Tick off matching PR task-list items
+
+If the PR body contains a GitHub task list (`- [ ] …` / `- [x] …`), attempt to tick off items that a landed fix just completed. This closes the loop between "reviewer raised X" and "PR description says X is done."
+
+**Extract and match:**
+
+1. **Fetch the current body** (PR bodies have no optimistic-concurrency API, so re-fetch *immediately* before writing to minimize the clobber window):
+   ```bash
+   BODY="$(gh api "repos/{owner}/{repo}/pulls/$PR_NUMBER" --jq .body)"
+   ```
+2. **Locate task items.** Regex-extract `^(\s*)-\s+\[( |x|X)\]\s+(.+)$` grouped by line number. Only unticked items (`[ ]`) are candidates.
+3. **Match fixes to items** using a deterministic pipeline — **do not** jump to the LLM for every fix:
+   - **Pass A (normalized substring):** lowercase, strip punctuation, collapse whitespace. If the fix summary (commit title or reply body first sentence) normalized-contains the task item text normalized, it's a match.
+   - **Pass B (fuzzy):** `rapidfuzz.fuzz.token_set_ratio(fix_summary, task_item) >= 85`.
+   - **Pass C (LLM fallback, only for ambiguous cases):** if Passes A/B produced no match **and** the fix summary looks topically related (shared nouns), call an LLM with `temperature=0`, strict JSON output, and require `confidence >= 0.8` before accepting. Log every LLM call.
+   - **Never guess.** Unmatched fixes → log `"fix <commit_sha> did not match any PR task item — manual triage needed"` and continue. **Silent drops are forbidden.**
+
+**Update the body with a sentinel fence:**
+
+Wrap the skill's updates in an HTML-comment fence so re-runs can idempotently find and refresh the block without corrupting surrounding prose:
+
+```markdown
+<!-- BEGIN:ghcp-audit v1 -->
+<!-- machine-maintained by ghcp-review-resolve; do not edit between fences -->
+Ticked by ghcp-review-resolve on <ISO-8601 UTC>:
+- Copilot finding at `src/foo.ts:42` → commit <sha>
+- …
+<!-- END:ghcp-audit v1 -->
+```
+
+**Write safely:**
+
+1. **Size guard:** reject the write if the new body would exceed **60 KB** (safety margin below GitHub's ~64 KiB de-facto limit). Log and fall back to posting a top-level PR comment listing the ticks instead.
+2. **Normalize line endings** to `\n` before writing (GitHub normalizes CRLF→LF server-side, but be explicit).
+3. **Write via `gh pr edit`:**
+   ```bash
+   gh pr edit "$PR_NUMBER" --body "$NEW_BODY"
+   ```
+4. **Verify round-trip:** re-fetch the body and confirm the ticks + sentinel block are present. If verification fails, restore the original body and post a top-level comment instead.
+
+**Gates that skip Step 7.0:**
+
+- No task list in PR body → skip silently.
+- Body size >= 60 KB after update → skip and post a comment instead.
+- `gh pr edit` returns non-zero → skip and log.
+- Auth token lacks PR write permission → skip and log.
+
+Step 7.0 failures never block Step 7 — the final summary to the user still runs.
+
+## Step 7 — Final summary to the user
 
 ### Batching by file (optional optimization)
 
@@ -460,6 +561,8 @@ Produce a single summary message covering:
 - Reviewers expected vs. completed
 - Findings: total raised, total accepted, total rejected (with top reasons), any dropped as "not grounded in diff"
 - Fixes: what was changed, commit SHAs, any fixes that failed or were skipped
+- **Thread resolution (Step 6.7):** count of threads auto-resolved, plus any that failed a gate — list each with the gate that failed (e.g., `"thread T_abc not resolved: G5 viewerCanResolve=false"`).
+- **PR task-list ticking (Step 7.0):** count of task items ticked, the match method per tick (substring / fuzzy / LLM), and any unmatched fixes flagged for manual triage. If the body was too large or the write failed, say so and link to the fallback comment.
 - Explicit confirmation: **PR was not closed, approved, or merged.**
 - Remaining reviewer comments that were intentionally left unresolved, with a one-line reason each
 
