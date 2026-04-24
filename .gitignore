@@ -35,6 +35,15 @@ Thumbs.db
 # ATV observation logs (ephemeral)
 .atv/observations.jsonl
 
+# Local planning and session artifacts
+PRD.md
+PROGRESS.md
+.omc/
+
+# Local build/output artifacts
+atv-installer
+banner-block.txt
+
 # Node
 node_modules/
 

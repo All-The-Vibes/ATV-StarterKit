@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **memeIQ Easter Egg installer option** — guided installs now expose a `🥚 Easter Eggs` category with an opt-in `memeIQ` entry that scaffolds `.github/skills/meme-iq/SKILL.md` and `.github/agents/meme-iq.agent.md`.
+
+### Changed
+
+- **meme generation rebranded to memeIQ** — the repo skill and agent now use `meme-iq` naming and branding, and the installer templates ship the same memegen.link reference content.
+- **Local planning and session artifacts are ignored** — `PRD.md`, `PROGRESS.md`, `.omc/`, `atv-installer`, and `banner-block.txt` are now excluded from git so local work products do not leak into releases or PRs.
+
 ## [2.5.7] — 2026-04-15
 
 ### Added
