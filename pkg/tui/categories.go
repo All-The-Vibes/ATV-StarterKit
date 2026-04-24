@@ -49,6 +49,9 @@ var atvCategoryMapping = map[string][]CategorySkill{
 	gstack.CategoryGuidelines: {
 		{Label: "Karpathy Guidelines — think before coding, simplicity, surgical changes, goal-driven execution", Key: "core-skills:karpathy-guidelines", Source: "atv"},
 	},
+	gstack.CategoryEasterEgg: {
+		{Label: "memeIQ — AI-powered meme generation toolkit", Key: "easter-eggs:meme-iq", Source: "atv"},
+	},
 }
 
 // BuildCategoryGroups creates the full list of TUI category groups,
@@ -114,6 +117,8 @@ func categoryDescription(cat string, prereqs gstack.Prerequisites) string {
 		return "Capture learnings after shipping so the repo compounds team knowledge over time."
 	case gstack.CategoryGuidelines:
 		return "Behavioral guidelines that shape how Copilot approaches work: assumptions, simplicity, change scope, and verification."
+	case gstack.CategoryEasterEgg:
+		return "Hidden gems and fun extras. Because every good toolkit deserves a few surprises."
 	default:
 		return "Additional workflow capabilities for this repo."
 	}

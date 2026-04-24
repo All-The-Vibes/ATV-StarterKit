@@ -106,11 +106,19 @@ func BuildFilteredCatalogForPacks(packs []installstate.StackPack, primaryStack d
 			selectedSkillDirs[dir] = true
 		}
 	}
+	if layerSet["easter-eggs"] {
+		for _, dir := range easterEggSkillDirectories {
+			selectedSkillDirs[dir] = true
+		}
+	}
 	if len(selectedSkillDirs) > 0 {
 		catalog = append(catalog, skillComponents(selectedSkillDirs)...)
 	}
 	if layerSet["universal-agents"] || layerSet["stack-agents"] {
 		catalog = append(catalog, agentsForPacks(normalizedPacks, layerSet["universal-agents"], layerSet["stack-agents"])...)
+	}
+	if layerSet["easter-eggs"] {
+		catalog = append(catalog, easterEggAgents()...)
 	}
 	if layerSet["file-instructions"] {
 		catalog = append(catalog, fileInstructionsForPacks(normalizedPacks)...)
@@ -185,6 +193,14 @@ var orchestratorSkillDirectories = []string{
 	"resolve_todo_parallel",
 	"slfg",
 	"test-browser",
+}
+
+var easterEggSkillDirectories = []string{
+	"meme-iq",
+}
+
+var easterEggAgentFiles = map[string]bool{
+	"meme-iq.agent.md": true,
 }
 
 func systemInstructions(stack detect.Stack) []Component {
@@ -262,6 +278,11 @@ func agentsForPacks(packs []installstate.StackPack, includeUniversal bool, inclu
 		content, _ := templateFS.ReadFile(path)
 		relPath := strings.TrimPrefix(path, "templates/agents/")
 		destPath := filepath.Join(".github", "agents", relPath)
+
+		// Skip easter-egg agents; they're included separately when easter-eggs layer is selected
+		if easterEggAgentFiles[filepath.Base(relPath)] {
+			return nil
+		}
 
 		if isStackSpecific(relPath) {
 			if !includeStackSpecific {
@@ -361,4 +382,19 @@ var stackAgents = map[string]detect.Stack{
 func isStackSpecific(filename string) bool {
 	_, ok := stackAgents[filepath.Base(filename)]
 	return ok
+}
+
+// easterEggAgents returns agent components for easter-egg features.
+func easterEggAgents() []Component {
+	var comps []Component
+	for filename := range easterEggAgentFiles {
+		path := "templates/agents/" + filename
+		content, err := templateFS.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		destPath := filepath.Join(".github", "agents", filename)
+		comps = append(comps, Component{Path: destPath, Content: content, HookType: 5})
+	}
+	return comps
 }

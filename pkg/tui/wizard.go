@@ -35,6 +35,7 @@ const (
 	LayerFileInstructions    = "file-instructions"
 	LayerDocsStructure       = "docs-structure"
 	LayerLocalConfig         = "local-config"
+	LayerEasterEggs          = "easter-eggs"
 )
 
 // AllLayers returns all available component layer keys.
@@ -50,6 +51,7 @@ func AllLayers() []string {
 		LayerSetupSteps,
 		LayerFileInstructions,
 		LayerDocsStructure,
+		LayerEasterEggs,
 	}
 }
 
@@ -279,6 +281,10 @@ func defaultSelectedSkillKeys(group CategoryGroup, presetGstackSet map[string]bo
 			if presetGstackSet[dir] && (!skill.RequiresBun || prereqs.HasBun) {
 				selected = append(selected, skill.Key)
 			}
+			continue
+		}
+		// Easter egg skills are opt-in; don't preselect them
+		if strings.HasPrefix(skill.Key, "easter-eggs:") {
 			continue
 		}
 		selected = append(selected, skill.Key)
