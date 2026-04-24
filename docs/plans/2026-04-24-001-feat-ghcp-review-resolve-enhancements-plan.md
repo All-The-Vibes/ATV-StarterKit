@@ -134,7 +134,7 @@ Guardrails on resolution:
 
 - **Only resolve a thread if** (all five must hold):
   1. Its finding was accepted by the adjudicator (Step 4), AND
-  2. The fix commit was pushed successfully (Step 6.5, the existing push step), AND
+  2. The fix commit was pushed successfully (the existing push step in Step 6), AND
   3. The reply was posted successfully (Step 6.6), AND
   4. Verification in Step 6.3 succeeded (tests/lint passed OR the finding was a pure-prose / docs finding), AND
   5. **`thread.viewerCanResolve == true`** — query this in the 0g `reviewThreads` fetch so we can skip the mutation (and log the reason) when the running identity lacks resolve permissions. This avoids a noisy `FORBIDDEN` GraphQL error on every run when the pipeline is invoked by a user without PR-write access.
@@ -282,8 +282,8 @@ Rules:
 
 ## System-Wide Impact
 
-- **Interaction graph:** `ghcp-review-resolve` Step 1b → `Skill(pr-review-toolkit:review-pr)` → 6 sub-agents → PR review comments. Step 6 → `resolve-pr-thread` script → `resolveReviewThread` GraphQL mutation. Step 7.0 → `gh pr edit --body-file` → PR body update event.
-- **Error propagation:** Thread-resolution failures are logged and ignored (best-effort). Body-update failures abort 7.0 only; summary still runs. Agent failures inside `pr-review-toolkit` surface as "reviewer missing" in Step 2's completion check and degrade gracefully to whichever reviewer did complete.
+- **Interaction graph:** `ghcp-review-resolve` Step 1b → `Skill(pr-review-toolkit)` → 6 sub-agents → PR review comments. Step 6.7 → `gh api graphql` `resolveReviewThread` mutation. Step 6.8 → `gh pr edit --body-file` → PR body update event.
+- **Error propagation:** Thread-resolution failures are logged and ignored (best-effort). Body-update failures abort 6.8 only; summary still runs. Agent failures inside `pr-review-toolkit` surface as "reviewer missing" in Step 2's completion check and degrade gracefully to whichever reviewer did complete.
 - **State lifecycle risks:** A mid-run abort between commit-push and thread-resolve leaves an unresolved thread with a posted fix reply — human-visible as "code pushed, human can resolve". Not a regression; matches today's behavior.
 - **API surface parity:** `resolve-pr-parallel` already ships `resolve-pr-thread` and `get-pr-comments`. Reuse both; don't duplicate the GraphQL logic inside `ghcp-review-resolve`.
 - **Integration test scenarios:**
@@ -308,7 +308,7 @@ Rules:
 ### B — Resolve Copilot threads
 
 - [ ] The 0g GraphQL query selects thread `id` **and `viewerCanResolve`**, and both are carried through to per-finding records.
-- [ ] `ghcp-review-resolve` SKILL.md has a new Step 6.7 titled "Resolve thread" describing the five-gate guardrail (accepted + pushed + replied + verified + viewerCanResolve) before calling `resolve-pr-thread`.
+- [ ] `ghcp-review-resolve` SKILL.md has a new Step 6.7 titled "Resolve thread" describing the five-gate guardrail (accepted + pushed + replied + verified + viewerCanResolve) before issuing the `resolveReviewThread` GraphQL mutation.
 - [ ] After a successful fix loop on a test PR, the addressed threads show `isResolved=true` in `gh api graphql` output.
 - [ ] Findings that are skipped, reverted, or unverifiable leave their threads **open**.
 - [ ] When `viewerCanResolve` is false, the skill logs a permission-skip without attempting the mutation (no `FORBIDDEN` error in logs).
@@ -316,7 +316,7 @@ Rules:
 
 ### C — Tick PR task-list items
 
-- [ ] `ghcp-review-resolve` SKILL.md has a new Step 7.0 "Update PR body" before the existing Step 7 summary.
+- [ ] `ghcp-review-resolve` SKILL.md has a new Step 6.8 "Update PR body" before the existing Step 7 summary.
 - [ ] Running the skill on a test PR whose body contains `- [ ] Fix <foo>` lines flips matched items to `- [x] Fix <foo>` and leaves the rest of the body unchanged.
 - [ ] Matching uses the deterministic-first strategy: normalized substring → rapidfuzz `token_set_ratio ≥ 85` → LLM fallback for ambiguous cases only.
 - [ ] Unmatched findings appear in the audit block under "Unlinked (needs manual triage)" — never silently dropped.

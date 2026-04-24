@@ -1,6 +1,6 @@
 ---
 name: ghcp-review-resolve
-description: Request a GitHub Copilot review AND a pr-review-toolkit review on the current PR, wait for both, adjudicate their findings with an independent subagent, post inline PR comments for verified bugs/fixes only, then run a tight inline fix-and-reply loop per comment (test, commit, reply on thread). Surfaces merge conflicts and prior-review state as explicit preflight output so the skill stops cleanly instead of fighting reality. Use whenever the user invokes /ghcp-review-resolve, asks to "run copilot review and resolve", asks to "review and fix my PR with copilot", asks for a "dual review and fix pass", or wants automated bot-review triage and remediation on a pull request they just opened. Does NOT close, approve, or merge the PR.
+description: Request a GitHub Copilot review AND a pr-review-toolkit review on the current PR, wait for both, adjudicate their findings with an independent subagent, post inline PR comments for verified bugs/fixes only, then run a tight inline fix-and-reply loop per comment (test, commit, reply on thread). After each verified fix lands, auto-resolves the matching Copilot review thread via GraphQL and ticks the corresponding PR-body task-list item. Surfaces merge conflicts and prior-review state as explicit preflight output so the skill stops cleanly instead of fighting reality. Use whenever the user invokes /ghcp-review-resolve, asks to "run copilot review and resolve", asks to "review and fix my PR with copilot", asks for a "dual review and fix pass", or wants automated bot-review triage and remediation on a pull request they just opened. Does NOT close, approve, or merge the PR.
 ---
 
 # ghcp-review-resolve
@@ -282,7 +282,7 @@ If `"copilot" ∉ EXPECTED_REVIEWERS` (unavailable or prior-resolved), skip this
 Always runs (pr-review-toolkit is always in `EXPECTED_REVIEWERS`):
 
 ```
-Skill(skill="pr-review-toolkit:review-pr", args="<PR URL or #PR_NUMBER>")
+Skill(skill="pr-review-toolkit", args="<PR URL or #PR_NUMBER>")
 ```
 
 The pr-review-toolkit review typically posts its findings as PR review comments. Capture any IDs/markers it returns so you can distinguish its comments later.
@@ -423,10 +423,11 @@ For each accepted finding, in order by file then line:
    ```
    One commit per finding. Small commits are easier to revert if the reviewer disagrees with the fix.
 
-5. **Push** after each commit (so the reply comment can point at a real pushed SHA):
+5. **Push** after each commit (so the reply comment can point at a real pushed SHA). Use `--force-with-lease` so a parallel push from a teammate or CI is detected rather than silently clobbered:
    ```bash
-   git push
+   git push --force-with-lease
    ```
+   If the push is rejected because the remote moved, do **not** retry blindly. Re-fetch `PR_HEAD_SHA` and stop the fix loop — see Guardrails. The user decides whether to rebase and restart.
 
 6. **Reply** on the specific review comment thread with what changed and why:
    ```bash
@@ -461,12 +462,7 @@ If any gate fails, log `"thread <threadId> not auto-resolved: gate <G#> failed �
 
 **Resolution call** (when all gates pass):
 
-```bash
-# $THREAD_ID comes from the Step 0g map (reviewThreads.nodes[].id)
-bash ${CLAUDE_PLUGIN_ROOT}/skills/resolve-pr-parallel/scripts/resolve-pr-thread "$THREAD_ID"
-```
-
-That helper wraps the GraphQL `resolveReviewThread` mutation:
+Call the GraphQL `resolveReviewThread` mutation directly via `gh api graphql`. `$THREAD_ID` comes from the Step 0g map (`reviewThreads.nodes[].id`):
 
 ```graphql
 mutation($threadId: ID!) {
@@ -485,7 +481,7 @@ mutation($threadId: ID!) {
 
 **Why this is guardrailed:** auto-resolving threads changes reviewer-visible state. A false positive that gets fixed + resolved + replied-to is fine; a finding that was *rejected* but accidentally resolved hides a disagreement the PR author should see on the page. The five gates exist so resolution only happens when the record shows an end-to-end honest fix.
 
-## Step 7.0 — Tick off matching PR task-list items
+## Step 6.8 — Tick off matching PR task-list items
 
 If the PR body contains a GitHub task list (`- [ ] …` / `- [x] …`), attempt to tick off items that a landed fix just completed. This closes the loop between "reviewer raised X" and "PR description says X is done."
 
@@ -498,7 +494,7 @@ If the PR body contains a GitHub task list (`- [ ] …` / `- [x] …`), attempt 
 2. **Locate task items.** Regex-extract `^(\s*)-\s+\[( |x|X)\]\s+(.+)$` grouped by line number. Only unticked items (`[ ]`) are candidates.
 3. **Match fixes to items** using a deterministic pipeline — **do not** jump to the LLM for every fix:
    - **Pass A (normalized substring):** lowercase, strip punctuation, collapse whitespace. If the fix summary (commit title or reply body first sentence) normalized-contains the task item text normalized, it's a match.
-   - **Pass B (fuzzy):** `rapidfuzz.fuzz.token_set_ratio(fix_summary, task_item) >= 85`.
+   - **Pass B (fuzzy):** tokenize both strings (lowercase, strip punctuation, collapse whitespace), compute a token-overlap / token-set ratio, and accept the match at ≥0.85. Implementation may use any available fuzzy-matching library (e.g., Python `rapidfuzz.fuzz.token_set_ratio`, JS `fast-levenshtein`, Ruby `string-similarity`) or a hand-rolled equivalent — the specific library is not part of the contract.
    - **Pass C (LLM fallback, only for ambiguous cases):** if Passes A/B produced no match **and** the fix summary looks topically related (shared nouns), call an LLM with `temperature=0`, strict JSON output, and require `confidence >= 0.8` before accepting. Log every LLM call.
    - **Never guess.** Unmatched fixes → log `"fix <commit_sha> did not match any PR task item — manual triage needed"` and continue. **Silent drops are forbidden.**
 
@@ -532,9 +528,9 @@ Ticked by ghcp-review-resolve on <ISO-8601 UTC>:
 - `gh pr edit` returns non-zero → skip and log.
 - Auth token lacks PR write permission → skip and log.
 
-Step 7.0 failures never block Step 7 — the final summary to the user still runs.
+Step 6.8 failures never block Step 7 — the final summary to the user still runs.
 
-## Step 7 — Final summary to the user
+## Step 6.9 — Appendix: batching and per-language verification
 
 ### Batching by file (optional optimization)
 
@@ -592,7 +588,7 @@ User: /ghcp-review-resolve
     Prior Copilot resolved: no
     Decision: proceed
 → Requesting Copilot review... ok
-→ Invoking pr-review-toolkit:review-pr on PR #42... ok
+→ Invoking pr-review-toolkit on PR #42... ok
 → Polling (30s, max 10min)...
   t=30s: copilot pending, pr-toolkit done
   t=60s: copilot done
@@ -644,7 +640,7 @@ User: /ghcp-review-resolve
     Copilot available: no — 422/not a collaborator
     Prior Copilot resolved: n/a
     Decision: proceed (single-reviewer mode, pr-review-toolkit only)
-→ Invoking pr-review-toolkit:review-pr on PR #17... ok
+→ Invoking pr-review-toolkit on PR #17... ok
 → Polling (30s, max 10min)... t=45s: pr-toolkit done
 → 8 findings (pr-toolkit only; no overlap signal)
 → Adjudicator subagent verifying [diff mode: per-file]... read 11/42 files

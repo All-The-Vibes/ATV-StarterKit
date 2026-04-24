@@ -1,3 +1,10 @@
+---
+name: pr-review-toolkit
+description: Comprehensive multi-agent PR review covering code quality, simplicity, comments, tests, silent failures, and type design. Use when reviewing a PR beyond what a single-pass review catches, or when invoked by `ghcp-review-resolve` as the second reviewer alongside GitHub Copilot.
+argument-hint: "[review-aspects]"
+license: Apache-2.0 — see ./LICENSE
+---
+
 <!--
 Portions of this file are derived from anthropics/claude-plugins-official
 (https://github.com/anthropics/claude-plugins-official/tree/main/plugins/pr-review-toolkit),
@@ -12,12 +19,6 @@ SKILL.md filename). Agent references updated to this repo's renamed agents
 Invocation paths updated to match Copilot CLI's `Skill(...)` syntax.
 -->
 
----
-name: pr-review-toolkit
-description: Comprehensive multi-agent PR review covering code quality, simplicity, comments, tests, silent failures, and type design. Use when reviewing a PR beyond what a single-pass review catches, or when invoked by `ghcp-review-resolve` as the second reviewer alongside GitHub Copilot.
-argument-hint: "[review-aspects]"
-license: Apache-2.0 — see ./LICENSE
----
 
 # Comprehensive PR Review
 
@@ -45,7 +46,7 @@ Run a comprehensive pull request review using multiple specialized agents, each 
    | `all` | (all of the above) | Default — run every applicable review |
 
 3. **Identify Changed Files**
-   - `git diff --name-only` for unstaged changes, or use the PR diff if one already exists (`gh pr view --json files`).
+   - `git diff --name-only` for unstaged changes, or use the PR diff if one already exists (`gh pr view --json files --jq '.files[].path'` for a flat path list).
    - Map file types to applicable reviews.
 
 4. **Determine Applicable Reviews**
