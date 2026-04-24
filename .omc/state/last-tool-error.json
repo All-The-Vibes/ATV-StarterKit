@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd C:/Users/shyamsridhar/code/ghcp-installer && head -1 VERSION; ls LICENSE* 2>/dev/null\",\"description\":\"Check version and license files\"}",
+  "error": "Exit code 2\n2.5.7",
+  "timestamp": "2026-04-16T03:06:37.485Z",
+  "retry_count": 1
+}
