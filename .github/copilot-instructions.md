@@ -16,6 +16,10 @@ This project uses the ATV (Agentic Tool & Workflow) Starter Kit.
 - `/takeoff` — Prioritized backlog briefing to start a session
 - `/land` — Commit → push → PR → handoff to finish a session (never merges)
 
+### Session continuity
+
+At session start, if `.remember/now.md` exists in the repo, read it before responding — it contains a handoff from the previous session (branch, PR, accomplished, next steps, blockers). Treat it as authoritative context for continuing work. The `/land` skill writes this file as part of its checklist.
+
 ## Documentation Structure
 
 - `docs/plans/` — Implementation plans (living documents with checkboxes)

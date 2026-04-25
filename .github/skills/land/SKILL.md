@@ -33,7 +33,7 @@ Review what was worked on this session. Capture anything that's unfinished, defe
     backlog task create "<title>" --description "<context>"
   fi
   ```
-- Otherwise, gather remaining work into a short handoff list and surface it at Step 9.
+- Otherwise, gather remaining work into a short handoff list and surface it at Step 10.
 
 Skip silently if nothing remains.
 
@@ -68,7 +68,7 @@ fi
 # Rust:    [ -f Cargo.toml ] && cargo build && cargo test
 ```
 
-If any gate fails (non-zero exit), **halt the routine, fix the failure, and re-run from Step 2 before proceeding to Step 4**. Do not append `|| true` to swallow failures — a broken build does not ship, and a swallowed failure would falsely emit the success banner at Step 10.
+If any gate fails (non-zero exit), **halt the routine, fix the failure, and re-run from Step 2 before proceeding to Step 4**. Do not append `|| true` to swallow failures — a broken build does not ship, and a swallowed failure would falsely emit the success banner at Step 11.
 
 If no code changed (docs-only, config-only, planning-only sessions), skip quality gates and note that in the handoff.
 
@@ -156,7 +156,7 @@ git stash list                     # check for session-era stashes
 ```bash
 DELETED_RL=$(find . -name ralph-loop.local.md -path '*/.claude/*' -print -delete 2>/dev/null || true)
 if [ -n "$DELETED_RL" ]; then
-  echo "ralph-loop state files removed (surface in Step 9 handoff under blockers/gotchas):"
+  echo "ralph-loop state files removed (surface in Step 10 handoff under blockers/gotchas):"
   echo "$DELETED_RL"
 fi
 ```
@@ -179,7 +179,36 @@ fi
 
 If either check fails, loop back and fix. Do not hand off a dirty or unpushed tree.
 
-### Step 9: Hand off
+### Step 9: Capture session state
+
+Persist a written handoff to `.remember/now.md` so the next session (Copilot, Claude, or human) can resume with full context — not just the verbal summary in Step 10. GitHub Copilot CLI reads `.github/copilot-instructions.md` on every session start, and the project-level instruction tells it to read `.remember/now.md` when it exists. This makes the handoff durable across sessions without requiring any tool-specific skill.
+
+Run unconditionally — even on docs-only or planning-only sessions. The buffer is cheap and the recovery value is high. Idempotent: overwrites the previous `now.md` each time.
+
+```bash
+mkdir -p .remember
+branch=$(git branch --show-current 2>/dev/null || echo "(unknown)")
+pr_url=$(gh pr view --json url -q .url 2>/dev/null || echo "(no PR)")
+cat > .remember/now.md <<EOF
+# Session handoff — $(date +%Y-%m-%d)
+
+**Branch:** $branch
+**PR:** $pr_url
+
+## Accomplished
+- (fill in: what shipped this session)
+
+## Next up
+- (fill in: what's queued for the next session)
+
+## Blockers / gotchas
+- (fill in: anything waiting on a decision or that tripped us up)
+EOF
+```
+
+After writing the file, replace the `(fill in: ...)` placeholders with the actual session content before moving on. The shell snippet creates the structure; the agent fills the substance.
+
+### Step 10: Hand off
 
 Provide a concise summary for the next session:
 
@@ -191,7 +220,7 @@ Provide a concise summary for the next session:
 
 Keep it scannable. The next session (human or agent) should be able to take off from this handoff without re-reading the whole transcript.
 
-### Step 10: Final banner
+### Step 11: Final banner
 
 After the handoff summary, emit a single final line:
 
