@@ -6,9 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.5.8] — 2026-04-25
+
 ### Added
 
+- **`/atv-security` skill** — agentic config security auditor adapting [AgentShield](https://github.com/affaan-m/agentshield)'s rule taxonomy. 30 rules across 5 categories (Secrets, Permissions, Hooks, MCP Servers, Agents & Skills). Two modes: `report` (default, read-only) and `fix` (interactive auto-fix for SEC-01..05, MCP-02, MCP-04 with snapshot+confirm+validate+rollback). Auto-persists results to `docs/security/YYYY-MM-DD-security-report.md` with marker-delimited sections.
+- **`/cso` skill** — Chief Security Officer skill scanning application source code for OWASP Top 10 (2021) vulnerabilities and producing a STRIDE threat model. Auto-detects Node.js/TS, Python, Ruby, Go, .NET, Java. Upserts into the same shared security report file as `/atv-security`.
+- **Installer wiring for `/atv-security` and `/cso`** — both skills are now scaffolded by the guided installer and surfaced in TUI customize mode. Listed under Available Workflows in all instruction templates (general, python, rails, typescript).
 - **memeIQ Easter Egg installer option** — guided installs now expose a `🥚 Easter Eggs` category with an opt-in `memeIQ` entry that scaffolds `.github/skills/meme-iq/SKILL.md` and `.github/agents/meme-iq.agent.md`.
+- **Land + takeoff skills in `--guided` install** — guided installer now includes the `land` and `takeoff` skills.
 
 ### Changed
 
