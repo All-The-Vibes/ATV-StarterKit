@@ -75,6 +75,9 @@ var ProPreset = Preset{
 		LayerSetupSteps,
 		LayerFileInstructions,
 		LayerDocsStructure,
+		// Pro adds the workflow-helper layers so users get git/PR helpers,
+		// onboarding/skill-creator/reproduce-bug, and the todo-CLI suite.
+		LayerDevTools,
 	},
 	GstackDirs: []string{
 		"office-hours", "plan-ceo-review", "plan-eng-review", "plan-design-review",
@@ -113,6 +116,10 @@ var FullPreset = Preset{
 		LayerSetupSteps,
 		LayerFileInstructions,
 		LayerDocsStructure,
+		// Full pulls in every shippable skill layer.
+		LayerDevTools,
+		LayerStyleSkills,
+		LayerMediaSkills,
 	},
 	EnableGstackRuntime: true,
 	GstackDirs:          allGstackDirs(),

@@ -64,11 +64,27 @@ func WriteAll(targetDir string, catalog []Component) []WriteResult {
 			continue
 		}
 
-		result := writeIfNotExists(destPath, comp.Path, comp.Content)
+		mode := os.FileMode(0644)
+		if isExecutableScript(comp.Path) {
+			mode = 0755
+		}
+		result := writeIfNotExists(destPath, comp.Path, comp.Content, mode)
 		results = append(results, result)
 	}
 
 	return results
+}
+
+// isExecutableScript returns true for paths whose embedded content is meant
+// to run as an executable (shell or python script under a skill's scripts/
+// directory). go:embed strips Unix mode bits, so the install pipeline must
+// re-apply 0755 for these files explicitly.
+func isExecutableScript(relPath string) bool {
+	switch filepath.Ext(relPath) {
+	case ".sh", ".py", ".rb", ".bash", ".zsh":
+		return true
+	}
+	return false
 }
 
 // SummarizeResults returns aggregate counts for a scaffold write batch.
@@ -139,11 +155,11 @@ func ensureDir(fullPath, relPath string) WriteResult {
 	return WriteResult{Path: relPath, Status: StatusDirCreated}
 }
 
-func writeIfNotExists(fullPath, relPath string, content []byte) WriteResult {
+func writeIfNotExists(fullPath, relPath string, content []byte, mode os.FileMode) WriteResult {
 	if _, err := os.Stat(fullPath); err == nil {
 		return WriteResult{Path: relPath, Status: StatusSkipped}
 	}
-	if err := os.WriteFile(fullPath, content, 0644); err != nil {
+	if err := os.WriteFile(fullPath, content, mode); err != nil {
 		fmt.Fprintf(os.Stderr, "  ❌ Failed to write %s: %v\n", relPath, err)
 		return WriteResult{Path: relPath, Status: StatusFailed, Error: err.Error()}
 	}

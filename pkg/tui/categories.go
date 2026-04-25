@@ -46,6 +46,13 @@ var atvCategoryMapping = map[string][]CategorySkill{
 		{Label: "CE Compound — document solutions", Key: "core-skills:ce-compound", Source: "atv"},
 		{Label: "CE Compound Refresh — refresh documented solutions", Key: "core-skills:ce-compound-refresh", Source: "atv"},
 		{Label: "Land — commit, push, and open a PR at session end", Key: "core-skills:land", Source: "atv"},
+		// dev-tools layer — git/PR helpers and skill-creator
+		{Label: "ghcp-review-resolve — dual Copilot + adversarial PR review and inline fix", Key: "dev-tools:ghcp-review-resolve", Source: "atv"},
+		{Label: "git-commit — value-communicating commit message", Key: "dev-tools:git-commit", Source: "atv"},
+		{Label: "git-commit-push-pr — one-shot commit + push + PR", Key: "dev-tools:git-commit-push-pr", Source: "atv"},
+		{Label: "git-worktree — manage parallel-development worktrees", Key: "dev-tools:git-worktree", Source: "atv"},
+		{Label: "git-clean-gone-branches — prune local branches whose remote is gone", Key: "dev-tools:git-clean-gone-branches", Source: "atv"},
+		{Label: "changelog — generate engaging changelogs from merged PRs", Key: "dev-tools:changelog", Source: "atv"},
 	},
 	gstack.CategoryQATesting: {
 		{Label: "agent-browser — real browser automation with screenshots and form fills", Key: "agent-browser", Source: "atv"},
@@ -53,6 +60,25 @@ var atvCategoryMapping = map[string][]CategorySkill{
 	gstack.CategoryGuidelines: {
 		{Label: "Karpathy Guidelines — think before coding, simplicity, surgical changes, goal-driven execution", Key: "core-skills:karpathy-guidelines", Source: "atv"},
 		{Label: "Autoresearch — autonomous experiment loop: define goal + metric, agent iterates", Key: "core-skills:autoresearch", Source: "atv"},
+		// style-skills layer
+		{Label: "DHH Rails Style — opinionated 37signals Rails patterns", Key: "style-skills:dhh-rails-style", Source: "atv"},
+		{Label: "Andrew Kane gem-writer — clean Ruby gem patterns", Key: "style-skills:andrew-kane-gem-writer", Source: "atv"},
+		{Label: "DSPy.rb — type-safe LLM applications in Ruby", Key: "style-skills:dspy-ruby", Source: "atv"},
+		{Label: "Every style editor — line-by-line copy-edit per Every's style guide", Key: "style-skills:every-style-editor", Source: "atv"},
+		{Label: "Frontend design — distinctive UIs, anti-AI-slop", Key: "style-skills:frontend-design", Source: "atv"},
+	},
+	gstack.CategoryDebugging: {
+		// dev-tools layer — bug investigation and meta-skill creation
+		{Label: "reproduce-bug — systematically reproduce and investigate a bug", Key: "dev-tools:reproduce-bug", Source: "atv"},
+		{Label: "skill-creator — create or edit a SKILL.md following conventions", Key: "dev-tools:skill-creator", Source: "atv"},
+		{Label: "onboarding — generate ONBOARDING.md for new contributors", Key: "dev-tools:onboarding", Source: "atv"},
+		{Label: "todo-create — create durable work items", Key: "dev-tools:todo-create", Source: "atv"},
+		{Label: "todo-resolve — batch-resolve approved todos", Key: "dev-tools:todo-resolve", Source: "atv"},
+		{Label: "todo-triage — review and approve pending todos", Key: "dev-tools:todo-triage", Source: "atv"},
+		// media-skills layer — media + cloud storage helpers
+		{Label: "gemini-imagegen — Gemini Nano Banana Pro image generation", Key: "media-skills:gemini-imagegen", Source: "atv"},
+		{Label: "proof — markdown collaboration via proofeditor.ai", Key: "media-skills:proof", Source: "atv"},
+		{Label: "rclone — upload/sync files across cloud storage providers", Key: "media-skills:rclone", Source: "atv"},
 	},
 	gstack.CategoryEasterEgg: {
 		{Label: "memeIQ — AI-powered meme generation toolkit", Key: "easter-eggs:meme-iq", Source: "atv"},
