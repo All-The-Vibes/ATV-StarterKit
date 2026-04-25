@@ -59,6 +59,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Added
 
 - **memeIQ Easter Egg installer option** — guided installs now expose a `🥚 Easter Eggs` category with an opt-in `memeIQ` entry that scaffolds `.github/skills/meme-iq/SKILL.md` and `.github/agents/meme-iq.agent.md`.
+- **Three new skill layers in `--guided` install** — `dev-tools`, `style-skills`, and `media-skills`. Surfaces 21 skills that previously dogfooded the repo but were never reachable from the installer. Net new for users: `agent-native-architecture`, `andrew-kane-gem-writer`, `changelog`, `dhh-rails-style`, `dspy-ruby`, `every-style-editor`, `frontend-design`, `gemini-imagegen`, `ghcp-review-resolve`, `git-clean-gone-branches`, `git-commit`, `git-commit-push-pr`, `git-worktree`, `onboarding`, `proof`, `rclone`, `reproduce-bug`, `skill-creator`, `todo-create`, `todo-resolve`, `todo-triage`. (`agent-native-architecture` joined `core-skills`; the rest are split across the three new layers.)
+- **`dogfoodOnly` parity allow-list** — replaces the catch-all `pendingMirror` block in `pkg/scaffold/parity_test.go`. Each entry carries a one-line rationale for why the skill is deliberately repo-local (CE-internal, beta, iOS-only, etc.).
 
 ### Notes
 
@@ -69,6 +71,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - **`claude-permissions-optimizer` skill** — ATV-starterkit is a GitHub Copilot harness; the optimizer's scripts read `~/.claude/settings.json` and manage Claude Code's permission allowlist, which has no Copilot equivalent. Removed from `.github/skills/`, `pkg/scaffold/templates/skills/`, `orchestratorSkillDirectories` in `pkg/scaffold/catalog.go`, and the shipping category in `pkg/tui/categories.go`. Users who want this skill can install it directly from upstream Compound Engineering for their personal `~/.claude/` config.
 - **PR #28 (`feat(land): sweep stale ralph-loop state files`) closed unmerged** — the proposed `find . -name ralph-loop.local.md -path '*/.claude/*' -delete` block in the `land` skill's Step 7 cleanup was Claude-Code-specific (the `.claude/` directory and ralph-loop's stop-hook replay are both Claude Code mechanisms) and produced no value in a Copilot-only installation.
+- **12 deprecated / duplicated dogfood-only skills** — `agent-browser` (already installed via the upstream Vercel project), `create-agent-skill`, `create-agent-skills`, `generate_command` (all superseded by `skill-creator`), `report-bug` (CE-only), `resolve-pr-parallel`, `resolve_parallel` (superseded by `ghcp-review-resolve` / `resolve_todo_parallel`), and the five `workflows-*` aliases (`workflows-brainstorm`, `workflows-compound`, `workflows-plan`, `workflows-review`, `workflows-work`) which all carried `[DEPRECATED] Use /ce:* instead`. Cleared from `.github/skills/` to match the slim, opinionated installer surface.
 
 ## [2.5.7] — 2026-04-15
 

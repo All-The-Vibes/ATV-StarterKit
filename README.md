@@ -205,6 +205,17 @@ The guided installer (`--guided`) walks you through four screens:
 
 **3. Customize** — Power users can drill into category-grouped multi-select. Beginners skip straight to install.
 
+The customize screen exposes opt-in skill layers grouped by intent:
+
+| Layer | Contents |
+|---|---|
+| **`core-skills`** | Planning, lifecycle, learning, quality, security, behavioral guidelines |
+| **`orchestrators`** | LFG, SLFG, ralph-loop, feature-video, test-browser |
+| **`dev-tools`** | git-worktree, git-commit / git-commit-push-pr, ghcp-review-resolve, onboarding, reproduce-bug, skill-creator, todo-create / -resolve / -triage, changelog, git-clean-gone-branches |
+| **`style-skills`** | dhh-rails-style, andrew-kane-gem-writer, dspy-ruby, every-style-editor, frontend-design |
+| **`media-skills`** | gemini-imagegen, proof, rclone |
+| **`easter-eggs`** | memeIQ |
+
 **4. Install + Summary** — Real-time progress with structured telemetry, then actionable next steps.
 
 ```text

@@ -111,6 +111,21 @@ func BuildFilteredCatalogForPacks(packs []installstate.StackPack, primaryStack d
 			selectedSkillDirs[dir] = true
 		}
 	}
+	if layerSet["dev-tools"] {
+		for _, dir := range devToolsSkillDirectories {
+			selectedSkillDirs[dir] = true
+		}
+	}
+	if layerSet["style-skills"] {
+		for _, dir := range styleSkillDirectories {
+			selectedSkillDirs[dir] = true
+		}
+	}
+	if layerSet["media-skills"] {
+		for _, dir := range mediaSkillDirectories {
+			selectedSkillDirs[dir] = true
+		}
+	}
 	if len(selectedSkillDirs) > 0 {
 		catalog = append(catalog, skillComponents(selectedSkillDirs)...)
 	}
@@ -190,6 +205,44 @@ var coreSkillDirectories = []string{
 	"autoresearch",
 	// Security
 	"atv-security",
+	// Agent-native architecture (CE upstream)
+	"agent-native-architecture",
+}
+
+// devToolsSkillDirectories: developer workflow helpers (git, PR review,
+// onboarding, todo tracking, skill scaffolding, bug reproduction).
+// Surfaced via the --layers dev-tools flag in --guided mode.
+var devToolsSkillDirectories = []string{
+	"changelog",
+	"ghcp-review-resolve",
+	"git-clean-gone-branches",
+	"git-commit",
+	"git-commit-push-pr",
+	"git-worktree",
+	"onboarding",
+	"reproduce-bug",
+	"skill-creator",
+	"todo-create",
+	"todo-resolve",
+	"todo-triage",
+}
+
+// styleSkillDirectories: opinionated coding/writing style guides.
+// Surfaced via the --layers style-skills flag in --guided mode.
+var styleSkillDirectories = []string{
+	"andrew-kane-gem-writer",
+	"dhh-rails-style",
+	"dspy-ruby",
+	"every-style-editor",
+	"frontend-design",
+}
+
+// mediaSkillDirectories: media + cloud-storage helpers (image gen, doc
+// collaboration, file sync). Surfaced via the --layers media-skills flag.
+var mediaSkillDirectories = []string{
+	"gemini-imagegen",
+	"proof",
+	"rclone",
 }
 
 var orchestratorSkillDirectories = []string{

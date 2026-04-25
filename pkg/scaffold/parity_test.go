@@ -48,31 +48,37 @@ func TestCoreLayerShipsLandAndTakeoff(t *testing.T) {
 }
 
 // TestSkillDirectoryParity ensures every skill directory under
-// pkg/scaffold/templates/skills/ is registered in exactly one of the three
-// catalog slices (core, orchestrator, easter-egg). This catches the case
-// where a skill template is added but the wiring step is forgotten, which
-// would silently exclude it from --guided installs.
+// pkg/scaffold/templates/skills/ is registered in exactly one catalog
+// slice. This catches the case where a skill template is added but the
+// wiring step is forgotten, which would silently exclude it from --guided
+// installs.
 func TestSkillDirectoryParity(t *testing.T) {
 	templateDirs := readEmbeddedSkillDirs(t)
 
 	registered := make(map[string]string)
-	for _, name := range coreSkillDirectories {
+	register := func(name, layer string) {
 		if existing, ok := registered[name]; ok {
-			t.Fatalf("skill %q is registered in both %q and core", name, existing)
+			t.Fatalf("skill %q is registered in both %q and %q", name, existing, layer)
 		}
-		registered[name] = "core"
+		registered[name] = layer
+	}
+	for _, name := range coreSkillDirectories {
+		register(name, "core")
 	}
 	for _, name := range orchestratorSkillDirectories {
-		if existing, ok := registered[name]; ok {
-			t.Fatalf("skill %q is registered in both %q and orchestrators", name, existing)
-		}
-		registered[name] = "orchestrators"
+		register(name, "orchestrators")
 	}
 	for _, name := range easterEggSkillDirectories {
-		if existing, ok := registered[name]; ok {
-			t.Fatalf("skill %q is registered in both %q and easter-eggs", name, existing)
-		}
-		registered[name] = "easter-eggs"
+		register(name, "easter-eggs")
+	}
+	for _, name := range devToolsSkillDirectories {
+		register(name, "dev-tools")
+	}
+	for _, name := range styleSkillDirectories {
+		register(name, "style-skills")
+	}
+	for _, name := range mediaSkillDirectories {
+		register(name, "media-skills")
 	}
 
 	var unregistered []string
@@ -85,7 +91,8 @@ func TestSkillDirectoryParity(t *testing.T) {
 		t.Fatalf(
 			"skill template directories not registered in any catalog slice: %v\n"+
 				"Add each name to coreSkillDirectories, orchestratorSkillDirectories, "+
-				"or easterEggSkillDirectories in pkg/scaffold/catalog.go.",
+				"easterEggSkillDirectories, devToolsSkillDirectories, styleSkillDirectories, "+
+				"or mediaSkillDirectories in pkg/scaffold/catalog.go.",
 			unregistered,
 		)
 	}
@@ -159,69 +166,51 @@ func TestDogfoodTemplateParity(t *testing.T) {
 		"atv-security": true,
 	}
 
-	// pendingMirror: skills that exist under .github/skills/ but were never
-	// copied into the installer template tree. This list freezes the current
-	// state so future drift fails CI, but every entry here represents real
-	// tech debt: a skill that this repo dogfoods but that --guided users
-	// don't get. Shrink this list over time by either:
-	//   1. Copying the skill into pkg/scaffold/templates/skills/<name>/ and
-	//      registering it in catalog.go (then remove the entry here), or
-	//   2. Removing the unused .github/skills/<name>/ directory entirely.
+	// dogfoodOnly: skills intentionally kept under .github/skills/ for the
+	// repo's own Copilot configuration but deliberately NOT mirrored into
+	// the installer template tree. Each entry must carry a one-line reason
+	// so the list stays honest. Treat membership as a deliberate decision,
+	// not parking-lot tech debt.
 	//
-	// Do NOT add entries here without also opening a tracking issue. The
-	// presence of an entry should always be a question, not an answer.
-	pendingMirror := map[string]bool{
-		"agent-browser":             true,
-		"agent-native-architecture": true,
-		"agent-native-audit":        true,
-		"andrew-kane-gem-writer":    true,
-		"ce-work-beta":              true,
-		"changelog":                 true,
-		"compound-docs":             true,
-		"create-agent-skill":        true,
-		"create-agent-skills":       true,
-		"deploy-docs":               true,
-		"dhh-rails-style":           true,
-		"dspy-ruby":                 true,
-		"every-style-editor":        true,
-		"file-todos":                true,
-		"frontend-design":           true,
-		"gemini-imagegen":           true,
-		"generate_command":          true,
-		"ghcp-review-resolve":       true,
-		"git-clean-gone-branches":   true,
-		"git-commit":                true,
-		"git-commit-push-pr":        true,
-		"git-worktree":              true,
-		"heal-skill":                true,
-		"onboarding":                true,
-		"orchestrating-swarms":      true,
-		"proof":                     true,
-		"rclone":                    true,
-		"report-bug":                true,
-		"report-bug-ce":             true,
-		"reproduce-bug":             true,
-		"resolve-pr-feedback":       true,
-		"resolve-pr-parallel":       true,
-		"resolve_parallel":          true,
-		"skill-creator":             true,
-		"test-xcode":                true,
-		"todo-create":               true,
-		"todo-resolve":              true,
-		"todo-triage":               true,
-		"triage":                    true,
-		"workflows-brainstorm":      true,
-		"workflows-compound":        true,
-		"workflows-plan":            true,
-		"workflows-review":          true,
-		"workflows-work":            true,
+	// To shrink this list:
+	//   1. Mirror the skill into pkg/scaffold/templates/skills/<name>/ and
+	//      register it in catalog.go (then remove the entry here), or
+	//   2. Remove the .github/skills/<name>/ directory entirely.
+	dogfoodOnly := map[string]bool{
+		// CE-internal architecture audit; not user-facing.
+		"agent-native-audit": true,
+		// Beta variant of ce-work; will be deleted once external-delegate
+		// mode lands in ce-work proper.
+		"ce-work-beta": true,
+		// CE-internal documentation skill superseded for users by
+		// ce-compound / ce-compound-refresh.
+		"compound-docs": true,
+		// CE-internal deploy-docs tool for the plugin docs site.
+		"deploy-docs": true,
+		// Repo-internal todo tracking superseded for users by todo-create
+		// / todo-resolve / todo-triage.
+		"file-todos": true,
+		// Meta-skill for repairing other skills; not user-facing.
+		"heal-skill": true,
+		// CE-internal swarm orchestration superseded for users by slfg / lfg.
+		"orchestrating-swarms": true,
+		// CE-only bug-report skill; ATV users should not file bugs in the
+		// CE plugin.
+		"report-bug-ce": true,
+		// Superseded for users by ghcp-review-resolve; kept for
+		// repo-internal use during PR review experiments.
+		"resolve-pr-feedback": true,
+		// iOS-specific build/test skill; not relevant to the current ATV
+		// stack-detection set. Revisit if/when an iOS pack ships.
+		"test-xcode": true,
+		// Lower-level CLI todo triage primitive; user-facing equivalent
+		// is todo-triage.
+		"triage": true,
 	}
 
-	// Stale-entry check: every name listed in templateOnly must actually
-	// exist under templates/skills/, and every name in pendingMirror must
-	// actually exist under .github/skills/. If a skill is removed or
-	// renamed and the allow-list isn't updated, fail loudly so the list
-	// stays honest instead of silently accumulating dead entries.
+	// Stale-entry checks: every name in templateOnly must exist in
+	// templates/skills/, and every name in dogfoodOnly must exist in
+	// .github/skills/. Without these, the allow-lists silently rot.
 	var staleTemplateOnly []string
 	for name := range templateOnly {
 		if !templateSkills[name] {
@@ -236,42 +225,42 @@ func TestDogfoodTemplateParity(t *testing.T) {
 			staleTemplateOnly,
 		)
 	}
-	var stalePendingMirror []string
-	for name := range pendingMirror {
+	var staleDogfoodOnly []string
+	for name := range dogfoodOnly {
 		if !dogfoodSkills[name] {
-			stalePendingMirror = append(stalePendingMirror, name)
+			staleDogfoodOnly = append(staleDogfoodOnly, name)
 		}
 	}
-	if len(stalePendingMirror) > 0 {
-		sort.Strings(stalePendingMirror)
+	if len(staleDogfoodOnly) > 0 {
+		sort.Strings(staleDogfoodOnly)
 		t.Errorf(
-			"pendingMirror contains entries no longer present under .github/skills/: %v\n"+
-				"Remove each stale entry from this test (the underlying tech debt is gone).",
-			stalePendingMirror,
+			"dogfoodOnly contains entries no longer present under .github/skills/: %v\n"+
+				"Remove each stale entry from this test (the skill has been deleted or renamed).",
+			staleDogfoodOnly,
 		)
 	}
 
-	// Graduation check: a skill that has been mirrored into templates/skills/
-	// should be removed from pendingMirror so the list shrinks over time
-	// instead of fossilizing.
-	var graduatedPendingMirror []string
-	for name := range pendingMirror {
+	// Conflict check: a skill in dogfoodOnly should not also exist in
+	// templates/skills/. Pick one.
+	var conflictingDogfoodOnly []string
+	for name := range dogfoodOnly {
 		if templateSkills[name] {
-			graduatedPendingMirror = append(graduatedPendingMirror, name)
+			conflictingDogfoodOnly = append(conflictingDogfoodOnly, name)
 		}
 	}
-	if len(graduatedPendingMirror) > 0 {
-		sort.Strings(graduatedPendingMirror)
+	if len(conflictingDogfoodOnly) > 0 {
+		sort.Strings(conflictingDogfoodOnly)
 		t.Errorf(
-			"pendingMirror contains skills now mirrored under pkg/scaffold/templates/skills/: %v\n"+
-				"Remove each graduated entry — the tech debt has been paid down.",
-			graduatedPendingMirror,
+			"skills listed in dogfoodOnly but also present under pkg/scaffold/templates/skills/: %v\n"+
+				"Pick one — either remove the dogfoodOnly entry (the skill is now shipping), "+
+				"or remove the template directory (the skill is deliberately repo-local).",
+			conflictingDogfoodOnly,
 		)
 	}
 
 	var missingFromTemplates []string
 	for name := range dogfoodSkills {
-		if templateSkills[name] || pendingMirror[name] {
+		if templateSkills[name] || dogfoodOnly[name] {
 			continue
 		}
 		missingFromTemplates = append(missingFromTemplates, name)
@@ -280,9 +269,9 @@ func TestDogfoodTemplateParity(t *testing.T) {
 		sort.Strings(missingFromTemplates)
 		t.Fatalf(
 			"skills present in .github/skills/ but missing from pkg/scaffold/templates/skills/: %v\n"+
-				"Copy each skill into pkg/scaffold/templates/skills/<name>/ so --guided installs ship it. "+
-				"If a skill is intentionally dogfood-only and shouldn't ship, add it to pendingMirror in this test "+
-				"(but treat that as recording tech debt, not closing the gap).",
+				"Mirror each skill into pkg/scaffold/templates/skills/<name>/ so --guided installs ship it, "+
+				"or — if the skill is intentionally repo-local — add it to dogfoodOnly in this test "+
+				"with a one-line rationale.",
 			missingFromTemplates,
 		)
 	}
@@ -302,6 +291,96 @@ func TestDogfoodTemplateParity(t *testing.T) {
 			missingFromDogfood,
 		)
 	}
+}
+
+// TestNewLayersExposeSkills exercises each skill layer key, asserting that
+// BuildFilteredCatalog emits exactly the templates registered in the
+// matching catalog slice and nothing else. Regression guard for the
+// dev-tools / style-skills / media-skills layer wiring.
+func TestNewLayersExposeSkills(t *testing.T) {
+	cases := []struct {
+		layer string
+		want  []string
+	}{
+		{"dev-tools", devToolsSkillDirectories},
+		{"style-skills", styleSkillDirectories},
+		{"media-skills", mediaSkillDirectories},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.layer, func(t *testing.T) {
+			components := BuildFilteredCatalog(detect.StackGeneral, []string{tc.layer})
+
+			gotSkills := make(map[string]bool)
+			for _, c := range components {
+				p := filepath.ToSlash(c.Path)
+				const prefix = ".github/skills/"
+				if !strings.HasPrefix(p, prefix) {
+					continue
+				}
+				rest := strings.TrimPrefix(p, prefix)
+				if !strings.Contains(rest, "/") {
+					continue
+				}
+				skill := rest[:strings.Index(rest, "/")]
+				gotSkills[skill] = true
+			}
+
+			for _, skill := range tc.want {
+				if !gotSkills[skill] {
+					t.Errorf("layer %q did not emit skill %q", tc.layer, skill)
+				}
+			}
+
+			// Negative: skills from other layers should not appear when only
+			// this layer is selected.
+			otherLayers := []struct {
+				layer string
+				dirs  []string
+			}{
+				{"core-skills", coreSkillDirectories},
+				{"orchestrators", orchestratorSkillDirectories},
+				{"easter-eggs", easterEggSkillDirectories},
+			}
+			for _, other := range otherLayers {
+				if other.layer == tc.layer {
+					continue
+				}
+				for _, foreign := range other.dirs {
+					if gotSkills[foreign] {
+						t.Errorf("layer %q leaked skill %q from %q", tc.layer, foreign, other.layer)
+					}
+				}
+			}
+		})
+	}
+
+	t.Run("empty layer list returns no skills", func(t *testing.T) {
+		components := BuildFilteredCatalog(detect.StackGeneral, []string{})
+		for _, c := range components {
+			p := filepath.ToSlash(c.Path)
+			if strings.HasPrefix(p, ".github/skills/") && strings.Contains(strings.TrimPrefix(p, ".github/skills/"), "/") {
+				t.Errorf("expected no skill components for empty layer list, got %q", p)
+			}
+		}
+	})
+
+	t.Run("union of layers deduplicates", func(t *testing.T) {
+		components := BuildFilteredCatalog(detect.StackGeneral, []string{"dev-tools", "style-skills", "media-skills"})
+
+		seen := make(map[string]int)
+		for _, c := range components {
+			p := filepath.ToSlash(c.Path)
+			if strings.HasPrefix(p, ".github/skills/") {
+				seen[p]++
+			}
+		}
+		for path, count := range seen {
+			if count > 1 {
+				t.Errorf("path %q emitted %d times — expected exactly 1", path, count)
+			}
+		}
+	})
 }
 
 // readEmbeddedSkillDirs returns the immediate subdirectory names under

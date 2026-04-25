@@ -36,6 +36,9 @@ const (
 	LayerDocsStructure       = "docs-structure"
 	LayerLocalConfig         = "local-config"
 	LayerEasterEggs          = "easter-eggs"
+	LayerDevTools            = "dev-tools"
+	LayerStyleSkills         = "style-skills"
+	LayerMediaSkills         = "media-skills"
 )
 
 // AllLayers returns all available component layer keys.
@@ -52,6 +55,9 @@ func AllLayers() []string {
 		LayerFileInstructions,
 		LayerDocsStructure,
 		LayerEasterEggs,
+		LayerDevTools,
+		LayerStyleSkills,
+		LayerMediaSkills,
 	}
 }
 
