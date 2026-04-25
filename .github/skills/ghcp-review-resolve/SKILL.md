@@ -157,6 +157,12 @@ while :; do
                 viewerCanResolve
                 path
                 line
+                rootComment: comments(first: 1) {
+                  nodes {
+                    databaseId
+                    author { login }
+                  }
+                }
                 comments(last: 1) {
                   nodes {
                     databaseId
@@ -185,8 +191,9 @@ done
 Notes on the shape:
 
 - `comments(last: 1)` returns the most recent comment in the thread, not the oldest (GraphQL default order on this connection is oldest-first, so `first: 1` would give the wrong record for any freshness check).
+- `rootComment: comments(first: 1)` is captured as a separate aliased field so we have a **stable** identifier (the original review comment's `databaseId` and the thread's original author). The `last: 1` node is only used for freshness/`updatedAt` — once this skill posts a reply, the `last: 1` node becomes our own reply and its `databaseId`/`author` would mis-classify the thread.
 - `commit { oid }` is intentionally **not** requested — it isn't reliably available on the review-comment node across schema versions. Freshness is derived from `isOutdated` (GitHub's own signal that HEAD has moved past the comment's anchor) instead of comparing commit SHAs by hand.
-- `id` (the thread-level node ID) and `viewerCanResolve` are captured on every thread so **Step 6.7** can invoke `resolveReviewThread` without re-querying. Persist these alongside the comment `databaseId` in the per-thread record (e.g., `comments_by_id.json`: `{ comment_databaseId: { threadId, viewerCanResolve, path, line } }`).
+- `id` (the thread-level node ID) and `viewerCanResolve` are captured on every thread so **Step 6.7** can invoke `resolveReviewThread` without re-querying. Persist these keyed by a **stable** identifier — prefer the thread `id`, or the `rootComment.nodes[0].databaseId`. Do **not** key by `comments(last:1).nodes[0].databaseId`: once a reply is posted that ID changes, breaking thread lookup across runs. Example record shape: `comments_by_id.json`: `{ <rootComment.databaseId>: { threadId, viewerCanResolve, path, line, rootAuthor } }`.
 
 Classify each Copilot-authored thread (author login matching `github-copilot[bot]` or `copilot-pull-request-reviewer[bot]`):
 
@@ -454,11 +461,11 @@ After replying on a thread, mark it resolved on GitHub so the PR page reflects r
 |------|-------|
 | G1. Adjudicated real | The finding was accepted in Step 4 as a real issue (not rejected / not a false positive). |
 | G2. Fix landed | A commit addressing the finding was pushed to the PR branch in this session (Steps 6.4–6.5). |
-| G3. Verified | Step 6.3 verification passed, OR the reply body explicitly documents the limitation ("not independently verified — review reply documents intent"). |
+| G3. Verified | Step 6.3 verification passed, OR the finding is explicitly a docs/prose-only change with no runnable verification and the reply body says that plainly. A reply that says "not independently verified" does **not** satisfy this gate for code changes and must remain unresolved. |
 | G4. Reply posted | Step 6.6 successfully posted a reply on the thread (non-error HTTP 201 and the reply body is what was intended). |
 | G5. Permission | `viewerCanResolve == true` on the thread node captured in Step 0g. If `false`, the auth token lacks `Pull requests: write` for this repo — do not attempt. |
 
-If any gate fails, log `"thread <threadId> not auto-resolved: gate <G#> failed — <reason>"` and skip to the next finding. **Manual human review decides those.**
+If any gate fails, log `"thread <threadId> not auto-resolved: gate <G#> failed — <reason>"` and skip to the next finding. **Manual human review decides those, and code-change fixes that were not independently verified stay unresolved unless they are explicitly docs/prose-only with no runnable verification.**
 
 **Resolution call** (when all gates pass):
 
@@ -474,10 +481,36 @@ mutation($threadId: ID!) {
 
 **Post-conditions and error handling:**
 
-- On success, verify `isResolved == true` in the response. If the mutation returned `200 OK` but `isResolved == false`, treat it as a failure (don't assume).
-- **Idempotency:** re-resolving an already-resolved thread is treated as a no-op success by GitHub's API (community-observed; not formally documented). If you encounter a `GraphQL error: already resolved`, log it and continue — do not retry.
-- **On transient error** (HTTP 5xx, network timeout), retry **once** with 2s backoff. On repeated failure, leave the thread unresolved and record `"resolve failed for <threadId>: <error>"` in the Step 7 summary.
-- **Never** resolve a thread authored by someone other than the Copilot reviewer — this skill only adjudicates Copilot (and, when enabled, pr-review-toolkit) findings.
+- **Do not** rely on HTTP status or `gh api`'s exit code alone — `gh api` can return `0` when GraphQL puts the failure in a top-level `errors[]` array. Capture the response JSON and inspect it explicitly:
+
+  ```bash
+  RESOLVE_JSON="$(gh api graphql -F threadId="$THREAD_ID" -f query='
+    mutation($threadId: ID!) {
+      resolveReviewThread(input: { threadId: $threadId }) {
+        thread { id isResolved viewerCanResolve }
+      }
+    }' 2>&1)"
+
+  if jq -e '.errors? | type == "array" and length > 0' >/dev/null <<<"$RESOLVE_JSON"; then
+    if jq -e '.errors[]? | (.message // "" | ascii_downcase | contains("already resolved"))' >/dev/null <<<"$RESOLVE_JSON"; then
+      echo "thread already resolved: $THREAD_ID"
+    else
+      echo "resolve failed for $THREAD_ID: $(jq -c '.errors' <<<"$RESOLVE_JSON")"
+      false
+    fi
+  elif jq -e '.data.resolveReviewThread == null' >/dev/null <<<"$RESOLVE_JSON"; then
+    echo "resolve failed for $THREAD_ID: resolveReviewThread was null"
+    false
+  elif ! jq -e '.data.resolveReviewThread.thread.isResolved == true' >/dev/null <<<"$RESOLVE_JSON"; then
+    echo "resolve failed for $THREAD_ID: isResolved was not true"
+    false
+  fi
+  ```
+
+- On success, verify `.data.resolveReviewThread.thread.isResolved == true` in the response. A `200 OK` with `errors[]` present, `data.resolveReviewThread == null`, or `isResolved != true` is a **failure** — don't assume.
+- **Idempotency:** re-resolving an already-resolved thread is treated as a no-op success by GitHub's API (community-observed; not formally documented). If the parsed response contains an `already resolved` error, log it and continue — do not retry.
+- **On transient error** (HTTP 5xx, network timeout), retry **once** with 2s backoff. On repeated failure, leave the thread unresolved and record `"resolve failed for <threadId>: <error>"` in the Step 7 summary. Do not treat a printed JSON body with GraphQL `errors[]` as success just because the call returned exit `0`.
+- **Author guardrail:** do **not** resolve unrelated threads authored by humans or other bots. It is valid to resolve either (a) an existing Copilot / pr-review-toolkit review thread being adjudicated by this skill, or (b) the **same thread this fix loop just replied to** (Step 5 / Step 6.6), even if that thread's root author is `ghcp-review-resolve`'s running user, provided all five resolution gates passed.
 
 **Why this is guardrailed:** auto-resolving threads changes reviewer-visible state. A false positive that gets fixed + resolved + replied-to is fine; a finding that was *rejected* but accidentally resolved hides a disagreement the PR author should see on the page. The five gates exist so resolution only happens when the record shows an end-to-end honest fix.
 
@@ -519,7 +552,7 @@ Ticked by ghcp-review-resolve on <ISO-8601 UTC>:
    ```bash
    gh pr edit "$PR_NUMBER" --body "$NEW_BODY"
    ```
-4. **Verify round-trip:** re-fetch the body and confirm the ticks + sentinel block are present. If verification fails, restore the original body and post a top-level comment instead.
+4. **Verify round-trip:** re-fetch the body and confirm the ticks + sentinel block are present. If verification fails, **do not restore the original body** — restoring is destructive and can clobber legitimate user edits made between the write and the re-fetch. Leave the PR body as-is, log the failure, and post a top-level PR comment with the intended ticks/audit output instead. If a retry is warranted, do a fresh fetch and recompute a merge that is confined to the sentinel block before writing again.
 
 **Gates that skip Step 7.0:**
 

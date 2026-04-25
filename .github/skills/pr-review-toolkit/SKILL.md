@@ -1,7 +1,7 @@
 ---
 name: pr-review-toolkit
 description: Comprehensive multi-agent PR review covering code quality, simplicity, comments, tests, silent failures, and type design. Use when reviewing a PR beyond what a single-pass review catches, or when invoked by `ghcp-review-resolve` as the second reviewer alongside GitHub Copilot.
-argument-hint: "[review-aspects]"
+argument-hint: "[<PR-number-or-URL>] [review-aspects...]"
 license: Apache-2.0 — see ./LICENSE
 ---
 
@@ -24,13 +24,21 @@ Invocation paths updated to match Copilot CLI's `Skill(...)` syntax.
 
 Run a comprehensive pull request review using multiple specialized agents, each focusing on a different aspect of code quality.
 
-**Review Aspects (optional):** "$ARGUMENTS"
+**Arguments:** `"$ARGUMENTS"`
+
+`$ARGUMENTS` accepts either form:
+
+- **PR identifier first** (used by `ghcp-review-resolve`): a PR number (`26`) or URL (`https://github.com/owner/repo/pull/26`), optionally followed by review aspects. When a PR identifier is detected (leading `#?\d+` or PR URL), the workflow checks out / fetches the PR diff and reviews it, then **posts findings as inline PR review comments via `gh api`**.
+- **Review aspects only** (legacy / local diff): a space-separated list of aspect keys from the table below (e.g., `comments tests errors`). When no PR identifier is present, the workflow reviews the local working-tree / branch diff and emits findings to stdout.
+
+If both a PR identifier and aspects are present, scope the review to the named aspects against the PR diff. If neither is present, default to **all aspects** against the local diff.
 
 ## Review Workflow
 
 1. **Determine Review Scope**
-   - Run `git status` / `git diff --name-only` to identify changed files.
-   - Parse arguments to see if the user requested specific review aspects.
+   - **If `$ARGUMENTS` starts with a PR identifier** (`#?\d+` or `https://github.com/.../pull/\d+`): fetch the PR diff via `gh pr diff <id>` and the file list via `gh pr view <id> --json files --jq '.files[].path'`. Findings will be posted as inline PR review comments at the end of the workflow.
+   - **Otherwise**: run `git status` / `git diff --name-only` to identify changed files in the local working tree.
+   - Parse remaining arguments (after any PR identifier) to see if the user requested specific review aspects.
    - Default: run all applicable reviews.
 
 2. **Available Review Aspects**
