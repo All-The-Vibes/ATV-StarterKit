@@ -151,6 +151,18 @@ git stash list                     # check for session-era stashes
 
 **If working inside a git worktree:** leave the worktree in place while the PR is open. Remove it manually with `git worktree remove <path>` only after the PR is merged or abandoned. Do not attempt to tear down worktrees from this skill.
 
+**Sweep stale ralph-loop state files.** If a previous session ran `ralph-loop` and the state file was orphaned (session crash, cwd drift into a worktree, completion promise emitted but not as the trailing tokens of the assistant message), the plugin's stop-hook will replay the loop's prompt verbatim in the next session as "Stop hook feedback." Run unconditionally — the cost is microseconds and detecting "did this session use ralph-loop?" is unreliable:
+
+```bash
+DELETED_RL=$(find . -name ralph-loop.local.md -path '*/.claude/*' -print -delete 2>/dev/null)
+if [ -n "$DELETED_RL" ]; then
+  echo "ralph-loop state files removed (surface in Step 9 handoff under blockers/gotchas):"
+  echo "$DELETED_RL"
+fi
+```
+
+The path glob `*/.claude/*` ensures only state files inside `.claude/` directories are deleted — a legitimately named `ralph-loop.local.md` document elsewhere is left alone.
+
 ### Step 8: Verify
 
 Confirm a clean state:
