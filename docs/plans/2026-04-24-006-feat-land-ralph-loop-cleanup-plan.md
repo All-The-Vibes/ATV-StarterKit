@@ -1,7 +1,7 @@
 ---
 title: "feat: Add ralph-loop state cleanup step to land skill"
 type: feat
-status: active
+status: completed
 date: 2026-04-24
 ---
 

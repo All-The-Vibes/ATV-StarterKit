@@ -154,7 +154,7 @@ git stash list                     # check for session-era stashes
 **Sweep stale ralph-loop state files.** If a previous session ran `ralph-loop` and the state file was orphaned (session crash, cwd drift into a worktree, completion promise emitted but not as the trailing tokens of the assistant message), the plugin's stop-hook will replay the loop's prompt verbatim in the next session as "Stop hook feedback." Run unconditionally — the cost is microseconds and detecting "did this session use ralph-loop?" is unreliable:
 
 ```bash
-DELETED_RL=$(find . -name ralph-loop.local.md -path '*/.claude/*' -print -delete 2>/dev/null)
+DELETED_RL=$(find . -name ralph-loop.local.md -path '*/.claude/*' -print -delete 2>/dev/null || true)
 if [ -n "$DELETED_RL" ]; then
   echo "ralph-loop state files removed (surface in Step 9 handoff under blockers/gotchas):"
   echo "$DELETED_RL"
