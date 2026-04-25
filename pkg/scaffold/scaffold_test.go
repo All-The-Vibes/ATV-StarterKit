@@ -34,21 +34,35 @@ func TestSummarizeResults(t *testing.T) {
 }
 
 func TestIsExecutableScript(t *testing.T) {
-	cases := map[string]bool{
-		".github/skills/git-worktree/scripts/worktree-manager.sh": true,
-		".github/skills/rclone/scripts/check_setup.sh":            true,
-		".github/skills/skill-creator/scripts/init_skill.py":      true,
-		".github/skills/gemini-imagegen/scripts/run_gemini.py":    true,
-		".github/skills/foo/SKILL.md":                             false,
-		".github/skills/foo/templates/example.md":                 false,
-		".github/copilot-instructions.md":                         false,
-		".github/copilot-mcp-config.json":                         false,
-		"Dockerfile":                                              false,
+	cases := []struct {
+		path    string
+		content []byte
+		want    bool
+	}{
+		// Known extensions under scripts/ → executable
+		{".github/skills/git-worktree/scripts/worktree-manager.sh", nil, true},
+		{".github/skills/rclone/scripts/check_setup.sh", nil, true},
+		{".github/skills/skill-creator/scripts/init_skill.py", nil, true},
+		{".github/skills/gemini-imagegen/scripts/run_gemini.py", nil, true},
+		{".github/skills/onboarding/scripts/inventory.mjs", nil, true},
+		// Extensionless under scripts/ with shebang → executable
+		{".github/skills/git-clean-gone-branches/scripts/clean-gone", []byte("#!/usr/bin/env bash\n"), true},
+		// Extensionless under scripts/ without shebang → not executable
+		{".github/skills/foo/scripts/data", []byte("plain text"), false},
+		// Known extension OUTSIDE scripts/ → not executable (path restriction)
+		{".github/skills/foo/templates/run.sh", nil, false},
+		{".github/skills/foo/references/example.py", nil, false},
+		// Non-script files
+		{".github/skills/foo/SKILL.md", nil, false},
+		{".github/skills/foo/templates/example.md", nil, false},
+		{".github/copilot-instructions.md", nil, false},
+		{".github/copilot-mcp-config.json", nil, false},
+		{"Dockerfile", nil, false},
 	}
-	for path, want := range cases {
-		got := isExecutableScript(path)
-		if got != want {
-			t.Errorf("isExecutableScript(%q) = %v, want %v", path, got, want)
+	for _, tc := range cases {
+		got := isExecutableScript(tc.path, tc.content)
+		if got != tc.want {
+			t.Errorf("isExecutableScript(%q) = %v, want %v", tc.path, got, tc.want)
 		}
 	}
 }

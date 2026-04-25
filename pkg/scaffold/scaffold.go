@@ -65,7 +65,7 @@ func WriteAll(targetDir string, catalog []Component) []WriteResult {
 		}
 
 		mode := os.FileMode(0644)
-		if isExecutableScript(comp.Path) {
+		if isExecutableScript(comp.Path, comp.Content) {
 			mode = 0755
 		}
 		result := writeIfNotExists(destPath, comp.Path, comp.Content, mode)
@@ -76,12 +76,25 @@ func WriteAll(targetDir string, catalog []Component) []WriteResult {
 }
 
 // isExecutableScript returns true for paths whose embedded content is meant
-// to run as an executable (shell or python script under a skill's scripts/
-// directory). go:embed strips Unix mode bits, so the install pipeline must
-// re-apply 0755 for these files explicitly.
-func isExecutableScript(relPath string) bool {
+// to run as an executable (shell, Python, Ruby, or Node script under a
+// skill's scripts/ directory). go:embed strips Unix mode bits, so the
+// install pipeline must re-apply 0755 for these files explicitly.
+//
+// Detection is path-restricted to scripts/ subdirectories of skills (so a
+// stray `.sh` file in a reference doc tree isn't surprisingly chmod'd) and
+// then triggers on either a known executable extension or a `#!` shebang at
+// the start of content (covering extensionless scripts like
+// `git-clean-gone-branches/scripts/clean-gone`).
+func isExecutableScript(relPath string, content []byte) bool {
+	if !strings.Contains(filepath.ToSlash(relPath), "/scripts/") {
+		return false
+	}
 	switch filepath.Ext(relPath) {
-	case ".sh", ".py", ".rb", ".bash", ".zsh":
+	case ".sh", ".py", ".rb", ".bash", ".zsh", ".mjs", ".js":
+		return true
+	}
+	// Extensionless scripts: detect via shebang.
+	if len(content) >= 2 && content[0] == '#' && content[1] == '!' {
 		return true
 	}
 	return false
