@@ -65,6 +65,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - **Migration:** users who previously typed `/cso` will land in `/atv-security` thanks to preserved triggers. To explicitly invoke the OWASP/STRIDE phase only, use `/atv-security owasp` or `/atv-security stride`.
 - **Regression guard:** `pkg/tui/categories_test.go` now asserts that `core-skills:cso` does not reappear in the Security category, preventing accidental re-introduction of the name collision.
 
+### Removed
+
+- **`claude-permissions-optimizer` skill** — ATV-starterkit is a GitHub Copilot harness; the optimizer's scripts read `~/.claude/settings.json` and manage Claude Code's permission allowlist, which has no Copilot equivalent. Removed from `.github/skills/`, `pkg/scaffold/templates/skills/`, `orchestratorSkillDirectories` in `pkg/scaffold/catalog.go`, and the shipping category in `pkg/tui/categories.go`. Users who want this skill can install it directly from upstream Compound Engineering for their personal `~/.claude/` config.
+- **PR #28 (`feat(land): sweep stale ralph-loop state files`) closed unmerged** — the proposed `find . -name ralph-loop.local.md -path '*/.claude/*' -delete` block in the `land` skill's Step 7 cleanup was Claude-Code-specific (the `.claude/` directory and ralph-loop's stop-hook replay are both Claude Code mechanisms) and produced no value in a Copilot-only installation.
+
 ## [2.5.7] — 2026-04-15
 
 ### Added

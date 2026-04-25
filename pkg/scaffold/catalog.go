@@ -193,7 +193,6 @@ var coreSkillDirectories = []string{
 }
 
 var orchestratorSkillDirectories = []string{
-	"claude-permissions-optimizer",
 	"feature-video",
 	"lfg",
 	"ralph-loop",

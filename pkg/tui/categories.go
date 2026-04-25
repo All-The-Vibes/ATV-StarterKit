@@ -45,7 +45,6 @@ var atvCategoryMapping = map[string][]CategorySkill{
 		{Label: "SLFG — swarm mode parallel execution", Key: "orchestrators:slfg", Source: "atv"},
 		{Label: "CE Compound — document solutions", Key: "core-skills:ce-compound", Source: "atv"},
 		{Label: "CE Compound Refresh — refresh documented solutions", Key: "core-skills:ce-compound-refresh", Source: "atv"},
-		{Label: "Claude Permissions Optimizer — optimize tool permissions", Key: "orchestrators:claude-permissions-optimizer", Source: "atv"},
 		{Label: "Land — commit, push, and open a PR at session end", Key: "core-skills:land", Source: "atv"},
 	},
 	gstack.CategoryQATesting: {
