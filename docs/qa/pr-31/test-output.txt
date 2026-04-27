@@ -1,0 +1,34 @@
+=== T1: cross-ref repaired ===
+$ grep resolve-pr-feedback .github/skills/ghcp-review-resolve/SKILL.md
+147:Use GraphQL to fetch review threads and resolution state. Paginate through **all** review threads before deciding whether a prior Copilot review was already resolved — a 100-thread cap will silently miss findings on large PRs. Align the query shape with the repo's existing working reviewer script (`.github/skills/resolve-pr-feedback/scripts/get-pr-comments`), which is the source of truth for field names that actually exist on `PullRequestReviewThread`:
+499:   The repo's existing helper `.github/skills/resolve-pr-feedback/scripts/resolve-pr-thread` runs this exact mutation if you'd rather shell out than call `gh api` inline.
+$ ls .github/skills/resolve-pr-feedback/scripts/get-pr-comments
+-rwxr-xr-x 1 sschofield sschofield 3231 Apr 25 01:28 .github/skills/resolve-pr-feedback/scripts/get-pr-comments
+$ ls .github/skills/resolve-pr-parallel/scripts/get-pr-comments  # old path - should NOT exist
+ls: cannot access '.github/skills/resolve-pr-parallel/scripts/get-pr-comments': No such file or directory
+
+=== T2: preflight aborts on non-OPEN PR ===
+$ gh pr view 31 --json state,mergeStateStatus  # OPEN PR
+{"mergeStateStatus":"CLEAN","state":"OPEN"}
+→ preflight: PASS, proceed to size classification
+
+$ gh pr view 29 --json state,mergeStateStatus  # CLOSED PR
+{"mergeStateStatus":"CLEAN","state":"CLOSED"}
+→ preflight: BLOCKER FIRED — 'PR is CLOSED, not OPEN' — skill stops, no reviewer contacted
+
+=== T3: land Step 6 decision rule ===
+  state=OPEN    exit=0 → REUSE EXISTING PR
+  state=CLOSED  exit=0 → CREATE FRESH PR
+  state=MERGED  exit=0 → CREATE FRESH PR
+  state=<empty> exit=0 → CREATE FRESH PR
+  exit=1 (no PR)         → CREATE FRESH PR
+
+=== T4: resolveReviewThread mutation present ===
+338:  "thread_id": "PRRT_..."  // GraphQL review-thread node ID — REQUIRED for resolve in Step 6
+342:**Capturing `thread_id` is mandatory.** GitHub's `in_reply_to` REST endpoint posts a reply but does **not** mark the thread resolved. To actually close out a finding the skill must call the `resolveReviewThread` GraphQL mutation, which takes a thread node ID — not a comment ID. Build the lookup map once during normalization by paginating `reviewThreads` and indexing each thread's comments by their `databaseId`:
+371:# Lookup: comment_id_to_thread_id[<databaseId>] = <thread node id>
+488:7. **Resolve the thread** via the `resolveReviewThread` GraphQL mutation, using the `thread_id` captured in Step 3:
+490:   gh api graphql -F threadId="<thread_id>" -f query='
+492:       resolveReviewThread(input: { threadId: $threadId }) {
+497:   Verify the response `.data.resolveReviewThread.thread.isResolved == true`. If it returns `false` or errors (insufficient permissions, thread already resolved by someone else, mutation rejected), log the failure with the thread ID and finding context, and continue. Do not retry more than once per thread. Resolution is best-effort — the fix and the reply are the actual deliverable; thread resolution is bookkeeping to keep the PR's "unresolved conversations" count honest.
+501:   Skip 6.7 only if Step 3's lookup-map build failed and `thread_id` is unknown for this finding. Note the skip in the final summary as "thread_id unavailable — manual resolve required".
