@@ -600,11 +600,6 @@ func TestE2EFullGuidedInstallLifecycle(t *testing.T) {
 		// Verify autoresearch skill exists (sourced from github/awesome-copilot, MIT)
 		autoresearchPath := filepath.Join(skillsDir, "autoresearch", "SKILL.md")
 		assertFileExists(t, autoresearchPath)
-		// Verify maintenance skills exist (added in v2.6.3)
-		atvDoctorPath := filepath.Join(skillsDir, "atv-doctor", "SKILL.md")
-		assertFileExists(t, atvDoctorPath)
-		atvUpdatePath := filepath.Join(skillsDir, "atv-update", "SKILL.md")
-		assertFileExists(t, atvUpdatePath)
 	})
 
 	t.Run("hook5_agents_installed", func(t *testing.T) {

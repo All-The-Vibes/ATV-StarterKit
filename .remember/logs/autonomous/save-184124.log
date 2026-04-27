@@ -1,0 +1,4 @@
+/home/sschofield/.claude/plugins/cache/claude-plugins-official/remember/0.1.0/scripts/save-session.sh: line 135: cd: /home/sschofield/.claude/plugins/cache/claude-plugins-official/.claude/remember: No such file or directory
+/home/sschofield/.claude/plugins/cache/claude-plugins-official/remember/0.1.0/scripts/save-session.sh: line 140: [: : integer expression expected
+/home/sschofield/.claude/plugins/cache/claude-plugins-official/remember/0.1.0/scripts/save-session.sh: line 142: [: : integer expression expected
+/home/sschofield/.claude/plugins/cache/claude-plugins-official/remember/0.1.0/scripts/save-session.sh: line 164: cd: /home/sschofield/.claude/plugins/cache/claude-plugins-official/.claude/remember: No such file or directory

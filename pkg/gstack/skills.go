@@ -11,7 +11,6 @@ const (
 	CategoryDebugging     = "debugging"
 	CategoryRetrospective = "retrospective"
 	CategoryGuidelines    = "guidelines"
-	CategoryMaintenance   = "maintenance"
 	CategoryEasterEgg     = "easter-egg"
 )
 
@@ -112,7 +111,6 @@ func AllCategories() []string {
 		CategoryDebugging,
 		CategoryRetrospective,
 		CategoryGuidelines,
-		CategoryMaintenance,
 		CategoryEasterEgg,
 	}
 }
@@ -129,7 +127,6 @@ func CategoryLabel(cat string) string {
 		CategoryDebugging:     "🐛 Debugging",
 		CategoryRetrospective: "📊 Retrospective",
 		CategoryGuidelines:    "📐 Coding Guidelines",
-		CategoryMaintenance:   "🩺 Maintenance & Health",
 		CategoryEasterEgg:     "🥚 Easter Eggs",
 	}
 	if l, ok := labels[cat]; ok {

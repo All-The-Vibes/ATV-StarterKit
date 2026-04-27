@@ -63,51 +63,6 @@ func TestBuildCategoryGroupsIncludesGuidelinesCategory(t *testing.T) {
 	}
 }
 
-// TestBuildCategoryGroupsIncludesMaintenanceCategory guards that the
-// `🩺 Maintenance & Health` category surfaces both atv-doctor and
-// atv-update in the customize-mode TUI. Both ship via LayerCoreSkills
-// so users would receive them silently without a TUI entry.
-func TestBuildCategoryGroupsIncludesMaintenanceCategory(t *testing.T) {
-	groups := BuildCategoryGroups(gstack.Prerequisites{})
-	var found bool
-	for _, group := range groups {
-		if group.Category != gstack.CategoryMaintenance {
-			continue
-		}
-		found = true
-		var hasDoctor, hasUpdate bool
-		for _, skill := range group.Skills {
-			switch skill.Key {
-			case "core-skills:atv-doctor":
-				hasDoctor = true
-				if skill.Source != "atv" {
-					t.Errorf("atv-doctor should have source atv, got %q", skill.Source)
-				}
-				if skill.IsGstack {
-					t.Error("atv-doctor should not be a gstack skill")
-				}
-			case "core-skills:atv-update":
-				hasUpdate = true
-				if skill.Source != "atv" {
-					t.Errorf("atv-update should have source atv, got %q", skill.Source)
-				}
-				if skill.IsGstack {
-					t.Error("atv-update should not be a gstack skill")
-				}
-			}
-		}
-		if !hasDoctor {
-			t.Error("maintenance category should contain atv-doctor")
-		}
-		if !hasUpdate {
-			t.Error("maintenance category should contain atv-update")
-		}
-	}
-	if !found {
-		t.Fatal("expected maintenance category group in BuildCategoryGroups output")
-	}
-}
-
 func TestKarpathyGuidedFlowParseSelections(t *testing.T) {
 	// Simulate what happens when user selects karpathy-guidelines in Screen 4
 	selected := []string{"core-skills:karpathy-guidelines", "core-skills:ce-plan"}

@@ -1,0 +1,22 @@
+{
+  "name": "atv-pack-dev-tools",
+  "description": "Developer workflow helpers — git, PR review, onboarding, todo tracking, skill scaffolding, and bug reproduction.",
+  "version": "2.6.3",
+  "author": {
+    "name": "All The Vibes",
+    "url": "https://github.com/All-The-Vibes"
+  },
+  "repository": "https://github.com/All-The-Vibes/ATV-StarterKit",
+  "license": "MIT",
+  "keywords": [
+    "atv",
+    "dev-tools",
+    "git",
+    "pr-review",
+    "onboarding"
+  ],
+  "category": "dev-tools",
+  "skills": [
+    "./skills"
+  ]
+}

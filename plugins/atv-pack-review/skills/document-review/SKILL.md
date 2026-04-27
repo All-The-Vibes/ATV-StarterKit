@@ -33,7 +33,7 @@ If `mode:headless` is not present, the skill runs in its default interactive mod
 
 **If a document path is provided:** Read it, then proceed.
 
-**If no document is specified (interactive mode):** Ask which document to review, or find the most recent in `docs/brainstorms/` or `docs/plans/` using a file-search/glob tool (e.g., Glob in Claude Code).
+**If no document is specified (interactive mode):** Ask which document to review, or find the most recent in `docs/brainstorms/` or `docs/plans/` using a file-search/glob tool (the glob tool).
 
 **If no document is specified (headless mode):** Output "Review failed: headless mode requires a document path. Re-invoke with: Skill(\"compound-engineering:document-review\", \"mode:headless <path>\")" without dispatching agents.
 
@@ -115,7 +115,7 @@ Add activated conditional personas:
 
 ### Dispatch
 
-Dispatch all agents in **parallel** using the platform's task/agent tool (e.g., Agent tool in Claude Code, spawn in Codex). Each agent receives the prompt built from the subagent template included below with these variables filled:
+Dispatch all agents in **parallel** using the platform's task/agent tool (e.g., Agent tool in Copilot CLI, spawn in Codex). Each agent receives the prompt built from the subagent template included below with these variables filled:
 
 | Variable | Value |
 |----------|-------|
@@ -258,7 +258,7 @@ These are pipeline artifacts and must not be flagged for removal.
 **Interactive mode:**
 
 **Ask using the platform's interactive question tool** -- do not print the question as plain text output:
-- Claude Code: `AskUserQuestion`
+- Copilot CLI: `AskUserQuestion`
 - Codex: `request_user_input`
 - Gemini: `ask_user`
 - Fallback (no question tool available): present numbered options and stop; wait for the user's next message

@@ -23,7 +23,6 @@ Build, install, and test iOS apps on the simulator using XcodeBuildMCP. Captures
 Check that the XcodeBuildMCP MCP server is connected by calling its `list_simulators` tool.
 
 MCP tool names vary by platform:
-- Claude Code: `mcp__xcodebuildmcp__list_simulators`
 - Other platforms: use the equivalent MCP tool call for the `XcodeBuildMCP` server's `list_simulators` method
 
 If the tool is not found or errors, inform the user they need to add the XcodeBuildMCP MCP server:
@@ -110,7 +109,7 @@ Pause for human input when testing touches flows that require device interaction
 | Location | "Allow location access and verify map updates" |
 | SwiftUI Text links | "Please tap on [element description] manually — automated taps cannot trigger inline text links" |
 
-Ask the user (using the platform's question tool — e.g., `AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini — or present numbered options and wait):
+Ask the user (using the platform's question tool — e.g., `ask_user` in Copilot CLI — or present numbered options and wait):
 
 ```
 Human Verification Needed

@@ -35,6 +35,20 @@
       "category": "starter-kit"
     },
     {
+      "name": "atv-pack-dev-tools",
+      "source": "atv-pack-dev-tools",
+      "description": "Developer workflow helpers — git, PR review, onboarding, todo tracking, skill scaffolding, and bug reproduction.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "dev-tools",
+        "git",
+        "pr-review",
+        "onboarding"
+      ],
+      "category": "dev-tools"
+    },
+    {
       "name": "atv-pack-easter-eggs",
       "source": "atv-pack-easter-eggs",
       "description": "Easter eggs pack — fun extras like memeIQ for AI-powered meme generation.",
@@ -85,6 +99,20 @@
         "health"
       ],
       "category": "maintenance"
+    },
+    {
+      "name": "atv-pack-media",
+      "source": "atv-pack-media",
+      "description": "Media and cloud-storage helpers — Gemini image generation, Proof markdown collaboration, rclone file sync.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "media",
+        "image-gen",
+        "rclone",
+        "proof"
+      ],
+      "category": "media"
     },
     {
       "name": "atv-pack-planning",
@@ -139,7 +167,7 @@
     {
       "name": "atv-pack-shipping",
       "source": "atv-pack-shipping",
-      "description": "Shipping & deploy pack — Takeoff, CE Work, Land, LFG/SLFG orchestrators, CE Compound, and Claude Permissions Optimizer for executing and delivering work.",
+      "description": "Shipping & deploy pack — Takeoff, CE Work, Land, LFG/SLFG orchestrators, and CE Compound for executing and delivering work.",
       "version": "2.6.3",
       "keywords": [
         "atv",
@@ -149,6 +177,45 @@
         "orchestrator"
       ],
       "category": "shipping"
+    },
+    {
+      "name": "atv-pack-style",
+      "source": "atv-pack-style",
+      "description": "Opinionated coding and writing style guides — DHH Rails, Andrew Kane gems, DSPy.rb, Every style editor, frontend design.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "style",
+        "dhh",
+        "rails",
+        "ruby",
+        "frontend"
+      ],
+      "category": "style"
+    },
+    {
+      "name": "atv-skill-agent-native-architecture",
+      "source": "atv-skill-agent-native-architecture",
+      "description": "ATV `agent-native-architecture` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "agent-native-architecture"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-andrew-kane-gem-writer",
+      "source": "atv-skill-andrew-kane-gem-writer",
+      "description": "ATV `andrew-kane-gem-writer` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "andrew-kane-gem-writer"
+      ],
+      "category": "skill"
     },
     {
       "name": "atv-skill-atv-doctor",
@@ -295,14 +362,14 @@
       "category": "skill"
     },
     {
-      "name": "atv-skill-claude-permissions-optimizer",
-      "source": "atv-skill-claude-permissions-optimizer",
-      "description": "ATV `claude-permissions-optimizer` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "name": "atv-skill-changelog",
+      "source": "atv-skill-changelog",
+      "description": "ATV `changelog` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
       "version": "2.6.3",
       "keywords": [
         "atv",
         "skill",
-        "claude-permissions-optimizer"
+        "changelog"
       ],
       "category": "skill"
     },
@@ -319,6 +386,18 @@
       "category": "skill"
     },
     {
+      "name": "atv-skill-dhh-rails-style",
+      "source": "atv-skill-dhh-rails-style",
+      "description": "ATV `dhh-rails-style` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "dhh-rails-style"
+      ],
+      "category": "skill"
+    },
+    {
       "name": "atv-skill-document-review",
       "source": "atv-skill-document-review",
       "description": "ATV `document-review` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
@@ -327,6 +406,30 @@
         "atv",
         "skill",
         "document-review"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-dspy-ruby",
+      "source": "atv-skill-dspy-ruby",
+      "description": "ATV `dspy-ruby` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "dspy-ruby"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-every-style-editor",
+      "source": "atv-skill-every-style-editor",
+      "description": "ATV `every-style-editor` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "every-style-editor"
       ],
       "category": "skill"
     },
@@ -351,6 +454,90 @@
         "atv",
         "skill",
         "feature-video"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-frontend-design",
+      "source": "atv-skill-frontend-design",
+      "description": "ATV `frontend-design` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "frontend-design"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-gemini-imagegen",
+      "source": "atv-skill-gemini-imagegen",
+      "description": "ATV `gemini-imagegen` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "gemini-imagegen"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-ghcp-review-resolve",
+      "source": "atv-skill-ghcp-review-resolve",
+      "description": "ATV `ghcp-review-resolve` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "ghcp-review-resolve"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-git-clean-gone-branches",
+      "source": "atv-skill-git-clean-gone-branches",
+      "description": "ATV `git-clean-gone-branches` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "git-clean-gone-branches"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-git-commit",
+      "source": "atv-skill-git-commit",
+      "description": "ATV `git-commit` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "git-commit"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-git-commit-push-pr",
+      "source": "atv-skill-git-commit-push-pr",
+      "description": "ATV `git-commit-push-pr` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "git-commit-push-pr"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-git-worktree",
+      "source": "atv-skill-git-worktree",
+      "description": "ATV `git-worktree` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "git-worktree"
       ],
       "category": "skill"
     },
@@ -439,6 +626,30 @@
       "category": "skill"
     },
     {
+      "name": "atv-skill-onboarding",
+      "source": "atv-skill-onboarding",
+      "description": "ATV `onboarding` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "onboarding"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-proof",
+      "source": "atv-skill-proof",
+      "description": "ATV `proof` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "proof"
+      ],
+      "category": "skill"
+    },
+    {
       "name": "atv-skill-ralph-loop",
       "source": "atv-skill-ralph-loop",
       "description": "ATV `ralph-loop` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
@@ -447,6 +658,30 @@
         "atv",
         "skill",
         "ralph-loop"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-rclone",
+      "source": "atv-skill-rclone",
+      "description": "ATV `rclone` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "rclone"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-reproduce-bug",
+      "source": "atv-skill-reproduce-bug",
+      "description": "ATV `reproduce-bug` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "reproduce-bug"
       ],
       "category": "skill"
     },
@@ -471,6 +706,18 @@
         "atv",
         "skill",
         "setup"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-skill-creator",
+      "source": "atv-skill-skill-creator",
+      "description": "ATV `skill-creator` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "skill-creator"
       ],
       "category": "skill"
     },
@@ -507,6 +754,42 @@
         "atv",
         "skill",
         "test-browser"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-todo-create",
+      "source": "atv-skill-todo-create",
+      "description": "ATV `todo-create` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "todo-create"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-todo-resolve",
+      "source": "atv-skill-todo-resolve",
+      "description": "ATV `todo-resolve` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "todo-resolve"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-todo-triage",
+      "source": "atv-skill-todo-triage",
+      "description": "ATV `todo-triage` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "todo-triage"
       ],
       "category": "skill"
     },

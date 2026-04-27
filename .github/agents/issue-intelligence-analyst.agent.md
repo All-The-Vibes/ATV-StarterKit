@@ -144,8 +144,8 @@ n
 - **Always use `--jq` for field extraction and filtering** from `gh` JSON output (e.g., `gh issue list --json title --jq '.[].title'`, `gh issue list --json stateReason --jq '[.[] | select(.stateReason == "COMPLETED")]'`). The `gh` CLI has full jq support built in.
 - **Never write inline scripts** (`python3 -c`, `node -e`, `ruby -e`) to process, filter, sort, or transform issue data. Reason over the data directly after reading it ΓÇö you are an LLM, you can filter and cluster in context without running code.
 - **Never pipe** `gh` output through any command (`| python3`, `| jq`, `| grep`, `| sort`). Use `--jq` flags instead, or read the output and reason over it.
-- Use native file-search/glob tools (e.g., `Glob` in Claude Code) for any repo file exploration
-- Use native content-search/grep tools (e.g., `Grep` in Claude Code) for searching file contents
+- Use native file-search/glob tools (the glob tool) for any repo file exploration
+- Use native content-search/grep tools (the grep tool) for searching file contents
 - Do not use shell commands for tasks that have native tool equivalents (no `find`, `cat`, `rg` through shell)
 
 ## Integration PointsThis agent is designed to be invoked by:
