@@ -392,5 +392,5 @@ go test ./test/sandbox/ -v               # integration tests (E2E scenarios)
 
 - **Bun required for browser skills** — `/gstack-qa`, `/gstack-browse`, `/gstack-benchmark`
 - **Network required for gstack** — clones ~22MB at install time
-- **gstack setup on Windows** — falls back to `bun run gen:skill-docs` (bash path issues)
+- **gstack setup on Windows** — if the gstack sub-installer's `./setup` fails (e.g., Git Bash unavailable or other bash/runtime build issue), it falls back to `bun run gen:skill-docs`. Markdown-only gstack skills install fine either way.
 - **Token-heavy pipelines** — long multi-agent sessions can hit context limits
