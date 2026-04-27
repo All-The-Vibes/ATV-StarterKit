@@ -14,7 +14,7 @@ The current `README.md` is 628 lines and mixes critical onboarding (what ATV is,
 ## Problem Frame
 
 - **Critical (stays in README):** what ATV 2.0 is + the four pillars, OS-specific install instructions (macOS/Linux vs. Windows), and the full sprint table.
-- **Reference (moves to `DOCS.md`):** Three Pillars deep dive, Guided Experience walkthrough, How Learning Works, De-Slop, Memory Architecture, Agents inventory, What Gets Installed, How It Works Under the Hood, Development, Limitations, the collapsed full skill reference table.
+- **Reference (moves to `DOCS.md`):** Behavioral Foundation + Four Pillars deep dive, Guided Experience walkthrough, How Learning Works, De-Slop, Memory Architecture, Agents inventory, What Gets Installed, How It Works Under the Hood, Development, Limitations, the collapsed full skill reference table.
 - **Updates:** Full Sprint reflects weekend additions — `/atv-security` (folds in former `/cso`, OWASP + STRIDE + AgentShield config rules), `/autoresearch` (autonomous metric-driven loop), `/atv-doctor`, `/atv-update`.
 
 ## Requirements Trace
@@ -61,7 +61,7 @@ The current `README.md` is 628 lines and mixes critical onboarding (what ATV is,
 ### Resolved During Planning
 
 - `/atv-doctor`, `/atv-update` → Reflect column (project-health skills).
-- Three Pillars stays in README? → No, four pillars already linked from "What is ATV 2.0?"; deeper section moves.
+- Three Pillars stays in README? → No, the four pillars are already linked from "What is ATV 2.0?"; deeper section (now restructured as Behavioral Foundation + Four Pillars) moves.
 - 45-skill reference table stays? → No, moves to `DOCS.md`.
 
 ### Deferred to Implementation
@@ -79,7 +79,7 @@ The current `README.md` is 628 lines and mixes critical onboarding (what ATV is,
 
 **Approach:**
 - H1 `# ATV 2.0 — Deeper Documentation` + orientation paragraph + "← Back to README" link.
-- Sections moved (in order, headings preserved): Three Pillars, Guided Experience, How Learning Works, De-Slop, Memory Architecture, Agents, What Gets Installed, How It Works Under the Hood, Development, Limitations, full skill reference (un-collapsed).
+- Sections moved (in order, headings preserved verbatim except for the restructured Foundation/Four Pillars split): Three Pillars, Guided Experience, How Learning Works, De-Slop, Memory Architecture, Agents, What Gets Installed, How It Works Under the Hood, Development, Limitations, full skill reference (un-collapsed).
 - Update Full skill reference inside `DOCS.md` to add `/atv-security`, `/autoresearch`, `/atv-doctor`, `/atv-update`; remove `/gstack-cso`.
 
 **Test scenarios:**
