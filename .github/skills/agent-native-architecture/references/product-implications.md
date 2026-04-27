@@ -11,7 +11,7 @@ The best agent-native applications are simple to start but endlessly powerful.
 
 Excel is the canonical example: you can use it for a grocery list, or you can build complex financial models. The same tool, radically different depths of use.
 
-Claude Code has this quality: fix a typo, or refactor an entire codebase. The interface is the same—natural language—but the capability scales with the ask.
+Copilot CLI has this quality: fix a typo, or refactor an entire codebase. The interface is the same—natural language—but the capability scales with the ask.
 
 ### The Pattern
 

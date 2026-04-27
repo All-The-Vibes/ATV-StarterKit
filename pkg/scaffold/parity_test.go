@@ -199,7 +199,6 @@ func TestDogfoodTemplateParity(t *testing.T) {
 		"git-worktree":              true,
 		"heal-skill":                true,
 		"onboarding":                true,
-		"orchestrating-swarms":      true,
 		"proof":                     true,
 		"rclone":                    true,
 		"report-bug":                true,

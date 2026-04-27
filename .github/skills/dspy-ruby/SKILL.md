@@ -177,7 +177,7 @@ Two strategies for connecting to LLM providers:
 # Gemfile
 gem 'dspy'
 gem 'dspy-openai'    # OpenAI, OpenRouter, Ollama
-gem 'dspy-anthropic' # Claude
+gem 'dspy-anthropic' # Copilot
 gem 'dspy-gemini'    # Gemini
 ```
 
@@ -662,7 +662,7 @@ end
 - GitHub: https://github.com/vicentereig/dspy.rb
 - Documentation: https://oss.vicente.services/dspy.rb/getting-started/
 
-## Guidelines for Claude
+## Guidelines for Copilot
 
 When helping users with DSPy.rb:
 

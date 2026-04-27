@@ -54,7 +54,6 @@ copilot plugin install atv-agents@atv-starter-kit   # already included in atv-ev
 | `atv-pack-guidelines` | karpathy-guidelines, autoresearch | Behavioral guardrails + autonomous experiment loop |
 | `atv-pack-easter-eggs` | meme-iq | Fun extras |
 | `atv-pack-learning` | learn, instincts, evolve, observe | Compounding institutional knowledge |
-| `atv-pack-maintenance` | atv-doctor, atv-update | Diagnose and update your ATV install (added v2.6.3) |
 
 ```bash
 copilot plugin install atv-pack-planning@atv-starter-kit

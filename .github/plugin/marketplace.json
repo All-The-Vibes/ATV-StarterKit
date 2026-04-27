@@ -139,7 +139,7 @@
     {
       "name": "atv-pack-shipping",
       "source": "atv-pack-shipping",
-      "description": "Shipping & deploy pack — Takeoff, CE Work, Land, LFG/SLFG orchestrators, CE Compound, and Claude Permissions Optimizer for executing and delivering work.",
+      "description": "Shipping & deploy pack — Takeoff, CE Work, Land, LFG/SLFG orchestrators, and CE Compound for executing and delivering work.",
       "version": "2.6.3",
       "keywords": [
         "atv",
@@ -291,18 +291,6 @@
         "atv",
         "skill",
         "ce-work"
-      ],
-      "category": "skill"
-    },
-    {
-      "name": "atv-skill-claude-permissions-optimizer",
-      "source": "atv-skill-claude-permissions-optimizer",
-      "description": "ATV `claude-permissions-optimizer` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
-      "version": "2.6.3",
-      "keywords": [
-        "atv",
-        "skill",
-        "claude-permissions-optimizer"
       ],
       "category": "skill"
     },

@@ -114,18 +114,21 @@ If push fails (conflicts, hook rejection, branch protection), **resolve and retr
 
 A PR is the review artifact. Agent work without a PR has no trust surface.
 
-Check first whether a PR already exists on this branch, capturing the exit code so "no PR yet" is handled as normal workflow state rather than an error:
+Check first whether an **open** PR already exists on this branch. `gh pr view` returns success for closed and merged PRs too, so inspect `state` — not just the exit code — otherwise a stale CLOSED PR will trick the skill into skipping creation and leave the user with nothing to ship:
 
 ```bash
 if PR_VIEW_OUTPUT=$(gh pr view --json url,title,state 2>&1); then
   PR_VIEW_EXIT=0
+  PR_VIEW_STATE=$(printf '%s' "$PR_VIEW_OUTPUT" | jq -r '.state // empty' 2>/dev/null)
 else
   PR_VIEW_EXIT=$?
+  PR_VIEW_STATE=""
 fi
-printf '%s\n__GH_PR_VIEW_EXIT__=%s\n' "$PR_VIEW_OUTPUT" "$PR_VIEW_EXIT"
+printf '%s\n__GH_PR_VIEW_EXIT__=%s\n__GH_PR_VIEW_STATE__=%s\n' \
+  "$PR_VIEW_OUTPUT" "$PR_VIEW_EXIT" "$PR_VIEW_STATE"
 ```
 
-If no PR exists, create one. **For PR body construction, follow the conventions in [`git-commit-push-pr`](../git-commit-push-pr/SKILL.md)** — value-first, intent-forward, scaled to the complexity of the change. Do not re-implement that logic here.
+Treat the branch as having no usable PR when **either** `PR_VIEW_EXIT != 0` **or** `PR_VIEW_STATE != "OPEN"`. In that case, create a fresh PR. If a CLOSED or MERGED PR is found, mention it in the new PR body so reviewers have the breadcrumb. **For PR body construction, follow the conventions in [`git-commit-push-pr`](../git-commit-push-pr/SKILL.md)** — value-first, intent-forward, scaled to the complexity of the change. Do not re-implement that logic here.
 
 Resolve the default branch dynamically — it's not always `main`:
 
@@ -204,4 +207,4 @@ These are non-negotiable when `/land` is invoked:
 
 ## Project-specific considerations
 
-Some repos have local conventions layered on top of this protocol — read `.github/copilot-instructions.md` (and any `AGENTS.md` or `CLAUDE.md` at the repo root, when present) for project-specific rules (e.g., branch protection, PR comment workflows, backlog linkage requirements). Project rules override these defaults where they conflict.
+Some repos have local conventions layered on top of this protocol — read `.github/copilot-instructions.md` (and any `AGENTS.md` or `AGENTS.md` at the repo root, when present) for project-specific rules (e.g., branch protection, PR comment workflows, backlog linkage requirements). Project rules override these defaults where they conflict.

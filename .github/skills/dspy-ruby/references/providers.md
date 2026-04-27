@@ -8,7 +8,7 @@ DSPy.rb ships provider SDKs as separate adapter gems. Install only the adapters 
 # Gemfile
 gem 'dspy'              # core framework (no provider SDKs)
 gem 'dspy-openai'       # OpenAI, OpenRouter, Ollama
-gem 'dspy-anthropic'    # Claude
+gem 'dspy-anthropic'    # Copilot
 gem 'dspy-gemini'       # Gemini
 gem 'dspy-ruby_llm'     # RubyLLM unified adapter (12+ providers)
 ```
@@ -55,7 +55,7 @@ lm = DSPy::LM.new('openrouter/deepseek/deepseek-chat-v3.1:free',
 
 ### dspy-anthropic
 
-Provides the Claude adapter. Install it for any `anthropic/*` model id.
+Provides the Copilot adapter. Install it for any `anthropic/*` model id.
 
 **SDK dependency:** `anthropic ~> 1.12`
 
@@ -343,7 +343,7 @@ Override an individual tool's model without touching application code:
 DSPY_DEFAULT_MODEL=openai/gpt-4o-mini
 DSPY_DEFAULT_API_KEY=sk-...
 
-# Override the classifier to use Claude
+# Override the classifier to use Copilot
 DSPY_MODEL_CLASSIFIER=anthropic/claude-sonnet-4-20250514
 DSPY_API_KEY_CLASSIFIER=sk-ant-...
 
@@ -402,7 +402,7 @@ Feature support across direct adapter gems. All features listed assume `structur
 
 | Scenario                                  | Recommended Adapter            |
 |-------------------------------------------|--------------------------------|
-| Single provider (OpenAI, Claude, or Gemini) | Dedicated gem (`dspy-openai`, `dspy-anthropic`, `dspy-gemini`) |
+| Single provider (OpenAI, Copilot, or Gemini) | Dedicated gem (`dspy-openai`, `dspy-anthropic`, `dspy-gemini`) |
 | Multi-provider with per-agent model routing | `dspy-ruby_llm`               |
 | AWS Bedrock or Google VertexAI             | `dspy-ruby_llm`               |
 | Local development with Ollama              | `dspy-openai` (Ollama sub-adapter) or `dspy-ruby_llm` |

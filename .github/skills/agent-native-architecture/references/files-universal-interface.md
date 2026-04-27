@@ -5,7 +5,7 @@ Files are the universal interface for agent-native applications. Agents are natu
 <why_files>
 ## Why Files
 
-Agents are naturally good at files. Claude Code works because bash + filesystem is the most battle-tested agent interface. When building agent-native apps, lean into this.
+Agents are naturally good at files. Copilot CLI works because bash + filesystem is the most battle-tested agent interface. When building agent-native apps, lean into this.
 
 ### Agents Already Know How
 

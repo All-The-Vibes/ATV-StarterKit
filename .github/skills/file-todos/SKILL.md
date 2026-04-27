@@ -150,7 +150,7 @@ done
 ```markdown
 ### YYYY-MM-DD - Session Title
 
-**By:** Claude Code / Developer Name
+**By:** Copilot CLI / Developer Name
 
 **Actions:**
 - Specific changes made (include file:line references)

@@ -11,7 +11,7 @@ Report bugs encountered while using the compound-engineering plugin. This skill 
 
 ## Step 1: Gather Bug Information
 
-Ask the user the following questions (using the platform's blocking question tool — e.g., `AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini — or present numbered options and wait for a reply):
+Ask the user the following questions (using the platform's blocking question tool — e.g., `ask_user` in Copilot CLI — or present numbered options and wait for a reply):
 
 **Question 1: Bug Category**
 - What type of issue are you experiencing?
@@ -47,12 +47,12 @@ uname -a
 ```
 
 **Plugin version:** Read the plugin manifest or installed plugin metadata. Common locations:
-- Claude Code: `~/.copilot/plugins/installed_plugins.json`
+- Copilot CLI: `~/.copilot/plugins/installed_plugins.json`
 - Codex: `.codex/plugins/` or project config
 - Other platforms: check the platform's plugin registry
 
 **Agent CLI version:** Run the platform's version command:
-- Claude Code: `claude --version`
+- Copilot CLI: `copilot --version`
 - Codex: `codex --version`
 - Other platforms: use the appropriate CLI version flag
 
@@ -71,7 +71,7 @@ Create a well-structured bug report with:
 ## Environment
 
 - **Plugin Version:** [from plugin manifest/registry]
-- **Agent Platform:** [e.g., Claude Code, Codex, Copilot, Pi, Kilo]
+- **Agent Platform:** [e.g., Copilot CLI, Codex, Copilot, Pi, Kilo]
 - **Agent Version:** [from CLI version command]
 - **OS:** [from uname]
 

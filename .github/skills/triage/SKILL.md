@@ -133,7 +133,7 @@ Do you want to add this to the todo list?
    ## Work Log
 
    ### {date} - Approved for Work
-   **By:** Claude Triage System
+   **By:** Copilot Triage System
    **Actions:**
    - Issue approved during triage session
    - Status changed from pending → ready

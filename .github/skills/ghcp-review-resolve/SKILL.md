@@ -49,17 +49,29 @@ If the user passed an argument, prefer that. If `PR_NUMBER` is still empty, ask 
 
 ```bash
 gh pr view "$PR_NUMBER" --json \
-  headRefOid,changedFiles,additions,deletions,mergeStateStatus,mergeable,baseRefName \
+  state,headRefOid,changedFiles,additions,deletions,mergeStateStatus,mergeable,baseRefName \
   > /tmp/ghcp-pr-meta.json
 ```
 
 Extract into local variables:
 
+- `PR_STATE` — `OPEN`, `CLOSED`, or `MERGED`
 - `PR_HEAD_SHA` — head SHA (later mutations re-check this to detect mid-run pushes)
 - `CHANGED_FILES` — file count
 - `LINES_CHANGED` = additions + deletions
 - `MERGE_STATE_STATUS` — `CLEAN`, `DIRTY`, `BLOCKED`, `BEHIND`, `UNKNOWN`, etc.
 - `BASE_REF` — base branch name
+
+If `PR_STATE != "OPEN"`, this is a **blocker**. Reviewing a CLOSED or MERGED PR produces noise on a frozen artifact and cannot meaningfully be "resolved". Emit the preflight table (see 0h) with this state, then stop with a clear message:
+
+```
+Blocker: PR #$PR_NUMBER is $PR_STATE, not OPEN.
+
+This skill only operates on open PRs. If you intended to review a different
+PR, pass it explicitly. If this PR was closed by mistake, reopen it first.
+```
+
+No reviewer is contacted, no comment is posted.
 
 ### 0d. Classify PR size
 
@@ -132,7 +144,7 @@ To enable dual review, configure Copilot code review on the repo settings.
 
 ### 0g. Check for prior resolved reviews (idempotency)
 
-Use GraphQL to fetch review threads and resolution state. Paginate through **all** review threads before deciding whether a prior Copilot review was already resolved — a 100-thread cap will silently miss findings on large PRs. Align the query shape with the repo's existing working reviewer script (`.github/skills/resolve-pr-parallel/scripts/get-pr-comments`), which is the source of truth for field names that actually exist on `PullRequestReviewThread`:
+Use GraphQL to fetch review threads and resolution state. Paginate through **all** review threads before deciding whether a prior Copilot review was already resolved — a 100-thread cap will silently miss findings on large PRs. Align the query shape with the repo's existing working reviewer script (`.github/skills/resolve-pr-feedback/scripts/get-pr-comments`), which is the source of truth for field names that actually exist on `PullRequestReviewThread`:
 
 ```bash
 all_threads='[]'

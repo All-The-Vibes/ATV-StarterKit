@@ -14,7 +14,7 @@ Review agent selection is handled automatically by the `ce-review` skill, which 
 
 If this skill is invoked, inform the user:
 
-> Review agent configuration is no longer needed — `ce-review` automatically selects the right reviewers based on your diff. Project-specific review context (e.g., "we serve 10k req/s" or "watch for N+1 queries") belongs in your project's CLAUDE.md or AGENTS.md, where all agents already read it.
+> Review agent configuration is no longer needed — `ce-review` automatically selects the right reviewers based on your diff. Project-specific review context (e.g., "we serve 10k req/s" or "watch for N+1 queries") belongs in your project's AGENTS.md, where all agents already read it.
 
 ## Future Use
 

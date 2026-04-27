@@ -30,8 +30,8 @@ Analyze specifications, plans, and feature descriptions from the end user's pers
 
 Before analyzing the spec in isolation, search the codebase for context. This prevents generic feedback and surfaces real constraints.
 
-1. Use the native content-search tool (e.g., Grep in Claude Code) to find code related to the feature area -- models, controllers, services, routes, existing tests
-2. Use the native file-search tool (e.g., Glob in Claude Code) to find related features that may share patterns or integrate with this one
+1. Use the native content-search tool (the grep tool) to find code related to the feature area -- models, controllers, services, routes, existing tests
+2. Use the native file-search tool (the glob tool) to find related features that may share patterns or integrate with this one
 3. Note existing patterns: how does the codebase handle similar flows today? What conventions exist for error handling, auth, validation?
 
 This context shapes every subsequent phase. Gaps are only gaps if the codebase doesn't already handle them.

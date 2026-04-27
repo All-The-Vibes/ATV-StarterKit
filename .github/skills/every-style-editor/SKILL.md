@@ -5,7 +5,7 @@ description: This skill should be used when reviewing or editing copy to ensure 
 
 # Every Style Editor
 
-This skill provides a systematic approach to reviewing copy against Every's comprehensive style guide. It transforms Claude into a meticulous line editor and proofreader specializing in grammar, mechanics, and style guide compliance.
+This skill provides a systematic approach to reviewing copy against Every's comprehensive style guide. It transforms Copilot into a meticulous line editor and proofreader specializing in grammar, mechanics, and style guide compliance.
 
 ## When to Use This Skill
 
