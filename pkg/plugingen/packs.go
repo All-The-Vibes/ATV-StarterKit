@@ -53,13 +53,12 @@ func Packs() []Pack {
 		{
 			Name:        "atv-pack-shipping",
 			Category:    "shipping",
-			Description: "Shipping & deploy pack — Takeoff, CE Work, Land, LFG/SLFG orchestrators, CE Compound, and Claude Permissions Optimizer for executing and delivering work.",
+			Description: "Shipping & deploy pack — Takeoff, CE Work, Land, LFG/SLFG orchestrators, and CE Compound for executing and delivering work.",
 			Keywords:    []string{"atv", "shipping", "deploy", "compound-engineering", "orchestrator"},
 			SkillNames: []string{
 				"ce-compound",
 				"ce-compound-refresh",
 				"ce-work",
-				"claude-permissions-optimizer",
 				"land",
 				"lfg",
 				"slfg",
@@ -101,6 +100,46 @@ func Packs() []Pack {
 			Keywords:    []string{"atv", "learning", "memory", "compound-engineering"},
 			SkillNames:  []string{"evolve", "instincts", "learn", "observe"},
 		},
+		{
+			Name:        "atv-pack-dev-tools",
+			Category:    "dev-tools",
+			Description: "Developer workflow helpers — git, PR review, onboarding, todo tracking, skill scaffolding, and bug reproduction.",
+			Keywords:    []string{"atv", "dev-tools", "git", "pr-review", "onboarding"},
+			SkillNames: []string{
+				"changelog",
+				"ghcp-review-resolve",
+				"git-clean-gone-branches",
+				"git-commit",
+				"git-commit-push-pr",
+				"git-worktree",
+				"onboarding",
+				"reproduce-bug",
+				"skill-creator",
+				"todo-create",
+				"todo-resolve",
+				"todo-triage",
+			},
+		},
+		{
+			Name:        "atv-pack-style",
+			Category:    "style",
+			Description: "Opinionated coding and writing style guides — DHH Rails, Andrew Kane gems, DSPy.rb, Every style editor, frontend design.",
+			Keywords:    []string{"atv", "style", "dhh", "rails", "ruby", "frontend"},
+			SkillNames: []string{
+				"andrew-kane-gem-writer",
+				"dhh-rails-style",
+				"dspy-ruby",
+				"every-style-editor",
+				"frontend-design",
+			},
+		},
+		{
+			Name:        "atv-pack-media",
+			Category:    "media",
+			Description: "Media and cloud-storage helpers — Gemini image generation, Proof markdown collaboration, rclone file sync.",
+			Keywords:    []string{"atv", "media", "image-gen", "rclone", "proof"},
+			SkillNames:  []string{"gemini-imagegen", "proof", "rclone"},
+		},
 	}
 }
 
@@ -113,6 +152,7 @@ func Packs() []Pack {
 // (orchestrator helper). These are intentionally pack-less because
 // they're internal helpers rather than user-facing workflows.
 var MiscSkills = []string{
+	"agent-native-architecture",
 	"feature-video",
 	"resolve_todo_parallel",
 	"setup",
