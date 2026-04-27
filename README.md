@@ -117,7 +117,7 @@ copilot plugin install atv-everything@atv-starter-kit
 
 Pre-built Windows binaries (amd64/arm64) are on the [latest release](https://github.com/All-The-Vibes/ATV-StarterKit/releases/latest) page.
 
-> **Windows caveat:** the gstack sub-installer falls back to `bun run gen:skill-docs` because of bash path issues. Markdown-only gstack skills install fine; the bash-based skill-doc generator is the only thing that degrades. Everything else — ATV scaffold, Copilot CLI marketplace, agent-browser — works the same as on macOS/Linux.
+> **Windows caveat:** if the gstack sub-installer's `./setup` step fails on Windows — for example, if Git Bash isn't available or another bash/runtime build issue occurs — it falls back to `bun run gen:skill-docs`. Markdown-only gstack skills still install fine; the bash-based skill-doc generator is the only thing that degrades. Everything else — ATV scaffold, Copilot CLI marketplace, agent-browser — works the same as on macOS/Linux.
 
 ### Marketplace bundles and per-skill plugins
 
