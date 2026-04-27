@@ -82,7 +82,7 @@ agent-browser snapshot -i
 
 If the server is not running, ask the user to start their development server and provide the correct port.
 
-To detect the correct port, check project instruction files (`AGENTS.md`, `AGENTS.md`) for port references, then `package.json` dev scripts, then `.env` files, falling back to `3000`.
+To detect the correct port, check project instruction files (`AGENTS.md`) for port references, then `package.json` dev scripts, then `.env` files, falling back to `3000`.
 
 #### Follow reproduction steps
 

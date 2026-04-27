@@ -177,7 +177,7 @@ Two strategies for connecting to LLM providers:
 # Gemfile
 gem 'dspy'
 gem 'dspy-openai'    # OpenAI, OpenRouter, Ollama
-gem 'dspy-anthropic' # Copilot
+gem 'dspy-anthropic' # Claude
 gem 'dspy-gemini'    # Gemini
 ```
 

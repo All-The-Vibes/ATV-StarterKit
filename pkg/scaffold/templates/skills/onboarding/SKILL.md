@@ -48,7 +48,7 @@ Guided by the inventory, read files that are essential for understanding the cod
 
 **What to read and why:**
 
-Read files in parallel batches where there are no dependencies between them. For example, batch README.md, entry points, and AGENTS.md/AGENTS.md together in a single turn since none depend on each other's content.
+Read files in parallel batches where there are no dependencies between them. For example, batch README.md, entry points, and AGENTS.md together in a single turn since none depend on each other's content.
 
 Only read files whose content is needed to write the six sections with concrete, specific detail. The inventory already provides structure, languages, frameworks, scripts, and entry point paths -- don't re-read files just to confirm what the inventory already says. Different repos need different amounts of reading; a small CLI tool might need 4 files, a complex monorepo might need 20. Let the sections drive what you read, not an arbitrary count.
 
