@@ -103,7 +103,7 @@ Build a list of URLs to test based on the mapping.
 Determine the dev server port using this priority:
 
 1. **Explicit argument** — if the user passed `--port 5000`, use that directly
-2. **Project instructions** — check `AGENTS.md`, `AGENTS.md`, or other instruction files for port references
+2. **Project instructions** — check `AGENTS.md` or other instruction files for port references
 3. **package.json** — check dev/start scripts for `--port` flags
 4. **Environment files** — check `.env`, `.env.local`, `.env.development` for `PORT=`
 5. **Default** — fall back to `3000`

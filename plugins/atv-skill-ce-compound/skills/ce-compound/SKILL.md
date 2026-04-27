@@ -296,7 +296,7 @@ File created:
 - docs/solutions/[category]/[filename].md
 
 [If discoverability check found instruction files don't surface the knowledge store:]
-Tip: Your AGENTS.md/AGENTS.md doesn't surface docs/solutions/ to agents —
+Tip: Your AGENTS.md doesn't surface docs/solutions/ to agents —
 a brief mention helps all agents discover these learnings.
 
 Note: This was created in compact-safe mode. For richer documentation

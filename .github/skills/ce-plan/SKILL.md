@@ -163,7 +163,7 @@ Collect:
 - Technology stack and versions (used in section 1.2 to make sharper external research decisions)
 - Architectural patterns and conventions to follow
 - Implementation patterns, relevant files, modules, and tests
-- AGENTS.md guidance that materially affects the plan, 
+- AGENTS.md guidance that materially affects the plan
 - Institutional learnings from `docs/solutions/`
 
 #### 1.1b Detect Execution Posture Signals

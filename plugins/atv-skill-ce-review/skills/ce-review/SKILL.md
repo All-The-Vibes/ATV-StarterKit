@@ -110,7 +110,7 @@ Routing rules:
 | `compound-engineering:review:correctness-reviewer` | Logic errors, edge cases, state bugs, error propagation |
 | `compound-engineering:review:testing-reviewer` | Coverage gaps, weak assertions, brittle tests |
 | `compound-engineering:review:maintainability-reviewer` | Coupling, complexity, naming, dead code, abstraction debt |
-| `compound-engineering:review:project-standards-reviewer` | AGENTS.md and AGENTS.md compliance -- frontmatter, references, naming, portability |
+| `compound-engineering:review:project-standards-reviewer` | AGENTS.md compliance -- frontmatter, references, naming, portability |
 | `compound-engineering:review:agent-native-reviewer` | Verify new features are agent-accessible |
 | `compound-engineering:research:learnings-researcher` | Search docs/solutions/ for past issues related to this PR |
 
@@ -368,7 +368,7 @@ This is progress reporting, not a blocking confirmation.
 
 Before spawning sub-agents, find the file paths (not contents) of all relevant standards files for the `project-standards` persona. Use the native file-search/glob tool to locate:
 
-1. Use the native file-search tool (the glob tool) to find all `**/agents.md` files in the repo.
+1. Use the native file-search tool (the glob tool) to find all `**/AGENTS.md` files in the repo.
 2. Filter to those whose directory is an ancestor of at least one changed file. A standards file governs all files below it (e.g., `plugins/compound-engineering/AGENTS.md` applies to everything under `plugins/compound-engineering/`).
 
 Pass the resulting path list to the `project-standards` persona inside a `<standards-paths>` block in its review context (see Stage 4). The persona reads the files itself, targeting only the sections relevant to the changed file types. This keeps the orchestrator's work cheap (path discovery only) and avoids bloating the subagent prompt with content the reviewer may not fully need.
