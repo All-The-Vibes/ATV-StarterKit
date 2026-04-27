@@ -6,7 +6,7 @@ This file holds the deep-dive material that used to live in `README.md`. The REA
 
 ---
 
-## The Three Pillars
+## The Behavioral Foundation
 
 ### Karpathy Guidelines — the behavioral foundation
 
@@ -20,6 +20,8 @@ Every skill and agent in ATV operates under four principles derived from [Andrej
 | **Goal-Driven Execution** | Vague success criteria, no verification loop, "make it work" without checking |
 
 These aren't just instructions — they're the operating contract between you and the AI. Without them, Copilot tends toward the exact pitfalls Karpathy described: "The models make wrong assumptions on your behalf and just run along with them."
+
+## The Four Pillars
 
 ### Autoresearch — autonomous experimentation loop
 
