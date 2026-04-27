@@ -145,7 +145,7 @@ If the `git status` result from this step shows a clean working tree (no staged,
 
 Follow this priority order for commit messages *and* PR titles:
 
-1. **Repo conventions already in context** -- If project instructions (AGENTS.md, AGENTS.md, or similar) are loaded and specify conventions, follow those. Do not re-read these files; they are loaded at session start.
+1. **Repo conventions already in context** -- If project instructions (AGENTS.md or similar) are loaded and specify conventions, follow those. Do not re-read these files; they are loaded at session start.
 2. **Recent commit history** -- If no explicit convention exists, match the pattern visible in the last 10 commits.
 3. **Default: conventional commits** -- `type(scope): description` as the fallback.
 
