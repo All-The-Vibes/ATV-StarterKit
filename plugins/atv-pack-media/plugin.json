@@ -1,0 +1,22 @@
+{
+  "name": "atv-pack-media",
+  "description": "Media and cloud-storage helpers — Gemini image generation, Proof markdown collaboration, rclone file sync.",
+  "version": "2.6.2",
+  "author": {
+    "name": "All The Vibes",
+    "url": "https://github.com/All-The-Vibes"
+  },
+  "repository": "https://github.com/All-The-Vibes/ATV-StarterKit",
+  "license": "MIT",
+  "keywords": [
+    "atv",
+    "media",
+    "image-gen",
+    "rclone",
+    "proof"
+  ],
+  "category": "media",
+  "skills": [
+    "./skills"
+  ]
+}

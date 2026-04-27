@@ -1,0 +1,23 @@
+{
+  "name": "atv-pack-style",
+  "description": "Opinionated coding and writing style guides — DHH Rails, Andrew Kane gems, DSPy.rb, Every style editor, frontend design.",
+  "version": "2.6.2",
+  "author": {
+    "name": "All The Vibes",
+    "url": "https://github.com/All-The-Vibes"
+  },
+  "repository": "https://github.com/All-The-Vibes/ATV-StarterKit",
+  "license": "MIT",
+  "keywords": [
+    "atv",
+    "style",
+    "dhh",
+    "rails",
+    "ruby",
+    "frontend"
+  ],
+  "category": "style",
+  "skills": [
+    "./skills"
+  ]
+}
