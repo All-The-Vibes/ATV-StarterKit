@@ -161,6 +161,7 @@ Each phase has skills for it; the table shows where each lives. Slash commands r
               <td width="25%" valign="top">
                      <strong>💭 Think</strong><br />
                      <sub>Frame the problem</sub><br /><br />
+                     <code>/takeoff</code> <sub>— prioritized backlog briefing to start a session</sub><br />
                      <code>/ce-brainstorm</code><br />
                      <code>/gstack-office-hours</code>
               </td>
@@ -187,6 +188,7 @@ Each phase has skills for it; the table shows where each lives. Slash commands r
                      <code>/ce-review</code><br />
                      <code>/gstack-review</code><br />
                      <code>/atv-security</code> <sub>— config + OWASP + STRIDE (absorbs <code>/cso</code>)</sub><br />
+                     <code>/ghcp-review-resolve</code> <sub>— dual Copilot + pr-review-toolkit review, inline fix loop</sub><br />
                      <code>/gstack-codex</code>
               </td>
        </tr>
@@ -202,6 +204,7 @@ Each phase has skills for it; the table shows where each lives. Slash commands r
               <td width="33.33%" valign="top">
                      <strong>🚀 Ship</strong><br />
                      <sub>Land without chaos</sub><br /><br />
+                     <code>/land</code> <sub>— commit → push → PR → handoff (closes out a session, never merges)</sub><br />
                      <code>/gstack-ship</code><br />
                      <code>/gstack-land-and-deploy</code><br />
                      <code>/gstack-canary</code><br />
@@ -255,6 +258,17 @@ Replaces the old `/cso` slot. Scans agentic config (`.github/`, `.vscode/`) usin
 /atv-security config           # config-only scan
 /atv-security owasp src/api    # OWASP scan scoped to src/api
 ```
+
+### Session bookends — `/takeoff` and `/land`
+
+Two skills frame every Copilot session:
+
+- **`/takeoff`** at the start — prioritized backlog briefing: open PRs, in-flight branches, recent failed CI, todos, and the highest-value next move.
+- **`/land`** at the end — commit → push → PR → handoff in one step. Never merges; landing ≠ merging.
+
+### `/ghcp-review-resolve` — dual PR review with inline fix loop
+
+Requests a GitHub Copilot review *and* a `pr-review-toolkit` review on the current PR, adjudicates findings with an independent subagent, posts inline comments only for verified bugs, then runs a tight fix-and-reply loop per comment (test → commit → reply on thread). Resolves threads via the GraphQL `resolveReviewThread` mutation, not just `in_reply_to`.
 
 ---
 

@@ -97,6 +97,7 @@ The customize screen exposes opt-in skill layers grouped by intent:
 
 | Skill | What it does |
 |---|---|
+| `/takeoff` | Session-start briefing: open PRs, in-flight branches, recent CI, prioritized next move |
 | `/ce-brainstorm` | Interactive dialogue to clarify requirements; produces design docs in `docs/brainstorms/` |
 | `/gstack-office-hours` | YC-style forcing questions that challenge your framing before you write code |
 | `/gstack-plan-ceo-review` | CEO-level review: find the 10-star product hiding in the request |
@@ -128,6 +129,7 @@ The customize screen exposes opt-in skill layers grouped by intent:
 | `/gstack-review` | Staff-level code review with auto-fix and completeness checks |
 | `/gstack-design-review` | Design audit with atomic fix commits |
 | `/atv-security` | Unified security audit — agentic config (33 AgentShield rules) + OWASP Top 10 + STRIDE. Absorbs former `/cso`. |
+| `/ghcp-review-resolve` | Dual PR review (GitHub Copilot + pr-review-toolkit) with adjudication, inline comments for verified bugs, and fix-and-reply loop that resolves threads via GraphQL |
 | `/gstack-codex` | Cross-model review via OpenAI Codex CLI |
 
 ### Test
@@ -144,6 +146,7 @@ The customize screen exposes opt-in skill layers grouped by intent:
 
 | Skill | What it does |
 |---|---|
+| `/land` | Session-end handoff: commit → push → PR → wrap up. Never merges. |
 | `/gstack-ship` | Sync main, run tests, audit coverage, push, open PR |
 | `/gstack-land-and-deploy` | Merge → CI → deploy → verify production |
 | `/gstack-canary` | Post-deploy monitoring for errors and regressions |
