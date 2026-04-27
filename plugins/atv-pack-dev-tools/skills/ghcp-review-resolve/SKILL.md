@@ -334,9 +334,47 @@ Build a single list of findings from whichever sources produced results. For eac
   "line": 42,              // nullable — some findings are file-level
   "severity": "...",       // pr-toolkit provides this; copilot usually doesn't
   "body": "...",           // the raw review text
-  "comment_id": 12345      // GitHub review comment ID for reply/resolve
+  "comment_id": 12345,     // GitHub review comment ID (REST databaseId)
+  "thread_id": "PRRT_..."  // GraphQL review-thread node ID — REQUIRED for resolve in Step 6
 }
 ```
+
+**Capturing `thread_id` is mandatory.** GitHub's `in_reply_to` REST endpoint posts a reply but does **not** mark the thread resolved. To actually close out a finding the skill must call the `resolveReviewThread` GraphQL mutation, which takes a thread node ID — not a comment ID. Build the lookup map once during normalization by paginating `reviewThreads` and indexing each thread's comments by their `databaseId`:
+
+```bash
+# Build comment-id → thread-id map. Paginate; do NOT cap at one page.
+all_threads='[]'
+after=null
+while :; do
+  page=$(gh api graphql -F owner=<owner> -F repo=<repo> -F number=$PR_NUMBER -F after="$after" -f query='
+    query($owner:String!,$repo:String!,$number:Int!,$after:String) {
+      repository(owner:$owner,name:$repo) {
+        pullRequest(number:$number) {
+          reviewThreads(first:100, after:$after) {
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              id
+              isResolved
+              comments(first:100) { nodes { databaseId } }
+            }
+          }
+        }
+      }
+    }')
+  all_threads=$(jq -c --argjson e "$all_threads" \
+    '$e + (.data.repository.pullRequest.reviewThreads.nodes // [])' <<<"$page")
+  has_next=$(jq -r '.data.repository.pullRequest.reviewThreads.pageInfo.hasNextPage' <<<"$page")
+  [ "$has_next" = "true" ] || break
+  after=$(jq -r '.data.repository.pullRequest.reviewThreads.pageInfo.endCursor' <<<"$page")
+done
+
+# Lookup: comment_id_to_thread_id[<databaseId>] = <thread node id>
+comment_to_thread=$(jq -c '
+  [.[] | . as $t | .comments.nodes[] | {key: (.databaseId|tostring), value: $t.id}] | from_entries
+' <<<"$all_threads")
+```
+
+If the GraphQL call fails for some reason, log the failure and continue — the fix loop must still run, but Step 6's resolve step will be skipped per finding and the final summary will list those as "fixed but thread not auto-resolved".
 
 Deduplicate near-identical findings (same file + overlapping line range + substantively similar body) and mark them as `overlap: true`. Overlap is your strongest positive signal.
 
@@ -445,7 +483,24 @@ For each accepted finding, in order by file then line:
    ```
    The `in_reply_to` field is the GitHub-supported way to thread under an existing review comment. If that call fails (some older API versions), fall back to posting a new top-level PR comment that references the original comment URL.
 
-7. **Move on** to the next finding. Do not pause for user input between findings — the whole point is one-shot resolution. If something truly blocks progress (repo credentials, missing dependency), stop the whole pipeline and report.
+   **`in_reply_to` does NOT mark the thread resolved.** The thread will still appear unresolved in the GitHub UI and in any "open conversations" check. Step 6.7 below handles the actual resolution.
+
+7. **Resolve the thread** via the `resolveReviewThread` GraphQL mutation, using the `thread_id` captured in Step 3:
+   ```bash
+   gh api graphql -F threadId="<thread_id>" -f query='
+     mutation($threadId: ID!) {
+       resolveReviewThread(input: { threadId: $threadId }) {
+         thread { isResolved }
+       }
+     }'
+   ```
+   Verify the response `.data.resolveReviewThread.thread.isResolved == true`. If it returns `false` or errors (insufficient permissions, thread already resolved by someone else, mutation rejected), log the failure with the thread ID and finding context, and continue. Do not retry more than once per thread. Resolution is best-effort — the fix and the reply are the actual deliverable; thread resolution is bookkeeping to keep the PR's "unresolved conversations" count honest.
+
+   The repo's existing helper `.github/skills/resolve-pr-feedback/scripts/resolve-pr-thread` runs this exact mutation if you'd rather shell out than call `gh api` inline.
+
+   Skip 6.7 only if Step 3's lookup-map build failed and `thread_id` is unknown for this finding. Note the skip in the final summary as "thread_id unavailable — manual resolve required".
+
+8. **Move on** to the next finding. Do not pause for user input between findings — the whole point is one-shot resolution. If something truly blocks progress (repo credentials, missing dependency), stop the whole pipeline and report.
 
 ### Batching by file (optional optimization)
 
@@ -465,6 +520,25 @@ If you can't identify a verification command in ~30 seconds of looking, commit t
 
 ## Step 7 — Final summary to the user
 
+Before producing the summary, run a final **verification sweep**: re-query review threads via GraphQL and confirm every finding the fix loop touched is now `isResolved == true`. If any are still unresolved, attempt one more `resolveReviewThread` mutation per straggler. Any that still fail get listed explicitly in the summary so the user knows to resolve them manually.
+
+```bash
+gh api graphql -F owner=<owner> -F repo=<repo> -F number=$PR_NUMBER -f query='
+  query($owner:String!,$repo:String!,$number:Int!) {
+    repository(owner:$owner,name:$repo) {
+      pullRequest(number:$number) {
+        reviewThreads(first:100) {
+          totalCount
+          nodes { id isResolved }
+        }
+      }
+    }
+  }' | jq '{
+    total: .data.repository.pullRequest.reviewThreads.totalCount,
+    unresolved: [.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved|not) | .id]
+  }'
+```
+
 Produce a single summary message covering:
 
 - PR number and URL
@@ -472,6 +546,7 @@ Produce a single summary message covering:
 - Reviewers expected vs. completed
 - Findings: total raised, total accepted, total rejected (with top reasons), any dropped as "not grounded in diff"
 - Fixes: what was changed, commit SHAs, any fixes that failed or were skipped
+- **Thread resolution: total resolved / total accepted findings. List any threads still unresolved with reason (mutation failed, permissions, thread_id unavailable).**
 - Explicit confirmation: **PR was not closed, approved, or merged.**
 - Remaining reviewer comments that were intentionally left unresolved, with a one-line reason each
 
