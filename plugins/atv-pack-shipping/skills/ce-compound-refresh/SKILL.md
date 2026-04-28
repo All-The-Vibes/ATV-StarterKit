@@ -646,7 +646,7 @@ Use **Consolidate** proactively when the document set has grown organically and 
 
 After the refresh report is generated, check whether the project's instruction files would lead an agent to discover and search `docs/solutions/` before starting work in a documented area. This runs every time — the knowledge store only compounds value when agents can find it. If this check produces edits, they are committed as part of (or immediately after) the Phase 5 commit flow — see step 5 below.
 
-1. Identify which root-level instruction files exist (AGENTS.md). Read the file(s) and determine which holds the substantive content — one file may just be a shim that `@`-includes the other (e.g., `AGENTS.md` containing only `@AGENTS.md`, or vice versa). The substantive file is the assessment and edit target; ignore shims. If neither file exists, skip this check entirely.
+1. Identify whether `AGENTS.md` exists at the repo root. If it does, that is the assessment and edit target. If it does not, skip this check entirely.
 2. Assess whether an agent reading the instruction files would learn three things:
    - That a searchable knowledge store of documented solutions exists
    - Enough about its structure to search effectively (category organization, YAML frontmatter fields like `module`, `tags`, `problem_type`)
