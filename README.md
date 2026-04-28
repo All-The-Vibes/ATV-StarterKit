@@ -26,12 +26,18 @@
 
 ## What is ATV 2.0?
 
-ATV 2.0 is a one-command installer that wires together four open-source systems into a single coherent agentic coding environment for GitHub Copilot — grounded in the behavioral principles from [Andrej Karpathy's observations](https://x.com/karpathy/status/2015883857489522876) on LLM coding pitfalls:
+ATV 2.0 is a one-command installer that wires together four open-source pillars on a behavioral foundation, into a single coherent agentic coding environment for GitHub Copilot:
 
+**Behavioral foundation:**
+
+- **[Karpathy Guidelines](https://github.com/forrestchang/andrej-karpathy-skills)** — behavioral guardrails grounded in [Andrej Karpathy's observations](https://x.com/karpathy/status/2015883857489522876) on LLM coding pitfalls: think before coding, simplicity first, surgical changes, goal-driven execution
+
+**Four pillars:**
+
+- **[Autoresearch](https://github.com/github/awesome-copilot/blob/main/skills/autoresearch/SKILL.md)** — autonomous metric-driven experiment loop on a dedicated branch
 - **[Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin)** — planning-to-knowledge pipeline
 - **[gstack](https://github.com/garrytan/gstack)** — sprint execution engine (by Garry Tan / Y Combinator)
 - **[agent-browser](https://github.com/vercel-labs/agent-browser)** — browser automation layer (by Vercel)
-- **[Karpathy Guidelines](https://github.com/forrestchang/andrej-karpathy-skills)** — behavioral guardrails: think before coding, simplicity first, surgical changes, goal-driven execution
 
 Together they cover the full software lifecycle — from "what should I build?" through "is it healthy in production?" — with 45+ skills, 29 agents, and a learning system that makes your repo smarter with every session. **For pillar deep dives, the learning pipeline, agent inventory, and architecture diagrams, see [`DOCS.md`](DOCS.md).**
 
@@ -282,7 +288,7 @@ For pillar deep dives, the learning pipeline mechanics, agent inventory, MCP ser
 
 MIT — Built by [All The Vibes](https://github.com/All-The-Vibes)
 
-Powered by [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) · [gstack](https://github.com/garrytan/gstack) · [agent-browser](https://github.com/vercel-labs/agent-browser) · [Karpathy Guidelines](https://github.com/forrestchang/andrej-karpathy-skills)
+Powered by [Autoresearch](https://github.com/github/awesome-copilot/blob/main/skills/autoresearch/SKILL.md) · [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) · [gstack](https://github.com/garrytan/gstack) · [agent-browser](https://github.com/vercel-labs/agent-browser) — grounded in the [Karpathy Guidelines](https://github.com/forrestchang/andrej-karpathy-skills)
 
 Special thanks to [blazingbeard](https://github.com/blazingbeard) for building out the [guided training quest](https://blazingbeard.github.io/quests/atv-starterkit.html).
 
