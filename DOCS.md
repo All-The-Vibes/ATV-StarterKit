@@ -119,7 +119,7 @@ The customize screen exposes opt-in skill layers grouped by intent:
 | Skill | What it does |
 |---|---|
 | `/ce-work` | Implements against the plan with incremental commits and system-wide sanity checks |
-| `/lfg` | Full pipeline: plan → deepen → work → review → test → video → compound |
+| `/lfg` | Full pipeline: plan → deepen → work → review → unslop → resolve → test → video → compound |
 | `/slfg` | Parallelized version via swarm agents |
 | `/autoresearch` | Autonomous metric-driven experiment loop on a dedicated branch |
 
