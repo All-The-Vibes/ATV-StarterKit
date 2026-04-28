@@ -48,7 +48,7 @@ copilot plugin install atv-agents@atv-starter-kit   # already included in atv-ev
 |---|---|---|
 | `atv-pack-planning` | brainstorming, ce-brainstorm, ce-ideate, ce-plan, deepen-plan | Shape work before coding |
 | `atv-pack-review` | ce-review, document-review | Multi-agent review passes |
-| `atv-pack-shipping` | takeoff, ce-work, ce-compound, ce-compound-refresh, claude-permissions-optimizer, land, lfg, slfg | Execute and ship |
+| `atv-pack-shipping` | takeoff, ce-work, ce-compound, ce-compound-refresh, land, lfg, slfg | Execute and ship |
 | `atv-pack-security` | atv-security | Config audit + OWASP/STRIDE |
 | `atv-pack-quality` | unslop, ralph-loop | Tighten up code, iterate |
 | `atv-pack-guidelines` | karpathy-guidelines, autoresearch | Behavioral guardrails + autonomous experiment loop |
