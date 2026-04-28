@@ -372,7 +372,7 @@ Fill in at PR creation time:
 
 | Placeholder | Value | Example |
 |-------------|-------|---------|
-| `[MODEL]` | Model name | Copilot Opus 4.6, GPT-5.4 |
+| `[MODEL]` | Model name | GPT-5.4, Claude Sonnet 4.6, Gemini 2.5 Pro |
 | `[CONTEXT]` | Context window (if known) | 200K, 1M |
 | `[THINKING]` | Thinking level (if known) | extended thinking |
 | `[HARNESS]` | Tool running you | Copilot CLI, Codex, Gemini CLI |
