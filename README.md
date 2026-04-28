@@ -39,7 +39,7 @@ ATV 2.0 is a one-command installer that wires together four open-source pillars 
 - **[gstack](https://github.com/garrytan/gstack)** — sprint execution engine (by Garry Tan / Y Combinator)
 - **[agent-browser](https://github.com/vercel-labs/agent-browser)** — browser automation layer (by Vercel)
 
-Together they cover the full software lifecycle — from "what should I build?" through "is it healthy in production?" — with 45+ skills, 29 agents, and a learning system that makes your repo smarter with every session. **For pillar deep dives, the learning pipeline, agent inventory, and architecture diagrams, see [`DOCS.md`](DOCS.md).**
+Together they cover the full software lifecycle — from "what should I build?" through "is it healthy in production?" — with 45+ skills, 51 agents (29 featured below), and a learning system that makes your repo smarter with every session. **For pillar deep dives, the learning pipeline, agent inventory, and architecture diagrams, see [`DOCS.md`](DOCS.md).**
 
 ---
 

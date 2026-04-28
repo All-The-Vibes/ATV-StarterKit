@@ -294,7 +294,7 @@ Over weeks, your repo develops a memory that makes every Copilot session more ef
 
 ## Agents
 
-29 specialized agents in `.github/agents/`, invoked by skills during review, planning, learning, and debugging:
+51 agents ship in `.github/agents/`. The 29 featured agents below are invoked by skills during review, planning, learning, and debugging:
 
 | Category | Agents |
 |---|---|
