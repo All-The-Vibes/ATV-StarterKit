@@ -1,12 +1,12 @@
 ---
 name: atv-doctor
-description: "Diagnose ATV Starter Kit installation health across both install paths (project scaffold from `atv init` and Copilot CLI marketplace plugins). Detects install scope, version drift, file integrity (checksums vs install manifest), hook validity, MCP prereqs, and optional dependency status. Triggers on 'atv doctor', 'atv health', 'check atv', 'diagnose atv', 'atv status', 'atv check', 'atv healthcheck', 'is atv ok'."
+description: "Diagnose ATV Starter Kit installation health across project scaffold, Copilot CLI marketplace plugins, and VS Code source-installed AgentPlugins. Detects install scope, version drift, AgentPlugin git state, file integrity, hook validity, MCP prereqs, and optional dependency status. Triggers on 'atv doctor', 'atv health', 'check atv', 'diagnose atv', 'atv status', 'atv check', 'atv healthcheck', 'is atv ok'."
 argument-hint: "[mode: report (default) | fix]"
 ---
 
 # /atv-doctor — ATV installation health check
 
-Diagnose your ATV Starter Kit installation. Checks both install paths (project scaffold via `atv init` and Copilot CLI marketplace plugins via `copilot plugin install`), version drift, file integrity, hook validity, MCP prereqs, and optional dependency status.
+Diagnose your ATV Starter Kit installation. Checks project scaffold via `atv init`, Copilot CLI marketplace plugins via `copilot plugin install`, and VS Code source-installed AgentPlugins via `Chat: Install Plugin from source`. Reports version drift, AgentPlugin git state, file integrity, hook validity, MCP prereqs, and optional dependency status.
 
 ## Arguments
 
@@ -17,14 +17,15 @@ Diagnose your ATV Starter Kit installation. Checks both install paths (project s
 ## Execution Flow
 
 ```
-Phase 1: Detect install scope        → repo-artifact + ~/.copilot/installed-plugins/ walk
-Phase 2: Version check               → installed vs latest npm
-Phase 3: File integrity (project)    → manifest checksum verification (when manifest exists)
-Phase 4: Hook validity (project)     → JSON parse + script existence
-Phase 5: MCP prereqs (project)       → parse inputs[] from MCP config
-Phase 6: Optional dep gating         → only warn for deps the user opted into
-Phase 7: Output graded report
-Phase 8: Fix mode (opt-in, marketplace plugins only)
+Phase 1: Detect install scope        → repo-artifact + marketplace + VS Code AgentPlugin roots
+Phase 2: Version check               → installed vs latest npm / source git state
+Phase 3: Source AgentPlugin health   → owner/repo, path, commit, version metadata, divergence
+Phase 4: File integrity (project)    → manifest checksum verification (when manifest exists)
+Phase 5: Hook validity (project)     → JSON parse + script existence
+Phase 6: MCP prereqs (project)       → parse inputs[] from MCP config
+Phase 7: Optional dep gating         → only warn for deps the user opted into
+Phase 8: Output graded report
+Phase 9: Fix mode (opt-in, marketplace plugins only)
 ```
 
 ---
@@ -40,8 +41,16 @@ Set these flags from the working directory's repo root (or `~/.copilot/` for mar
 | `hasProject` | true if **any** of these exist: `.github/skills/` (directory), `.github/copilot-instructions.md`, `.github/copilot-mcp-config.json`, `.github/hooks/copilot-hooks.json` |
 | `hasManifest` | true if `.atv/install-manifest.json` exists (used to enable Phases 3 & 5; not gating) |
 | `hasMarketplace` | true if `~/.copilot/installed-plugins/atv-starter-kit/` exists OR `copilot plugin marketplace list` mentions `atv-starter-kit` |
+| `hasSourceAgentPlugins` | true if any git checkout exists under a VS Code AgentPlugin root such as `$HOME/.vscode/agent-plugins/github.com/<owner>/<repo>` or `$HOME/.vscode-insiders/agent-plugins/github.com/<owner>/<repo>` |
 
-If `!hasProject && !hasMarketplace`: print "No ATV install detected. To install: `npx atv-starterkit init` (project scaffold) or `copilot plugin marketplace add All-The-Vibes/ATV-StarterKit && copilot plugin install atv-everything@atv-starter-kit` (marketplace)." and stop.
+On Windows, `$HOME` may resolve through Git Bash and `%USERPROFILE%` may be clearer in PowerShell. Probe both Stable and Insiders roots without hardcoding a machine-specific username:
+
+| Product | Root examples |
+|---------|---------------|
+| VS Code Stable | `$HOME/.vscode/agent-plugins/github.com`, `%USERPROFILE%\.vscode\agent-plugins\github.com` |
+| VS Code Insiders | `$HOME/.vscode-insiders/agent-plugins/github.com`, `%USERPROFILE%\.vscode-insiders\agent-plugins\github.com` |
+
+If `!hasProject && !hasMarketplace && !hasSourceAgentPlugins`: print "No ATV install detected. To install: `npx atv-starterkit init` (project scaffold), `copilot plugin marketplace add All-The-Vibes/ATV-StarterKit && copilot plugin install atv-everything@atv-starter-kit` (marketplace), or VS Code `Chat: Install Plugin from source` with `All-The-Vibes/ATV-StarterKit`." and stop.
 
 Record what was detected for the report header.
 
@@ -85,9 +94,66 @@ done
 
 For each installed version, compare to latest. Use semver-aware comparison if possible; otherwise string compare and flag any difference as 🟡 with the suggestion to run `/atv-update`.
 
+### 2e. Source-installed AgentPlugin versions
+
+If `hasSourceAgentPlugins`, inspect each discovered checkout under the VS Code AgentPlugin roots. Include ATV and other GitHub-source AgentPlugins such as Compound Engineering in the report, because stale source installs are easiest to diagnose when the actual installed directory is inspected.
+
+For each plugin directory:
+
+1. Derive `owner/repo` from the `github.com/<owner>/<repo>` path segments.
+2. Read version metadata from the first available source:
+   - `package.json` `version`
+   - `VERSION`
+   - `.claude-plugin/plugin.json` `version`
+   - `plugin.json` `version`
+3. Read git state from inside that directory:
+   - current branch or detached HEAD
+   - current commit
+   - `git describe --tags --always` when available
+   - `origin` URL when available
+   - dirty state from `git status --short`
+   - upstream tracking branch and ahead/behind counts when available
+4. Best-effort fetch remote state before ahead/behind comparison. If fetch fails because the user is offline or the remote is unavailable, report remote drift as unknown and keep going.
+
+Do not mutate source AgentPlugin checkouts in `/atv-doctor`. This phase is read-only except for best-effort git remote metadata fetch.
+
 ---
 
-## Phase 3: File integrity (project scaffold, manifest required)
+## Phase 3: Source AgentPlugin health
+
+Summarize source-installed AgentPlugins separately from Copilot CLI marketplace plugins.
+
+Suggested report shape:
+
+```markdown
+**VS Code source-installed AgentPlugins:**
+- All-The-Vibes/ATV-StarterKit
+  - Path: <exact installed path>
+  - Version: 2.6.3 (from VERSION)
+  - Git: main @ b2a2d11 (v2.6.3)
+  - Remote: origin/main, clean, behind by 0 / ahead by 0 🟢
+- EveryInc/compound-engineering-plugin
+  - Path: <exact installed path>
+  - Version: 3.2.0 (from package.json)
+  - Git: main @ <commit> (<describe>)
+  - Remote: origin/main, behind by N 🟡 update available
+```
+
+Severity rules:
+
+| State | Severity | Meaning |
+|-------|----------|---------|
+| clean and aligned with upstream | 🟢 ok | Source plugin checkout appears current |
+| clean and behind upstream | 🟡 warn | Update available; run `/atv-update` |
+| dirty worktree | 🟡 warn | Local edits present; update must not overwrite silently |
+| ahead of upstream | 🟡 warn | Local commits present; update needs manual review |
+| diverged from upstream | 🔴 critical | Both local and remote changed; do not auto-update |
+| detached HEAD or no upstream | ⚪ info | Version can be reported, but update path is manual |
+| missing version metadata | ⚪ info | Git state is still useful; version is unknown |
+
+---
+
+## Phase 4: File integrity (project scaffold, manifest required)
 
 Skip this phase entirely when `!hasManifest` and emit:
 
@@ -110,7 +176,7 @@ Group findings by severity in the final report (don't print one line per file un
 
 ---
 
-## Phase 4: Hook validity (project scaffold only)
+## Phase 5: Hook validity (project scaffold only)
 
 Skip when `!hasProject` or `.github/hooks/copilot-hooks.json` is absent.
 
@@ -120,7 +186,7 @@ Skip when `!hasProject` or `.github/hooks/copilot-hooks.json` is absent.
 
 ---
 
-## Phase 5: MCP prereqs (project scaffold only)
+## Phase 6: MCP prereqs (project scaffold only)
 
 Skip when `!hasProject` or `.github/copilot-mcp-config.json` is absent.
 
@@ -142,7 +208,7 @@ MCP servers configured:
 
 ---
 
-## Phase 6: Optional dep gating
+## Phase 7: Optional dep gating
 
 For each optional tool, only warn when there's evidence the user wants it. **Never warn unconditionally.**
 
@@ -158,7 +224,7 @@ When `!hasManifest`, fall back to ⚪ informational status for everything option
 
 ---
 
-## Phase 7: Output
+## Phase 8: Output
 
 Print a graded report. Use this skeleton:
 
@@ -168,6 +234,7 @@ Print a graded report. Use this skeleton:
 **Detected:**
 - Project scaffold: ✓ (manifest: yes/no)
 - Marketplace plugins: ✓ (N installed)
+- Source AgentPlugins: ✓ (N detected)
 
 **Versions:**
 - Latest on npm: 2.6.3
@@ -188,7 +255,7 @@ Print a graded report. Use this skeleton:
 - ...
 
 **Next steps:**
-- Run `/atv-update` to update marketplace plugins.
+- Run `/atv-update` to update marketplace plugins or clean source-installed ATV checkouts.
 - Project scaffold updates require manual review (today's installer is additive-only).
 ```
 
@@ -196,9 +263,9 @@ If zero non-info findings: "Your ATV install looks healthy! 🩺"
 
 ---
 
-## Phase 8: Fix mode (opt-in)
+## Phase 9: Fix mode (opt-in)
 
-Only runs when `mode=fix`. **Limited scope today** — only marketplace plugin updates are auto-fixable. Project scaffold "fixes" require the user to manually re-run the installer because today's `atv init` is additive-only and would not refresh existing files.
+Only runs when `mode=fix`. **Limited scope today** — only Copilot CLI marketplace plugin updates are auto-fixable from doctor mode. Project scaffold "fixes" require the user to manually re-run the installer because today's `atv init` is additive-only and would not refresh existing files. Source AgentPlugin updates belong in `/atv-update`, where the workflow can inspect git state and ask for explicit confirmation before changing a checkout.
 
 For each stale marketplace plugin:
 
@@ -212,6 +279,7 @@ After all fixes, print a summary: "Updated N plugins, skipped M."
 **Constraints:**
 - Never auto-rerun `atv init` (today's installer is additive-only — would not actually refresh files).
 - Never modify scaffold files directly.
+- Never update, reset, delete, or reinstall VS Code AgentPlugin folders from `/atv-doctor`.
 - Always confirm before running anything.
 
 ---
@@ -219,6 +287,7 @@ After all fixes, print a summary: "Updated N plugins, skipped M."
 ## What this skill does NOT do
 
 - Refresh project scaffold files (installer is additive-only today; tracked as future work).
+- Update VS Code source-installed AgentPlugins directly (use `/atv-update`).
 - Validate MCP server connectivity (would require network calls to each server).
 - Run JSON-schema validation on configs (just parse + key presence).
 - Auto-install missing optional dependencies (Bun, agent-browser, gh, az).

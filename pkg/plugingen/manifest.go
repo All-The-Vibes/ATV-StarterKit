@@ -1,11 +1,12 @@
 // Package plugingen generates a GitHub Copilot CLI plugin marketplace
 // from the ATV Starter Kit's scaffold templates.
 //
-// The generator is the single source of truth for the plugins/ tree
-// and .github/plugin/marketplace.json. Templates under
-// pkg/scaffold/templates/ remain authoritative for both the atv init
-// scaffold path and the marketplace path; this package projects them
-// into the plugin format Copilot CLI expects.
+// The generator is the single source of truth for the plugins/ tree,
+// marketplace.json, .github/plugin/marketplace.json, and
+// .claude-plugin/marketplace.json.
+// Templates under pkg/scaffold/templates/ remain authoritative for both
+// the atv init scaffold path and the marketplace/source-install paths;
+// this package projects them into the plugin formats Copilot expects.
 //
 // All output is deterministic: lists are sorted, paths are slash-
 // normalized, line endings are LF. Re-running the generator on a
@@ -77,4 +78,32 @@ type MarketplaceEntry struct {
 	Version     string   `json:"version,omitempty"`
 	Keywords    []string `json:"keywords,omitempty"`
 	Category    string   `json:"category,omitempty"`
+}
+
+// SourceInstallMarketplace models the marketplace.json file consumed by
+// VS Code's source-install AgentPlugin flow. It intentionally stays separate
+// from the Copilot CLI marketplace model because the source-install catalog
+// has a curated UX surface and CE-style metadata fields.
+type SourceInstallMarketplace struct {
+	Name     string                       `json:"name"`
+	Owner    Author                       `json:"owner"`
+	Metadata SourceInstallMarketplaceMeta `json:"metadata"`
+	Plugins  []SourceInstallEntry         `json:"plugins"`
+}
+
+// SourceInstallMarketplaceMeta is the top-level metadata object for the
+// curated source-install catalog.
+type SourceInstallMarketplaceMeta struct {
+	Description string `json:"description,omitempty"`
+	Version     string `json:"version,omitempty"`
+}
+
+// SourceInstallEntry is one plugin entry in the curated source-install catalog.
+type SourceInstallEntry struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description,omitempty"`
+	Author      *Author  `json:"author,omitempty"`
+	Homepage    string   `json:"homepage,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
+	Source      string   `json:"source"`
 }

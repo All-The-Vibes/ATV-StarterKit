@@ -38,9 +38,11 @@ type Config struct {
 	KitVersion string
 }
 
-// Generate produces the plugins/ tree and .github/plugin/marketplace.json
-// from pkg/scaffold/templates/. It always writes a deterministic byte
-// sequence: sorted lists, slash-normalized paths, LF line endings,
+// Generate produces the plugins/ tree, marketplace.json,
+// .github/plugin/marketplace.json, and .claude-plugin/marketplace.json
+// from pkg/scaffold/templates/.
+// It always writes a deterministic byte sequence: sorted lists,
+// slash-normalized paths, LF line endings,
 // indented JSON with a trailing newline.
 //
 // Generate first runs Audit and returns an error containing every
@@ -243,12 +245,19 @@ func Generate(cfg Config) error {
 	if err := writeManifest(everythingDir, everythingManifest); err != nil {
 		return err
 	}
+	if err := writeSourceInstallPluginManifest(everythingDir, cfg); err != nil {
+		return err
+	}
 	if err := writePluginReadme(everythingDir, everythingManifest); err != nil {
 		return err
 	}
 
-	// 5. marketplace.json — top-level manifest enumerating every plugin.
+	// 5. .github/plugin/marketplace.json — Copilot CLI manifest enumerating every plugin.
 	if err := writeMarketplace(cfg, skillNames, packs); err != nil {
+		return err
+	}
+	// 6. marketplace.json + .claude-plugin/marketplace.json — curated source-install surface.
+	if err := writeSourceInstallMarketplace(cfg); err != nil {
 		return err
 	}
 
@@ -258,9 +267,11 @@ func Generate(cfg Config) error {
 // CheckClean returns nil if running Generate would not change any
 // committed file, or an error listing the changed paths otherwise.
 //
-// The check generates into a temporary directory, then byte-compares
-// every output file against the corresponding committed file. This is
-// safer than mutating the working tree and diffing.
+// The check generates into a temporary directory, then compares every
+// output file against the corresponding committed file. Line endings are
+// normalized during comparison so Windows autocrlf checkouts do not create
+// false drift reports. This is safer than mutating the working tree and
+// diffing.
 func CheckClean(cfg Config) error {
 	if cfg.RepoRoot == "" {
 		return fmt.Errorf("plugingen: RepoRoot is required")
@@ -283,15 +294,20 @@ func CheckClean(cfg Config) error {
 	}
 
 	var diffs []string
-	for _, sub := range []string{"plugins", filepath.Join(".github", "plugin")} {
+	for _, sub := range []string{"plugins", filepath.Join(".github", "plugin"), ".claude-plugin"} {
 		gotRoot := filepath.Join(tmp, sub)
 		wantRoot := filepath.Join(cfg.RepoRoot, sub)
 		more, err := compareTrees(gotRoot, wantRoot)
 		if err != nil {
 			return err
 		}
-		diffs = append(diffs, more...)
+		diffs = append(diffs, prefixDiffs(filepath.ToSlash(sub), more)...)
 	}
+	more, err := compareFile(filepath.Join(tmp, "marketplace.json"), filepath.Join(cfg.RepoRoot, "marketplace.json"), "marketplace.json")
+	if err != nil {
+		return err
+	}
+	diffs = append(diffs, more...)
 	if len(diffs) > 0 {
 		sort.Strings(diffs)
 		return fmt.Errorf("plugin tree out of sync with templates. Run `go run ./cmd/plugingen` and commit the result. Differences:\n  - %s",
@@ -380,6 +396,28 @@ func writePluginReadme(pluginDir string, m PluginManifest) error {
 	return os.WriteFile(filepath.Join(pluginDir, "README.md"), []byte(b.String()), 0o644)
 }
 
+func writeSourceInstallPluginManifest(pluginDir string, cfg Config) error {
+	manifestDir := filepath.Join(pluginDir, ".claude-plugin")
+	if err := os.MkdirAll(manifestDir, 0o755); err != nil {
+		return err
+	}
+	manifest := PluginManifest{
+		Name:        "atv-starter-kit",
+		Description: sourceInstallDescription(),
+		Version:     cfg.KitVersion,
+		Author:      defaultAuthor(),
+		Homepage:    defaultRepository(),
+		Repository:  defaultRepository(),
+		License:     "MIT",
+		Keywords:    []string{"atv", "starter-kit", "vscode", "agent-plugin"},
+	}
+	data, err := marshalJSON(manifest)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(manifestDir, "plugin.json"), data, 0o644)
+}
+
 func writeMarketplace(cfg Config, skillNames []string, packs []Pack) error {
 	mpDir := filepath.Join(cfg.RepoRoot, ".github", "plugin")
 	if err := os.MkdirAll(mpDir, 0o755); err != nil {
@@ -425,6 +463,11 @@ func writeMarketplace(cfg Config, skillNames []string, packs []Pack) error {
 		})
 	}
 	sort.Slice(entries, func(i, j int) bool {
+		leftRank := cliMarketplaceRank(entries[i].Name)
+		rightRank := cliMarketplaceRank(entries[j].Name)
+		if leftRank != rightRank {
+			return leftRank < rightRank
+		}
 		return entries[i].Name < entries[j].Name
 	})
 
@@ -445,8 +488,53 @@ func writeMarketplace(cfg Config, skillNames []string, packs []Pack) error {
 	return os.WriteFile(filepath.Join(mpDir, "marketplace.json"), data, 0o644)
 }
 
+func cliMarketplaceRank(name string) int {
+	if name == "atv-everything" {
+		return 0
+	}
+	return 1
+}
+
+func writeSourceInstallMarketplace(cfg Config) error {
+	mpDir := filepath.Join(cfg.RepoRoot, ".claude-plugin")
+	if err := os.MkdirAll(mpDir, 0o755); err != nil {
+		return err
+	}
+
+	mp := SourceInstallMarketplace{
+		Name:  "atv-starter-kit",
+		Owner: defaultMarketplaceOwner(),
+		Metadata: SourceInstallMarketplaceMeta{
+			Description: "Curated VS Code source-install catalog for ATV Starter Kit.",
+			Version:     cfg.KitVersion,
+		},
+		Plugins: []SourceInstallEntry{
+			{
+				Name:        "atv-starter-kit",
+				Description: sourceInstallDescription(),
+				Author:      defaultAuthor(),
+				Homepage:    defaultRepository(),
+				Tags:        []string{"atv", "starter-kit", "vscode", "skills", "agents"},
+				Source:      "./plugins/atv-everything",
+			},
+		},
+	}
+	data, err := marshalJSON(mp)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(cfg.RepoRoot, "marketplace.json"), data, 0o644); err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(mpDir, "marketplace.json"), data, 0o644)
+}
+
+func sourceInstallDescription() string {
+	return "ATV Starter Kit for VS Code: all ATV skills and reviewer/specialist agents in one personal install."
+}
+
 func skillPluginDescription(name string) string {
-	return fmt.Sprintf("ATV `%s` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.", name)
+	return fmt.Sprintf("ATV `%s` skill — single-skill plugin (granular install). Some ATV skills dispatch agents bundled separately in `atv-agents`, so single-skill and category-pack installs may need `atv-agents` alongside them. For the full standalone kit, install `atv-everything`. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.", name)
 }
 
 func defaultAuthor() *Author {
@@ -483,10 +571,39 @@ func marshalJSON(v interface{}) ([]byte, error) {
 	return out, nil
 }
 
-// normalizeLineEndings converts CRLF to LF so generated files are
-// byte-identical regardless of the host OS git autocrlf setting.
+// normalizeLineEndings converts CRLF to LF for text comparisons across
+// Git autocrlf checkouts.
 func normalizeLineEndings(s string) string {
 	return strings.ReplaceAll(s, "\r\n", "\n")
+}
+
+func equalGeneratedContent(a, b []byte) bool {
+	if bytes.Equal(a, b) {
+		return true
+	}
+	return normalizeLineEndings(string(a)) == normalizeLineEndings(string(b))
+}
+
+func prefixDiffs(prefix string, diffs []string) []string {
+	out := make([]string, 0, len(diffs))
+	for _, diff := range diffs {
+		out = append(out, prefixDiff(prefix, diff))
+	}
+	return out
+}
+
+func prefixDiff(prefix, diff string) string {
+	for _, marker := range []string{
+		"missing on disk: ",
+		"stale on disk (not produced by generator): ",
+		"content differs: ",
+	} {
+		if strings.HasPrefix(diff, marker) {
+			rel := strings.TrimPrefix(diff, marker)
+			return marker + filepath.ToSlash(filepath.Join(prefix, rel))
+		}
+	}
+	return diff
 }
 
 // resetDir removes dir entirely if it exists, then recreates it empty.
@@ -549,12 +666,33 @@ func compareTrees(gotRoot, wantRoot string) ([]string, error) {
 		default:
 			a, _ := os.ReadFile(gp)
 			b, _ := os.ReadFile(wp)
-			if !bytes.Equal(a, b) {
+			if !equalGeneratedContent(a, b) {
 				diffs = append(diffs, "content differs: "+rel)
 			}
 		}
 	}
 	return diffs, nil
+}
+
+func compareFile(gotPath, wantPath, rel string) ([]string, error) {
+	got, err := os.ReadFile(gotPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []string{"missing generated file: " + rel}, nil
+		}
+		return nil, err
+	}
+	want, err := os.ReadFile(wantPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []string{"missing on disk: " + rel}, nil
+		}
+		return nil, err
+	}
+	if !equalGeneratedContent(got, want) {
+		return []string{"content differs: " + rel}, nil
+	}
+	return nil, nil
 }
 
 // walkFiles returns a map from forward-slash relative path to absolute

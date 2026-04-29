@@ -50,14 +50,23 @@ npx atv-starterkit@latest init --guided  # interactive TUI with multi-stack sele
 npx atv-starterkit@latest uninstall      # cleanly remove everything ATV installed
 ```
 
-**Personal install** (Copilot CLI plugin marketplace, follows you across projects):
+**Personal install** (VS Code source install or Copilot CLI marketplace, follows you across projects):
+
+VS Code / VS Code Insiders:
+
+1. Open the Command Palette.
+2. Run `Chat: Install Plugin from source`.
+3. Enter `All-The-Vibes/ATV-StarterKit`.
+4. Choose `atv-starter-kit`.
+
+Copilot CLI:
 
 ```bash
 copilot plugin marketplace add All-The-Vibes/ATV-StarterKit
 copilot plugin install atv-everything@atv-starter-kit
 ```
 
-Both paths can coexist. See [Installation](#installation) for the decision matrix and [docs/marketplace.md](docs/marketplace.md) for category bundles and per-skill plugins.
+The VS Code source-install path gives one complete ATV option. The Copilot CLI marketplace keeps category bundles and per-skill plugins for CLI users. Both personal paths can coexist with the project scaffold. See [Installation](#installation) for the decision matrix and [docs/marketplace.md](docs/marketplace.md) for CLI bundles and per-skill plugins.
 
 Then open **Copilot Chat** (⌃⌘I / Ctrl+Shift+I) and go:
 
@@ -69,20 +78,23 @@ Then open **Copilot Chat** (⌃⌘I / Ctrl+Shift+I) and go:
 /ce-compound     →  Document what you learned for future sessions
 
 /lfg             →  Run the full pipeline in one shot
+
+/atv-doctor      →  Diagnose ATV install health
+/atv-update      →  Update ATV marketplace plugins and safe source-installed AgentPlugins
 ```
 
 ---
 
 ## Installation
 
-ATV ships in **two flavours** — pick whichever matches your need (or use both):
+ATV ships in **three flavours** — pick whichever matches your need:
 
-| | `npx atv-starterkit init` | Copilot CLI marketplace |
-|---|---|---|
-| **Files land in** | Your project's `.github/`, `.vscode/`, `docs/` | `~/.copilot/installed-plugins/` |
-| **Scope** | Project-level, committed, team-shared | Personal, follows you across projects |
-| **What ships** | Skills + agents + MCP + hooks + instructions + setup-steps + docs | Skills + agents only |
-| **Best for** | Bootstrapping a new repo, codifying team workflow | Personal cross-project skills |
+| | `npx atv-starterkit init` | VS Code source install | Copilot CLI marketplace |
+|---|---|---|---|
+| **Files land in** | Your project's `.github/`, `.vscode/`, `docs/` | VS Code AgentPlugin directory | `~/.copilot/installed-plugins/` |
+| **Scope** | Project-level, committed, team-shared | Personal/editor-level | Personal, follows you across CLI projects |
+| **What ships** | Skills + agents + MCP + hooks + instructions + setup-steps + docs | One complete ATV skills + agents bundle | Skills + agents only |
+| **Best for** | Bootstrapping a new repo, codifying team workflow | VS Code Copilot users who want one obvious install choice | CLI users who want bundles or granular skills |
 
 ### Path 1 — npm scaffold (project-level, recommended for teams)
 
@@ -105,7 +117,18 @@ git clone https://github.com/All-The-Vibes/ATV-StarterKit.git
 cd ATV-StarterKit && go build -o atv-installer .
 ```
 
-### Path 2 — Copilot CLI marketplace (personal, cross-project)
+### Path 2 — VS Code source install (personal, editor-level)
+
+In VS Code or VS Code Insiders:
+
+1. Open the Command Palette.
+2. Run `Chat: Install Plugin from source`.
+3. Enter `All-The-Vibes/ATV-StarterKit`.
+4. Choose `atv-starter-kit`.
+
+This installs the complete recommended ATV personal bundle: all ATV skills and all reviewer/specialist agents. It does not install MCP config, hooks, instructions templates, setup steps, or project docs; use Path 1 for those.
+
+### Path 3 — Copilot CLI marketplace (personal, cross-project)
 
 ```bash
 copilot plugin marketplace add All-The-Vibes/ATV-StarterKit
@@ -119,7 +142,7 @@ copilot plugin install atv-pack-planning@atv-starter-kit    # one category
 copilot plugin install atv-skill-autoresearch@atv-starter-kit  # one skill
 ```
 
-The marketplace ships skills + agents only. For MCP config, hooks, instructions templates, and docs scaffolding use Path 1.
+The CLI marketplace ships skills + agents only. For MCP config, hooks, instructions templates, and docs scaffolding use Path 1. For the cleanest VS Code picker, use Path 2.
 
 ### Prerequisites
 
@@ -129,7 +152,7 @@ The marketplace ships skills + agents only. For MCP config, hooks, instructions 
 - **Bun** — for gstack browser skills (`/gstack-qa`, `/gstack-browse`, `/gstack-benchmark`)
 - **GitHub PAT** — for GitHub MCP server
 - **Azure CLI** — for Azure MCP server
-- **Copilot CLI** — for Path 2 (`copilot` command)
+- **Copilot CLI** — for Path 3 (`copilot` command)
 
 Without Bun, text-based gstack skills still work. `agent-browser` works independently of Bun.
 
