@@ -40,7 +40,7 @@ func BuildCatalog(stack detect.Stack) []Component {
 	// Hook 3: MCP Config
 	catalog = append(catalog, mcpConfig()...)
 
-	// Hook 4: Skills (from .github/skills/ in this repo)
+	// Hook 4: Skills (from the canonical scaffold templates)
 	catalog = append(catalog, skills()...)
 
 	// Hook 5: Agents (from .github/agents/ in this repo)

@@ -1,0 +1,245 @@
+{
+  "version": 1,
+  "canonicalSkillRoot": "pkg/scaffold/templates/skills",
+  "dogfoodSkillRoot": ".github/skills",
+  "skills": [
+    {
+      "name": "atv-doctor",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "omitted"
+    },
+    {
+      "name": "atv-security",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "omitted"
+    },
+    {
+      "name": "atv-update",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "omitted"
+    },
+    {
+      "name": "autoresearch",
+      "origin": "external",
+      "tracking": "curated",
+      "upstream": "github/awesome-copilot:skills/autoresearch",
+      "dogfood": "omitted"
+    },
+    {
+      "name": "brainstorming",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "ce-brainstorm",
+      "origin": "compound-engineering",
+      "tracking": "upstream",
+      "upstream": "ce-brainstorm",
+      "dogfood": "divergent"
+    },
+    {
+      "name": "ce-compound",
+      "origin": "compound-engineering",
+      "tracking": "upstream",
+      "upstream": "ce-compound",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "ce-compound-refresh",
+      "origin": "compound-engineering",
+      "tracking": "upstream",
+      "upstream": "ce-compound-refresh",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "ce-ideate",
+      "origin": "compound-engineering",
+      "tracking": "upstream",
+      "upstream": "ce-ideate",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "ce-plan",
+      "origin": "compound-engineering",
+      "tracking": "upstream",
+      "upstream": "ce-plan",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "ce-review",
+      "origin": "compound-engineering",
+      "tracking": "alias",
+      "upstream": "ce-code-review",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "ce-work",
+      "origin": "compound-engineering",
+      "tracking": "upstream",
+      "upstream": "ce-work",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "deepen-plan",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "document-review",
+      "origin": "compound-engineering",
+      "tracking": "alias",
+      "upstream": "ce-doc-review",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "evolve",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "feature-video",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "instincts",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "karpathy-guidelines",
+      "origin": "external",
+      "tracking": "curated",
+      "upstream": "forrestchang/andrej-karpathy-skills",
+      "dogfood": "omitted"
+    },
+    {
+      "name": "land",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "learn",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "lfg",
+      "origin": "compound-engineering",
+      "tracking": "overlay",
+      "upstream": "lfg",
+      "dogfood": "divergent"
+    },
+    {
+      "name": "meme-iq",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "divergent"
+    },
+    {
+      "name": "observe",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "ralph-loop",
+      "origin": "external",
+      "tracking": "curated",
+      "dogfood": "divergent"
+    },
+    {
+      "name": "resolve_todo_parallel",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "setup",
+      "origin": "compound-engineering",
+      "tracking": "alias",
+      "upstream": "ce-setup",
+      "dogfood": "divergent"
+    },
+    {
+      "name": "slfg",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "divergent"
+    },
+    {
+      "name": "takeoff",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "test-browser",
+      "origin": "compound-engineering",
+      "tracking": "alias",
+      "upstream": "ce-test-browser",
+      "dogfood": "mirror"
+    },
+    {
+      "name": "unslop",
+      "origin": "atv",
+      "tracking": "native",
+      "dogfood": "omitted"
+    }
+  ],
+  "dogfoodOnlySkills": [
+    "agent-browser",
+    "agent-native-architecture",
+    "agent-native-audit",
+    "andrew-kane-gem-writer",
+    "ce-work-beta",
+    "changelog",
+    "compound-docs",
+    "create-agent-skill",
+    "create-agent-skills",
+    "deploy-docs",
+    "dhh-rails-style",
+    "dspy-ruby",
+    "every-style-editor",
+    "file-todos",
+    "frontend-design",
+    "gemini-imagegen",
+    "generate_command",
+    "ghcp-review-resolve",
+    "git-clean-gone-branches",
+    "git-commit",
+    "git-commit-push-pr",
+    "git-worktree",
+    "heal-skill",
+    "onboarding",
+    "proof",
+    "rclone",
+    "report-bug",
+    "report-bug-ce",
+    "reproduce-bug",
+    "resolve-pr-feedback",
+    "resolve-pr-parallel",
+    "resolve_parallel",
+    "skill-creator",
+    "test-xcode",
+    "todo-create",
+    "todo-resolve",
+    "todo-triage",
+    "triage",
+    "workflows-brainstorm",
+    "workflows-compound",
+    "workflows-plan",
+    "workflows-review",
+    "workflows-work"
+  ]
+}

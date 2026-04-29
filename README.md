@@ -631,6 +631,14 @@ go test ./pkg/monitor/ -v                # watcher + drift detection tests
 go test ./test/sandbox/ -v               # integration tests (E2E scenarios)
 ```
 
+Skill maintenance uses `pkg/scaffold/templates/skills` as the canonical installable product source. Generated plugin artifacts under `plugins/` should be regenerated, not hand-edited. To compare ATV's CE-derived skills against a current Compound Engineering checkout without changing files, run:
+
+```bash
+go run ./cmd/skillsync -upstream ../compound-engineering-plugin/plugins/compound-engineering/skills
+```
+
+See [docs/skill-source-of-truth.md](docs/skill-source-of-truth.md) for the source policy, current CE baseline report, and manual refresh workflow.
+
 ## Limitations
 
 - **Bun required for browser skills** — `/gstack-qa`, `/gstack-browse`, `/gstack-benchmark`

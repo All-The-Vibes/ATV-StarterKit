@@ -390,6 +390,28 @@ func TestCheckCleanReportsPrefixedCatalogDrift(t *testing.T) {
 	}
 }
 
+func TestCheckCleanReportsGeneratedSkillBodyDrift(t *testing.T) {
+	tmp := regenerateInto(t)
+	path := filepath.Join(tmp, "plugins", "atv-everything", "skills", "ce-plan", "SKILL.md")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read generated skill: %v", err)
+	}
+	if err := os.WriteFile(path, append(data, []byte("\nmanual edit\n")...), 0o644); err != nil {
+		t.Fatalf("write generated skill: %v", err)
+	}
+
+	err = CheckClean(Config{RepoRoot: tmp, KitVersion: "test-1.2.3"})
+	if err == nil {
+		t.Fatal("expected CheckClean to report generated skill body drift")
+	}
+	message := err.Error()
+	want := "content differs: plugins/atv-everything/skills/ce-plan/SKILL.md"
+	if !strings.Contains(message, want) {
+		t.Errorf("CheckClean error missing %q:\n%s", want, message)
+	}
+}
+
 func TestGenerate_FailsWhenSkillNotInPackOrMisc(t *testing.T) {
 	src := repoRoot(t)
 	tmp := t.TempDir()

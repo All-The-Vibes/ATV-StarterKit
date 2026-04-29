@@ -141,6 +141,18 @@ Catalog intent:
 
 If VS Code source install ever ignores root `marketplace.json` and reads `.github/plugin/marketplace.json` instead, prioritize the clean one-option VS Code experience and make the CLI granularity tradeoff explicit before release.
 
+## Skill source of truth
+
+Installable ATV product skills are edited under `pkg/scaffold/templates/skills`. The `plugins/` tree is generated output, and `.github/skills` is a dogfood/compatibility surface whose role is recorded in `pkg/scaffold/skill_sources.json`.
+
+Before refreshing Compound Engineering-derived skills, run a read-only comparison against a current Compound Engineering checkout:
+
+```bash
+go run ./cmd/skillsync -upstream ../compound-engineering-plugin/plugins/compound-engineering/skills
+```
+
+Do not bulk-copy upstream CE skills over ATV. Review each stale skill manually, preserve intentional ATV overlays, then regenerate with `go run ./cmd/plugingen`. See `docs/skill-source-of-truth.md` for the current CE baseline report and maintenance workflow.
+
 ## Further reading
 
 - [Creating a plugin marketplace for GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace)
