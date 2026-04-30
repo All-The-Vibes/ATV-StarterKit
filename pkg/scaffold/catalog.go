@@ -19,8 +19,8 @@ type Component struct {
 	Path      string // relative path in target directory
 	Content   []byte // file content (empty for dirs)
 	IsDir     bool
-	MergeJSON bool // if true, merge with existing JSON instead of skipping
-	HookType  int  // 1-6 matching Copilot lifecycle hooks
+	MergeJSON bool     // if true, merge with existing JSON instead of skipping
+	HookType  HookType // 1-7 matching Copilot agentic primitives (see hooks.go)
 }
 
 // BuildCatalog returns the full list of components for the given stack.

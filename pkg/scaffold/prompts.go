@@ -160,9 +160,9 @@ func promptShimComponents(selected map[string]bool) []Component {
 		}
 		dest := filepath.Join(".github", "prompts", name+".prompt.md")
 		comps = append(comps, Component{
-			Path:    dest,
-			Content: BuildPromptShim(name),
-			HookType: 1,
+			Path:     dest,
+			Content:  BuildPromptShim(name),
+			HookType: HookPromptShims,
 		})
 	}
 	return comps
