@@ -117,73 +117,73 @@ func firstLine(s string) string {
 // --- Unit 2: catalog wiring tests ---
 
 func TestBuildCatalog_IncludesAllPromptShims(t *testing.T) {
-comps := BuildCatalog(detectStackForTest())
+	comps := BuildCatalog(detectStackForTest())
 
-got := promptShimPaths(comps)
-for _, name := range promptShimSkillDirectories {
-want := ".github/prompts/" + name + ".prompt.md"
-if !got[want] {
-t.Errorf("BuildCatalog missing prompt component %q", want)
-}
-}
+	got := promptShimPaths(comps)
+	for _, name := range promptShimSkillDirectories {
+		want := ".github/prompts/" + name + ".prompt.md"
+		if !got[want] {
+			t.Errorf("BuildCatalog missing prompt component %q", want)
+		}
+	}
 }
 
 func TestBuildCatalog_PromptShimContentMatchesBuilder(t *testing.T) {
-comps := BuildCatalog(detectStackForTest())
-target := ".github/prompts/ce-plan.prompt.md"
-for _, c := range comps {
-if filepathToSlash(c.Path) == target {
-want := string(BuildPromptShim("ce-plan"))
-if string(c.Content) != want {
-t.Errorf("catalog component %q content drifted from BuildPromptShim output", target)
-}
-return
-}
-}
-t.Fatalf("catalog component %q not found", target)
+	comps := BuildCatalog(detectStackForTest())
+	target := ".github/prompts/ce-plan.prompt.md"
+	for _, c := range comps {
+		if filepathToSlash(c.Path) == target {
+			want := string(BuildPromptShim("ce-plan"))
+			if string(c.Content) != want {
+				t.Errorf("catalog component %q content drifted from BuildPromptShim output", target)
+			}
+			return
+		}
+	}
+	t.Fatalf("catalog component %q not found", target)
 }
 
 func TestBuildFilteredCatalog_CoreSkillsOnlyIncludesCoreShims(t *testing.T) {
-comps := BuildFilteredCatalog(detectStackForTest(), []string{"core-skills"})
-got := promptShimPaths(comps)
+	comps := BuildFilteredCatalog(detectStackForTest(), []string{"core-skills"})
+	got := promptShimPaths(comps)
 
-if !got[".github/prompts/ce-plan.prompt.md"] {
-t.Errorf("core-skills layer missing ce-plan.prompt.md")
-}
-if got[".github/prompts/lfg.prompt.md"] {
-t.Errorf("core-skills layer should NOT include orchestrator shim lfg.prompt.md")
-}
+	if !got[".github/prompts/ce-plan.prompt.md"] {
+		t.Errorf("core-skills layer missing ce-plan.prompt.md")
+	}
+	if got[".github/prompts/lfg.prompt.md"] {
+		t.Errorf("core-skills layer should NOT include orchestrator shim lfg.prompt.md")
+	}
 }
 
 func TestBuildFilteredCatalog_OrchestratorsOnlyIncludesOrchestratorShims(t *testing.T) {
-comps := BuildFilteredCatalog(detectStackForTest(), []string{"orchestrators"})
-got := promptShimPaths(comps)
+	comps := BuildFilteredCatalog(detectStackForTest(), []string{"orchestrators"})
+	got := promptShimPaths(comps)
 
-if !got[".github/prompts/lfg.prompt.md"] {
-t.Errorf("orchestrators layer missing lfg.prompt.md")
-}
-if got[".github/prompts/ce-plan.prompt.md"] {
-t.Errorf("orchestrators layer should NOT include core-skill shim ce-plan.prompt.md")
-}
+	if !got[".github/prompts/lfg.prompt.md"] {
+		t.Errorf("orchestrators layer missing lfg.prompt.md")
+	}
+	if got[".github/prompts/ce-plan.prompt.md"] {
+		t.Errorf("orchestrators layer should NOT include core-skill shim ce-plan.prompt.md")
+	}
 }
 
 func TestBuildFilteredCatalog_NoLayersEmitsZeroShims(t *testing.T) {
-comps := BuildFilteredCatalog(detectStackForTest(), []string{})
-for _, c := range comps {
-if isPromptShimPath(c.Path) {
-t.Errorf("expected zero prompt shims with no layers selected, got %q", c.Path)
-}
-}
+	comps := BuildFilteredCatalog(detectStackForTest(), []string{})
+	for _, c := range comps {
+		if isPromptShimPath(c.Path) {
+			t.Errorf("expected zero prompt shims with no layers selected, got %q", c.Path)
+		}
+	}
 }
 
 func TestBuildCatalog_IncludesPromptsDirectory(t *testing.T) {
-comps := BuildCatalog(detectStackForTest())
-for _, c := range comps {
-if c.IsDir && filepathToSlash(c.Path) == ".github/prompts" {
-return
-}
-}
-t.Errorf(".github/prompts directory component missing from BuildCatalog output")
+	comps := BuildCatalog(detectStackForTest())
+	for _, c := range comps {
+		if c.IsDir && filepathToSlash(c.Path) == ".github/prompts" {
+			return
+		}
+	}
+	t.Errorf(".github/prompts directory component missing from BuildCatalog output")
 }
 
 func detectStackForTest() detect.Stack { return detect.StackGeneral }
@@ -191,16 +191,16 @@ func detectStackForTest() detect.Stack { return detect.StackGeneral }
 func filepathToSlash(p string) string { return filepath.ToSlash(p) }
 
 func isPromptShimPath(p string) bool {
-s := filepathToSlash(p)
-return strings.HasPrefix(s, ".github/prompts/") && strings.HasSuffix(s, ".prompt.md")
+	s := filepathToSlash(p)
+	return strings.HasPrefix(s, ".github/prompts/") && strings.HasSuffix(s, ".prompt.md")
 }
 
 func promptShimPaths(comps []Component) map[string]bool {
-out := map[string]bool{}
-for _, c := range comps {
-if isPromptShimPath(c.Path) {
-out[filepathToSlash(c.Path)] = true
-}
-}
-return out
+	out := map[string]bool{}
+	for _, c := range comps {
+		if isPromptShimPath(c.Path) {
+			out[filepathToSlash(c.Path)] = true
+		}
+	}
+	return out
 }
