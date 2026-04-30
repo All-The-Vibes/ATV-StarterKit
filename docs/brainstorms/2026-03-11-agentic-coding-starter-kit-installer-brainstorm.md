@@ -137,7 +137,7 @@ $ atv-installer init
 
 ## Copilot Lifecycle Hooks
 
-The ATV Starter Kit scaffolds **all 6 Copilot lifecycle hook types**. Each hook fires at a different moment in the Copilot experience:
+The ATV Starter Kit scaffolds **all 6 Copilot lifecycle hook types**, plus a 7th VS Code Copilot Chat discovery primitive. Each fires at a different moment in the Copilot experience:
 
 | # | Hook Type | File(s) | When It Fires | ATV Generates |
 |---|-----------|---------|---------------|---------------|
@@ -147,6 +147,7 @@ The ATV Starter Kit scaffolds **all 6 Copilot lifecycle hook types**. Each hook 
 | 4 | **Skills** | `.github/skills/*/SKILL.md` | When a skill's description matches the user's chat request | Core pipeline + stack-specific skills |
 | 5 | **Agents** | `.github/agents/*.agent.md` | When invoked by name via subagent orchestration | Universal + stack-specific reviewer agents |
 | 6 | **File Instructions** | `.github/*.instructions.md` | Auto-loaded based on `applyTo` glob patterns when editing matching files | Stack-specific file instructions (e.g., `applyTo: "**/*.ts"`) |
+| 7 | **Prompt Shims** | `.github/prompts/*.prompt.md` | When VS Code Copilot Chat builds its slash-command picker | One thin shim per user-facing skill so `/ce-plan`, `/lfg`, `/learn`, etc. surface in the picker; each shim delegates to the canonical SKILL.md |
 
 ## Component Catalog
 

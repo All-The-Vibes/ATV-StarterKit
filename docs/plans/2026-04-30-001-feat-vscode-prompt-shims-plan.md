@@ -1,7 +1,7 @@
 ---
 title: "feat: Ship .github/prompts/*.prompt.md shims so VS Code Copilot Chat surfaces ATV slash commands"
 type: feat
-status: active
+status: completed
 date: 2026-04-30
 issue: 36
 ---
@@ -88,7 +88,7 @@ The installer already *recognizes* prompt files exist — `pkg/installstate/reco
 
 ## Implementation Units
 
-- [ ] **Unit 1: Define the prompt-shim allow-list and template**
+- [x] **Unit 1: Define the prompt-shim allow-list and template**
 
 **Goal:** Establish the single source of truth for which skills get prompt shims and what each shim looks like.
 
@@ -116,7 +116,7 @@ The installer already *recognizes* prompt files exist — `pkg/installstate/reco
 **Verification:**
 - Unit test passes; running `go vet ./...` is clean.
 
-- [ ] **Unit 2: Wire shims into the install catalog (full + filtered)**
+- [x] **Unit 2: Wire shims into the install catalog (full + filtered)**
 
 **Goal:** Make the installer actually emit `.github/prompts/*.prompt.md` for selected skills.
 
@@ -148,7 +148,7 @@ The installer already *recognizes* prompt files exist — `pkg/installstate/reco
 **Verification:**
 - Existing scaffold and parity tests still pass; new tests pass; running `BuildCatalog` end-to-end produces the expected prompt files when written by `pkg/scaffold/scaffold.go` (covered in Unit 4).
 
-- [ ] **Unit 3: Add parity tests**
+- [x] **Unit 3: Add parity tests**
 
 **Goal:** Lock the invariants so future drift is caught at test time, not by users on Discord.
 
@@ -175,7 +175,7 @@ The installer already *recognizes* prompt files exist — `pkg/installstate/reco
 **Verification:**
 - All parity tests green on the new branch; intentional regressions (e.g., temporarily removing a shim) flip the relevant test red.
 
-- [ ] **Unit 4: Dogfood shims into this repo's `.github/prompts/`**
+- [x] **Unit 4: Dogfood shims into this repo's `.github/prompts/`**
 
 **Goal:** This repo gets the same VS Code Copilot Chat experience users do, and the parity test from Unit 3 has files to compare against.
 
@@ -201,7 +201,7 @@ The installer already *recognizes* prompt files exist — `pkg/installstate/reco
 - `ls .github/prompts/` shows every allow-listed skill exactly once; parity test green.
 - Open this repo in VS Code Copilot Chat; type `/ce-` and see completions for every shimmed command.
 
-- [ ] **Unit 5: Update install summary, recommendations, and primitive docs**
+- [x] **Unit 5: Update install summary, recommendations, and primitive docs**
 
 **Goal:** Tell users the prompts shipped, stop telling them to create their own, and document prompts as a primitive.
 

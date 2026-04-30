@@ -43,6 +43,9 @@ func BuildCatalog(stack detect.Stack) []Component {
 	// Hook 4: Skills (from .github/skills/ in this repo)
 	catalog = append(catalog, skills()...)
 
+	// Prompt-file shims for VS Code Copilot Chat slash-command discovery.
+	catalog = append(catalog, promptShims()...)
+
 	// Hook 5: Agents (from .github/agents/ in this repo)
 	catalog = append(catalog, agents(stack)...)
 
@@ -114,6 +117,11 @@ func BuildFilteredCatalogForPacks(packs []installstate.StackPack, primaryStack d
 	if len(selectedSkillDirs) > 0 {
 		catalog = append(catalog, skillComponents(selectedSkillDirs)...)
 	}
+	// Prompt shims gated to the same skill layers — a user who deselects
+	// orchestrators must not see /lfg in the VS Code chat picker.
+	if selectedPromptShims := selectedPromptShimsForLayers(layerSet); len(selectedPromptShims) > 0 {
+		catalog = append(catalog, promptShimComponents(selectedPromptShims)...)
+	}
 	if layerSet["universal-agents"] || layerSet["stack-agents"] {
 		catalog = append(catalog, agentsForPacks(normalizedPacks, layerSet["universal-agents"], layerSet["stack-agents"])...)
 	}
@@ -138,6 +146,7 @@ func directories() []Component {
 	dirs := []string{
 		".github/skills",
 		".github/agents",
+		".github/prompts",
 		".github/hooks/scripts",
 		".vscode",
 	}

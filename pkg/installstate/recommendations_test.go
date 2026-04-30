@@ -102,3 +102,16 @@ func mustWriteMarkdown(t *testing.T, path, content string) {
 		t.Fatal(err)
 	}
 }
+
+// TestBuildRecommendations_NoAddPromptsRecommendation guards the removal of
+// the legacy "add-prompts" recommendation. The installer now ships shim
+// .prompt.md files by default, so prompting users to create one is misleading.
+func TestBuildRecommendations_NoAddPromptsRecommendation(t *testing.T) {
+root := t.TempDir()
+recs := BuildRecommendations(root, InstallManifest{})
+for _, r := range recs {
+if r.ID == "add-prompts" {
+t.Fatalf("legacy add-prompts recommendation reappeared in BuildRecommendations output: %+v", r)
+}
+}
+}

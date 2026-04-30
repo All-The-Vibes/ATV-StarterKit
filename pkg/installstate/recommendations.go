@@ -241,14 +241,6 @@ func BuildRecommendations(root string, manifest InstallManifest) []Recommendatio
 			Priority: 40,
 		})
 	}
-	if state.PromptFileCount == 0 {
-		recommendations = append(recommendations, Recommendation{
-			ID:       "add-prompts",
-			Title:    "Create prompt files for repeatable workflows",
-			Reason:   "No .prompt.md files found in .github/prompts/.",
-			Priority: 55,
-		})
-	}
 
 	slices.SortStableFunc(recommendations, func(a, b Recommendation) int {
 		if a.Priority == b.Priority {

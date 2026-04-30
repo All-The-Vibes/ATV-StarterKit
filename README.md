@@ -568,6 +568,7 @@ Over weeks, your repo develops a memory that makes every Copilot session more ef
 | `.github/agents/*.agent.md` | Agents for subagent orchestration |
 | `.github/*.instructions.md` | File-scoped instructions via `applyTo` globs |
 | `.github/hooks/copilot-hooks.json` | Observer hooks (silent, every tool use) |
+| `.github/prompts/*.prompt.md` | VS Code Copilot Chat slash-command shims (one per user-facing skill) |
 
 ### Supported Stacks
 
