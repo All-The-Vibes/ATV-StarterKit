@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+
+- **`/land` skill** — Step 3 now mirrors Step 1's conditional + literal-command pattern with an explicit `backlog task edit` example, so a fresh agent can mechanically follow the CLI shape rather than guess it from prose. Closes the asymmetric gating reported in [#41](https://github.com/All-The-Vibes/ATV-StarterKit/issues/41). Also rewrites quality gates to detect the actual stack (Go at root + optional Node under `npm/`) rather than running every package manager unconditionally, replaces `git pull --rebase + push || true` with PR-state-aware logic that distinguishes OPEN from CLOSED/MERGED PRs, and adds a stale ralph-loop state-file sweep to Step 6.
+- **`/takeoff` skill** — replaces `backlog task list` (which silently filters by `task_prefix` when configured) with a filesystem scan as the source of truth, so every task across every prefix is surfaced. Adds a `docs/plans/` fallback for repos without a `backlog/` directory (the default for ATV-StarterKit today). Output format changes from a table to a flat bulleted group layout that wraps cleanly at any terminal width.
+- **`/ghcp-review-resolve` skill** — major rewrite. Now produces two independent reviews (an existing Copilot review when present, otherwise two distinct subagent reviewers in parallel), adjudicates findings with a third subagent that inspects the actual code, posts inline comments only for verified issues, runs a tight inline fix-and-reply-and-resolve loop per comment, and renders an APPROVE / APPROVE-WITH-CHANGES / CLOSE verdict at the end. Adds `lib/ci-classifier.js` (12 unit tests) for distinguishing flaky CI runs from real failures. Merge conflicts are no longer a blocker — the skill resolves them as a preflight subroutine before reviewing. Never assigns reviewers (avoids silently-dropped or 422-ing GitHub requests), never submits REQUEST_CHANGES, never merges.
+
 ## [2.6.3] — 2026-04-26
 
 ### Added
