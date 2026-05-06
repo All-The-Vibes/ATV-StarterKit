@@ -296,7 +296,7 @@ Record `REGRESSION_WATCH_COUNT = len(watch list)` and surface it in the prefligh
 
 Read the current GitHub Actions status for `PR_HEAD_SHA` and emit a `CI_STATUS` flag that downstream verdict logic can gate on. This step happens **after** the regression watch list (§0g.1) is built and **before** the preflight table (§0h) is emitted.
 
-The actual classifier is a pure function over `gh run list` JSON; reference implementation lives at `~/.claude/skills/ghcp-review-resolve/lib/ci-classifier.js` with unit tests at `tests/ci-classifier.test.js`.
+The actual classifier is a pure function over `gh run list` JSON; reference implementation ships alongside this skill at `lib/ci-classifier.js` with unit tests at `tests/ci-classifier.test.js`.
 
 ```bash
 # Fetch all workflow runs for this branch, filter to PR_HEAD_SHA in classifier.

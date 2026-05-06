@@ -136,7 +136,7 @@ Start with **AGENTSAPI-1**. It's the next unblocked HIGH-priority item and clear
 ```
 
 **Formatting rules for this step:**
-- One task per line. Do not wrap a task across multiple lines — long titles stay on one line and let Claude Code's UI soft-wrap them.
+- One task per line. Do not wrap a task across multiple lines — long titles stay on one line and let the terminal soft-wrap them.
 - Group headers use H3 (`###`) for top-priority only; secondary groups use a bold-emoji line (e.g., `🔵 DOCREVIEW epic subtasks`), not an H-level heading. This matches the shape the user has already endorsed.
 - Omit groups that have zero tasks. If In Progress is empty, write `🟢 In Progress — _None_` or just skip it.
 - Never emit a table. No pipes, no box-drawing characters.

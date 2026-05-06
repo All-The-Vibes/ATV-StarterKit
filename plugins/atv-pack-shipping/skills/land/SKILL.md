@@ -141,20 +141,8 @@ git stash list                     # check for session-era stashes
 ```
 
 If working in a worktree:
-- PR open/pending review: `ExitWorktree(action: "keep")`
-- Work merged or abandoned: `ExitWorktree(action: "remove")`
-
-**Sweep stale ralph-loop state files.** If a previous session ran `ralph-loop` and the state file was orphaned (session crash, cwd drift into a worktree, completion promise emitted but not as the trailing tokens of the assistant message), the plugin's stop-hook will replay the loop's prompt verbatim in the next session as "Stop hook feedback." Run unconditionally — the cost is microseconds and detecting "did this session use ralph-loop?" is unreliable:
-
-```bash
-DELETED_RL=$(find . -name ralph-loop.local.md -path '*/.claude/*' -print -delete 2>/dev/null)
-if [ -n "$DELETED_RL" ]; then
-  echo "ralph-loop state files removed (surface in Step 10 handoff under blockers/gotchas):"
-  echo "$DELETED_RL"
-fi
-```
-
-The path glob `*/.claude/*` ensures only state files inside `.claude/` directories are deleted — a legitimately named `ralph-loop.local.md` document elsewhere is left alone.
+- PR open/pending review: leave the worktree in place so review feedback can be addressed without re-cloning.
+- Work merged or abandoned: remove the worktree (`git worktree remove <path>`) and delete its branch (`git branch -d <name>`).
 
 ### Step 8: Verify
 
@@ -171,13 +159,9 @@ If either check fails, loop back and fix. Do not hand off a dirty or unpushed tr
 
 Persist a written record of the session so the next agent (or human) can resume with full context, not just the verbal handoff in Step 10.
 
-Invoke the `remember:remember` skill — it writes to the project's `.remember/` buffer (`now.md`, `today-*.md`, `recent.md`) and is picked up automatically by the `SessionStart:clear` hook on the next session.
+If the project tracks sessions in `docs/sessions/`, `.sessions/`, or an equivalent directory, append a short note there. Otherwise drop a brief handoff into the repo's working notes (e.g., `docs/handoffs/<date>.md`) capturing: branch, PR URL, accomplished, next up, blockers.
 
-```
-Skill: remember:remember
-```
-
-Run unconditionally — even on docs-only or planning-only sessions. The buffer is cheap and the recovery value is high. If the `remember` skill is unavailable in this environment, fall back to writing a brief `.remember/now.md` (or `~/.claude/session-data/<date>.md` outside a repo) by hand with: branch, PR URL, accomplished, next up, blockers.
+Run unconditionally — even on docs-only or planning-only sessions. The note is cheap and the recovery value is high.
 
 ### Step 10: Hand off
 
