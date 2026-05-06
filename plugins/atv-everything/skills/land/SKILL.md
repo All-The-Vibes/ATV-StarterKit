@@ -35,26 +35,34 @@ Skip silently if nothing remains.
 
 ### Step 2: Run quality gates (only if code changed this session)
 
-Run the project's build and test commands. Detect the stack from the repo root rather than assuming:
+Run the project's build and test commands. **Detect the stack first** — only run gates for toolchains the repo actually uses. A non-zero exit must halt the routine; never suffix gates with `|| true`.
 
 ```bash
+# pnpm projects (preferred over npm when both lockfiles exist)
+if [ -f pnpm-lock.yaml ]; then
+  pnpm build && pnpm lint
 # Node / Next.js (npm)
-npm run build && npm run lint 2>&1 || true
-
-# pnpm projects
-pnpm build && pnpm lint 2>&1 || true
+elif [ -f package-lock.json ] || ([ -f package.json ] && [ ! -f pnpm-lock.yaml ] && [ ! -f yarn.lock ]); then
+  npm run build && npm run lint
+fi
 
 # Python
-pytest && ruff check . 2>&1 || true
+if [ -f pyproject.toml ] || [ -f setup.py ] || [ -f requirements.txt ]; then
+  pytest && ruff check .
+fi
 
 # Go
-go build ./... && go vet ./... 2>&1 || true
+if [ -f go.mod ]; then
+  go build ./... && go vet ./...
+fi
 
 # Rust
-cargo build && cargo test 2>&1 || true
+if [ -f Cargo.toml ]; then
+  cargo build && cargo test
+fi
 ```
 
-If build or tests fail, **fix them before proceeding**. Do not skip this step. A broken build does not ship.
+If build or tests fail, **fix them before proceeding**. Do not skip this step. A broken build does not ship. Because the gates are no longer suffixed with `|| true`, a failure here will halt the routine — which is the point.
 
 If no code changed (docs-only, config-only, planning-only sessions), skip quality gates and note that in the handoff.
 
@@ -111,10 +119,17 @@ If push fails (conflicts, hook rejection, branch protection), **resolve and retr
 
 A PR is the review artifact. Agent work without a PR has no trust surface.
 
+`gh pr view` exits 0 for CLOSED and MERGED PRs as well as OPEN ones — so a bare `gh pr view` is unsafe as an "is there a PR?" check. Capture `state` explicitly and only treat `OPEN` as a usable existing PR; otherwise create a fresh one.
+
 ```bash
-gh pr view                         # check if PR already exists for this branch
-# if not:
-gh pr create --fill --web=false    # or craft a proper title + body
+pr_state=$(gh pr view --json state -q .state 2>/dev/null || echo "NONE")
+if [ "$pr_state" = "OPEN" ]; then
+  # PR already exists and is open — nothing to do here, but you may want to refresh the body.
+  :
+else
+  # No PR, or only a CLOSED/MERGED one is associated with this branch — create a fresh one.
+  gh pr create --fill --web=false   # or craft a proper title + body
+fi
 ```
 
 When creating the PR body, summarize the **full branch** diff (not just the latest commit). Resolve the default branch dynamically — it's not always `main`:
