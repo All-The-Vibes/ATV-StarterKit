@@ -12,7 +12,7 @@ Resolve all unresolved PR review comments by spawning parallel agents for each t
 
 ## Context Detection
 
-Claude Code automatically detects git context:
+The agent automatically detects git context:
 - Current branch and associated PR
 - All PR comments and review threads
 - Works with any PR by specifying the number

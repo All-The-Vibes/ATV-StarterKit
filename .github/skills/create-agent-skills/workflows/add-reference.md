@@ -10,7 +10,7 @@
 ## Step 1: Select the Skill
 
 ```bash
-ls ~/.claude/skills/
+ls .github/skills/
 ```
 
 Present numbered list, ask: "Which skill needs a new reference?"
@@ -18,8 +18,8 @@ Present numbered list, ask: "Which skill needs a new reference?"
 ## Step 2: Analyze Current Structure
 
 ```bash
-cat ~/.claude/skills/{skill-name}/SKILL.md
-ls ~/.claude/skills/{skill-name}/references/ 2>/dev/null
+cat .github/skills/{skill-name}/SKILL.md
+ls .github/skills/{skill-name}/references/ 2>/dev/null
 ```
 
 Determine:

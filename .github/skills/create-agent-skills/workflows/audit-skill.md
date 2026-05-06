@@ -14,7 +14,7 @@
 
 Enumerate skills in chat as numbered list:
 ```bash
-ls ~/.claude/skills/
+ls .github/skills/
 ```
 
 Present as:
@@ -33,12 +33,12 @@ Ask: "Which skill would you like to audit? (enter number or name)"
 After user selects, read the full skill structure:
 ```bash
 # Read main file
-cat ~/.claude/skills/{skill-name}/SKILL.md
+cat .github/skills/{skill-name}/SKILL.md
 
 # Check for workflows and references
-ls ~/.claude/skills/{skill-name}/
-ls ~/.claude/skills/{skill-name}/workflows/ 2>/dev/null
-ls ~/.claude/skills/{skill-name}/references/ 2>/dev/null
+ls .github/skills/{skill-name}/
+ls .github/skills/{skill-name}/workflows/ 2>/dev/null
+ls .github/skills/{skill-name}/references/ 2>/dev/null
 ```
 
 ## Step 3: Run Audit Checklist

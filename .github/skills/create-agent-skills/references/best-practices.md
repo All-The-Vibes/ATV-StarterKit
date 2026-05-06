@@ -103,7 +103,7 @@ Use **gerund form** (verb + -ing) for Skill names:
 **Avoid:**
 - Vague: `helper`, `utils`, `tools`
 - Generic: `documents`, `data`, `files`
-- Reserved: `anthropic-*`, `claude-*`
+- Reserved: vendor namespaces (e.g., names that collide with established LLM providers)
 
 ## Writing Effective Descriptions
 

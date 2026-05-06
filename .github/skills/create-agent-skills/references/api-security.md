@@ -14,23 +14,23 @@ When Claude executes this, the full command with expanded `$API_KEY` appears in 
 </the_problem>
 
 <the_solution>
-Use `~/.claude/scripts/secure-api.sh` - a wrapper that loads credentials internally.
+Use `.github/scripts/secure-api.sh` - a wrapper that loads credentials internally.
 
 <for_supported_services>
 ```bash
 # ✅ GOOD - No credentials visible
-~/.claude/scripts/secure-api.sh <service> <operation> [args]
+.github/scripts/secure-api.sh <service> <operation> [args]
 
 # Examples:
-~/.claude/scripts/secure-api.sh facebook list-campaigns
-~/.claude/scripts/secure-api.sh ghl search-contact "email@example.com"
+.github/scripts/secure-api.sh facebook list-campaigns
+.github/scripts/secure-api.sh ghl search-contact "email@example.com"
 ```
 </for_supported_services>
 
 <adding_new_services>
 When building a new skill that requires API calls:
 
-1. **Add operations to the wrapper** (`~/.claude/scripts/secure-api.sh`):
+1. **Add operations to the wrapper** (`.github/scripts/secure-api.sh`):
 
 ```bash
 case "$SERVICE" in
@@ -67,14 +67,14 @@ yourservice)
     ;;
 ```
 
-3. **Add credential placeholders to `~/.claude/.env`** using profile naming:
+3. **Add credential placeholders to `.env`** using profile naming:
 
 ```bash
 # Check if entries already exist
-grep -q "YOURSERVICE_MAIN_API_KEY=" ~/.claude/.env 2>/dev/null || \
-  echo -e "\n# Your Service - Main profile\nYOURSERVICE_MAIN_API_KEY=\nYOURSERVICE_MAIN_ACCOUNT_ID=" >> ~/.claude/.env
+grep -q "YOURSERVICE_MAIN_API_KEY=" .env 2>/dev/null || \
+  echo -e "\n# Your Service - Main profile\nYOURSERVICE_MAIN_API_KEY=\nYOURSERVICE_MAIN_ACCOUNT_ID=" >> .env
 
-echo "Added credential placeholders to ~/.claude/.env - user needs to fill them in"
+echo "Added credential placeholders to .env - user needs to fill them in"
 ```
 
 4. **Document profile workflow in your SKILL.md**:
@@ -88,12 +88,12 @@ echo "Added credential placeholders to ~/.claude/.env - user needs to fill them 
 
 1. **Check for saved profile:**
    ```bash
-   ~/.claude/scripts/profile-state get yourservice
+   .github/scripts/profile-state get yourservice
    ```
 
 2. **If no profile saved, discover available profiles:**
    ```bash
-   ~/.claude/scripts/list-profiles yourservice
+   .github/scripts/list-profiles yourservice
    ```
 
 3. **If only ONE profile:** Use it automatically and announce:
@@ -108,7 +108,7 @@ echo "Added credential placeholders to ~/.claude/.env - user needs to fill them 
 
 5. **Save user's selection:**
    ```bash
-   ~/.claude/scripts/profile-state set yourservice <selected_profile>
+   .github/scripts/profile-state set yourservice <selected_profile>
    ```
 
 6. **Always announce which profile before calling API:**
@@ -118,7 +118,7 @@ echo "Added credential placeholders to ~/.claude/.env - user needs to fill them 
 
 7. **Make API call with profile:**
    ```bash
-   ~/.claude/scripts/secure-api.sh yourservice:<profile> list-items
+   .github/scripts/secure-api.sh yourservice:<profile> list-items
    ```
 
 ## Secure API Calls
@@ -126,11 +126,11 @@ echo "Added credential placeholders to ~/.claude/.env - user needs to fill them 
 All API calls use profile syntax:
 
 ```bash
-~/.claude/scripts/secure-api.sh yourservice:<profile> <operation> [args]
+.github/scripts/secure-api.sh yourservice:<profile> <operation> [args]
 
 # Examples:
-~/.claude/scripts/secure-api.sh yourservice:main list-items
-~/.claude/scripts/secure-api.sh yourservice:main get-item <ITEM_ID>
+.github/scripts/secure-api.sh yourservice:main list-items
+.github/scripts/secure-api.sh yourservice:main get-item <ITEM_ID>
 ```
 
 **Profile persists for session:** Once selected, use same profile for subsequent operations unless user explicitly changes it.
@@ -159,7 +159,7 @@ curl -s -X POST \
 
 Usage:
 ```bash
-echo '{"name":"value"}' | ~/.claude/scripts/secure-api.sh service create-item
+echo '{"name":"value"}' | .github/scripts/secure-api.sh service create-item
 ```
 </post_with_json_body>
 
@@ -175,7 +175,7 @@ curl -s -X POST \
 </pattern_guidelines>
 
 <credential_storage>
-**Location:** `~/.claude/.env` (global for all skills, accessible from any directory)
+**Location:** `.env` (global for all skills, accessible from any directory)
 
 **Format:**
 ```bash
@@ -191,7 +191,7 @@ OTHER_BASE_URL=https://api.other.com
 **Loading in script:**
 ```bash
 set -a
-source ~/.claude/.env 2>/dev/null || { echo "Error: ~/.claude/.env not found" >&2; exit 1; }
+source .env 2>/dev/null || { echo "Error: .env not found" >&2; exit 1; }
 set +a
 ```
 </credential_storage>
@@ -199,8 +199,8 @@ set +a
 <best_practices>
 1. **Never use raw curl with `$VARIABLE` in skill examples** - always use the wrapper
 2. **Add all operations to the wrapper** - don't make users figure out curl syntax
-3. **Auto-create credential placeholders** - add empty fields to `~/.claude/.env` immediately when creating the skill
-4. **Keep credentials in `~/.claude/.env`** - one central location, works everywhere
+3. **Auto-create credential placeholders** - add empty fields to `.env` immediately when creating the skill
+4. **Keep credentials in `.env`** - one central location, works everywhere
 5. **Document each operation** - show examples in SKILL.md
 6. **Handle errors gracefully** - check for missing env vars, show helpful error messages
 </best_practices>
@@ -210,7 +210,7 @@ Test the wrapper without exposing credentials:
 
 ```bash
 # This command appears in chat
-~/.claude/scripts/secure-api.sh facebook list-campaigns
+.github/scripts/secure-api.sh facebook list-campaigns
 
 # But API keys never appear - they're loaded inside the script
 ```
@@ -218,9 +218,9 @@ Test the wrapper without exposing credentials:
 Verify credentials are loaded:
 ```bash
 # Check .env exists
-ls -la ~/.claude/.env
+ls -la .env
 
 # Check specific variables (without showing values)
-grep -q "YOUR_API_KEY=" ~/.claude/.env && echo "API key configured" || echo "API key missing"
+grep -q "YOUR_API_KEY=" .env && echo "API key configured" || echo "API key missing"
 ```
 </testing>
