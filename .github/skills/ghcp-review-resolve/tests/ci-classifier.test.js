@@ -43,6 +43,26 @@ test('no workflows at all => none', () => {
   assert.equal(r.status, 'none');
 });
 
+test('runs exist but all stale (only older SHAs) => stale-only, blocking', () => {
+  // Common state right after a fresh push: runs exist for the branch but every one
+  // belongs to a previous SHA. Must NOT collapse to 'none' (which the verdict layer
+  // treats as a non-gate) — the verdict layer would otherwise APPROVE a SHA CI has
+  // never seen.
+  const onlyStale = [
+    { databaseId: 10, name: 'lint',  status: 'completed', conclusion: 'success', headSha: 'older-sha', event: 'pull_request' },
+    { databaseId: 11, name: 'test',  status: 'completed', conclusion: 'success', headSha: 'older-sha', event: 'pull_request' },
+  ];
+  const r = classifyCi({ runs: onlyStale, headSha: F.HEAD });
+  assert.equal(r.status, 'stale-only');
+  assert.equal(r.blocking, true);
+  assert.equal(r.considered.length, 0);
+});
+
+test('truly empty runs array => none (no Actions configured)', () => {
+  const r = classifyCi({ runs: [], headSha: F.HEAD });
+  assert.equal(r.status, 'none');
+});
+
 test('all-skipped => green (no gating signal)', () => {
   const r = classifyCi({ runs: F.allSkipped, headSha: F.HEAD });
   assert.equal(r.status, 'green');

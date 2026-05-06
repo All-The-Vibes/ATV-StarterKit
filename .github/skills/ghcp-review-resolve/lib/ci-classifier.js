@@ -11,10 +11,16 @@
 //   }>
 //
 // Output: { status, considered, failing, blocking }
-//   status ∈ 'green' | 'red-code' | 'red-flake-suspected' | 'pending' | 'none' | 'unknown'
+//   status ∈ 'green' | 'red-code' | 'red-flake-suspected' | 'pending' | 'stale-only' | 'none' | 'unknown'
 //   considered: runs that were not filtered out by stale-SHA pruning
 //   failing: failed runs (with optional flake hints)
 //   blocking: whether this status should gate later phases (true except for 'unknown')
+//
+// 'stale-only' vs 'none':
+//   - 'none': the API returned zero runs at all (repo has no Actions, or no runs ever triggered for this branch).
+//   - 'stale-only': runs exist for this branch but every one belongs to an older SHA — typically the gap between
+//     a fresh push and CI starting on it. Treated as effectively pending: no signal yet for the current HEAD,
+//     but CI is wired up. The verdict layer treats 'stale-only' the same way it treats 'pending'.
 
 'use strict';
 
@@ -58,6 +64,13 @@ function classifyCi({ runs, headSha, logFor } = {}) {
     : runs.slice();
 
   if (considered.length === 0) {
+    // Distinguish "no runs at all" (repo has no Actions / nothing triggered) from
+    // "runs exist but only for older SHAs" (fresh push, CI hasn't started yet).
+    // The first is a non-gate; the second must be treated as pending so the verdict
+    // layer doesn't APPROVE a SHA that has never been seen by CI.
+    if (headSha && runs.length > 0) {
+      return { status: 'stale-only', considered: [], failing: [], blocking: true };
+    }
     return { status: 'none', considered: [], failing: [], blocking: true };
   }
 

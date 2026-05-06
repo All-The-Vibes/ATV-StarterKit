@@ -307,7 +307,7 @@ gh run list \
 
 Pass the JSON plus `PR_HEAD_SHA` to the classifier. The classifier filters stale runs (any `headSha != PR_HEAD_SHA` is dropped — they belong to older pushes) and produces:
 
-`CI_STATUS ∈ {green, red-code, red-flake-suspected, pending, none, unknown}`
+`CI_STATUS ∈ {green, red-code, red-flake-suspected, pending, stale-only, none, unknown}`
 
 Classification rules:
 
@@ -674,7 +674,7 @@ After the §5 fix loop pushes its last commit (and before §6 renders a verdict)
 
    If runs are still pending after the ceiling, surface in summary and do **not** block — proceed to §6 with `CI_POST_STATUS=pending` and a body note. The user can re-run or wait.
 
-3. **Classify CI on the new SHA** using the same §0j logic, producing `CI_POST_STATUS ∈ {green, red-code, red-flake-suspected, pending, none, unknown}`.
+3. **Classify CI on the new SHA** using the same §0j logic, producing `CI_POST_STATUS ∈ {green, red-code, red-flake-suspected, pending, stale-only, none, unknown}`. Treat `stale-only` the same way as `pending` for verdict gating — both mean "no signal yet for this SHA".
 
 4. **Diff against `CI_STATUS` from preflight to detect regressions.** Match by **workflow name**, not run-id (run-ids change on every push). For each workflow that was `success` at preflight and is now `failure`, build a regression record:
 
