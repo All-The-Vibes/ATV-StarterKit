@@ -1,6 +1,6 @@
 ---
 name: ghcp-review-resolve
-description: Produce two independent agent reviews on the current PR (an existing Copilot review when present, otherwise two distinct subagent reviewers), adjudicate findings with a third independent subagent, post inline PR comments for verified issues, run a tight inline fix-and-reply-and-resolve loop, then deliver a verdict — APPROVE if clean, APPROVE-WITH-CHANGES if findings were verified (and fixed or noted), or CLOSE if the PR is fundamentally unsound. The skill is read-only with respect to GitHub reviewer assignment — it never adds reviewers. Use whenever the user invokes /ghcp-review-resolve, asks to "run copilot review and resolve", asks to "review and fix my PR with copilot", asks for a "dual review and fix pass", or wants automated review triage, remediation, and verdict on a pull request they just opened. Submits APPROVE or CLOSE; never submits REQUEST_CHANGES and never merges.
+description: Produce two independent agent reviews on the current PR (an existing Copilot review when present, otherwise two distinct subagent reviewers), adjudicate findings with a third independent subagent, post inline PR comments for verified issues, run a tight inline fix-and-reply-and-resolve loop, then deliver a verdict — APPROVE if clean, APPROVE-WITH-CHANGES if findings were verified (and fixed or noted), CLOSE if the PR is fundamentally unsound, or WITHHELD if CI is red post-fix and the regression cannot be resolved. The skill is read-only with respect to GitHub reviewer assignment — it never adds reviewers. Use whenever the user invokes /ghcp-review-resolve, asks to "run copilot review and resolve", asks to "review and fix my PR with copilot", asks for a "dual review and fix pass", or wants automated review triage, remediation, and verdict on a pull request they just opened. Submits APPROVE or CLOSE; never submits REQUEST_CHANGES and never merges.
 ---
 
 # ghcp-review-resolve
@@ -8,13 +8,11 @@ description: Produce two independent agent reviews on the current PR (an existin
 Orchestrates a dual-review-and-fix pipeline on an open PR. The workflow:
 
 0. **Preflight** — detect PR, fetch size + merge state + head SHA, passively detect any existing Copilot review, check for prior resolved reviews. Emit a preflight table. If the PR has merge conflicts with base, run the **conflict-resolution subroutine** (study recent merged PRs in the repo for resolution conventions, then rebase and resolve) before continuing — merge conflicts are no longer a blocker. The only remaining blocker is "nothing useful to do" (e.g., prior Copilot review fully resolved at HEAD).
-1. **Collect two reviews** synchronously:
-   - If the PR already has a fresh Copilot review, read it (Review A) and spawn one subagent reviewer (Review B).
-   - Otherwise, spawn two distinct subagent reviewers in parallel (Review A + Review B).
+1. **Collect two reviews** synchronously by spawning two distinct subagent reviewers in parallel (Review A + Review B). If the PR also has a fresh Copilot review, read it as supplementary context (Review C); it does not replace either subagent.
 2. Independently adjudicate findings via a third subagent that inspects the actual code.
 3. Post inline PR comments only for verified bugs/fixes.
 4. Run a tight inline fix loop per comment: edit → test → commit → push → reply on the thread → resolve the thread.
-5. **Render a verdict and act on it** — `APPROVE` (clean), `APPROVE-WITH-CHANGES` (findings verified, fixed-or-noted), or `CLOSE` (PR is fundamentally unsound). Submit an APPROVE review or close the PR accordingly.
+5. **Render a verdict and act on it** — `APPROVE` (clean), `APPROVE-WITH-CHANGES` (findings verified, fixed-or-noted), `CLOSE` (PR is fundamentally unsound), or `WITHHELD` (CI red post-fix and regression unresolvable — emit a blocker, no APPROVE, no CLOSE). Submit an APPROVE review, close the PR, or emit a blocker accordingly.
 6. Summarize — never submit REQUEST_CHANGES, never merge, never assign reviewers.
 
 ## Why this exists
@@ -25,7 +23,7 @@ This skill's job is to be the adult in the room: produce two independent reviews
 
 It also knows when **not** to run. A PR whose prior Copilot review is already fully resolved at the current HEAD shouldn't trigger another round of bot noise — the skill reports that state and gets out of the way. Merge conflicts, by contrast, are not a reason to stop: the skill resolves them as a preflight subroutine before reviewing.
 
-**The skill never assigns reviewers.** Asking GitHub to add `@copilot` (or anyone else) as a reviewer is silently dropped on most repos and 422s on others, and chasing those failure modes was a recurring source of wasted runs. Instead the skill reads any Copilot review that already exists on the PR and pairs it with a subagent reviewer, or spawns two subagents itself when no Copilot review is present.
+**The skill never assigns reviewers.** Asking GitHub to add `@copilot` (or anyone else) as a reviewer is silently dropped on most repos and 422s on others, and chasing those failure modes was a recurring source of wasted runs. Instead the skill always spawns two fresh subagent reviewers it controls, and treats any pre-existing Copilot review on the PR as supplementary context (Review C) for the adjudicator.
 
 ## Step 0 — Preflight
 
@@ -523,9 +521,9 @@ The two subagent reviewers must have meaningfully different focus areas — corr
 - **Reviewer A:** `correctness-reviewer` (logic errors, edge cases, state bugs, intent-vs-implementation mismatches)
 - **Reviewer B:** `adversarial-reviewer` (actively constructs failure scenarios; high-risk diffs)
 
-For Branch 1a (existing Copilot + 1 subagent), use only Reviewer B by default — Copilot already covers the correctness lens reasonably well, so adversarial coverage is the highest-leverage complement. The user can override the pair via skill args if exposed.
+The user can override the pair via skill args if exposed.
 
-The persona pair is documented here so the user can see what's running. Subagent reviewers must NOT touch the PR — only the fix loop in Step 4 writes to the PR.
+The persona pair is documented here so the user can see what's running. Subagent reviewers must NOT touch the PR — only the fix loop in Step 5 writes to the PR.
 
 ### 1c. Failure handling
 
@@ -706,7 +704,7 @@ After §5.5 completes, set `CI_POST_STATUS` and proceed to §6.
 
 ## Step 6 — Render the verdict and act on it
 
-After the fix loop, the skill owes the user (and the PR author) a decision. There are exactly three verdicts. **REQUEST_CHANGES is intentionally not one of them** — by this point either you fixed the issue and approved, or you concluded the PR shouldn't merge and closed it. Asking a human to "go fix this" defeats the purpose of an automated review-and-resolve.
+After the fix loop, the skill owes the user (and the PR author) a decision. There are four verdicts: APPROVE, APPROVE-WITH-CHANGES, CLOSE, and WITHHELD. **REQUEST_CHANGES is intentionally not one of them** — by this point either you fixed the issue and approved, concluded the PR shouldn't merge and closed it, or withheld a verdict because CI broke and could not be resolved. Asking a human to "go fix this" defeats the purpose of an automated review-and-resolve.
 
 ### Verdict rules
 
@@ -939,7 +937,7 @@ Recommended next action:
 No reviews produced. No comments posted. PR not approved/closed/merged.
 ```
 
-### Example 3 — Copilot already reviewed (Branch 1a)
+### Example 3 — Copilot already reviewed (Review C as supplementary context)
 
 ```
 User: /ghcp-review-resolve
@@ -950,17 +948,17 @@ User: /ghcp-review-resolve
     Existing Copilot review: fresh (5 open threads at HEAD)
     Prior Copilot resolved: no
     CI status: green
-    Review sourcing: Copilot + 1 subagent
+    Review sourcing: 2 subagents + Copilot context (Review C)
     Decision: proceed
-→ Reading existing Copilot review (5 inline findings + body) → Review A
-→ Spawning adversarial-reviewer subagent → Review B (returned 4 findings)
+→ Reading existing Copilot review (5 inline findings + body) → Review C (supplementary context)
+→ Spawning correctness-reviewer + adversarial-reviewer in parallel → Review A (6 findings) + Review B (4 findings)
 → Adjudicator subagent verifying [diff mode: per-file]... read 8/42 files
-→ 3 accepted (2 overlap with Copilot + 1 unique high-severity from Review B), 6 rejected
+→ 3 accepted (2 overlap A+C, 1 unique high-severity from B), 12 rejected
 → Posting 3 inline comments, running fix loop...
 → Fixes 1-3 applied and verified, threads resolved (including the 2 original Copilot threads).
 → Verdict: APPROVE-WITH-CHANGES (3 verified, 3 fixed).
 → Submitting `gh pr review --approve` ... ok.
-→ Summary: PR #17 — verdict APPROVE-WITH-CHANGES. Used existing Copilot review + adversarial-reviewer subagent. No reviewers assigned. Not merged.
+→ Summary: PR #17 — verdict APPROVE-WITH-CHANGES. Two subagents (correctness + adversarial) plus existing Copilot review as Review C. No reviewers assigned. Not merged.
 ```
 
 ### Example 4 — CLOSE verdict (PR is fundamentally unsound)
