@@ -29,15 +29,26 @@ Keep it terse. The user wants to pick a task and go, not read a report.
 
 ## Execution
 
-### Step 1: Verify Backlog.md is present
+### Step 1: Pick the source of work
 
-Check that the current repo has a `backlog/` directory. If not, say so and stop — there is nothing to surface.
+Decide where the actionable items come from. Two paths, mutually exclusive — never both:
 
 ```bash
-test -d backlog && echo "backlog present" || echo "no backlog"
+if [ -d backlog ]; then
+  echo "backlog present — using Backlog.md"
+  source="backlog"
+elif [ -d docs/plans ] && ls docs/plans/*.md >/dev/null 2>&1; then
+  echo "no backlog/, falling back to docs/plans/"
+  source="plans"
+else
+  echo "no backlog/ and no docs/plans/ — nothing to surface"
+  source="none"
+fi
 ```
 
-If the project has no Backlog.md, fall back to reading any plan files in `docs/plans/` and summarizing those instead. Tell the user you're falling back because no backlog exists.
+- **`source=backlog`** → continue to Step 2.
+- **`source=plans`** → skip Steps 2–3 (they are backlog-specific) and go straight to Step 4, summarizing the plan files in priority order. Tell the user you're using the docs/plans/ fallback because no backlog exists.
+- **`source=none`** → tell the user there's nothing to surface, then jump to Step 6 to emit the banner. The successful-no-work path still counts as a successful completion.
 
 ### Step 2: Pull the backlog
 
