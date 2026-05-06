@@ -1,6 +1,6 @@
 # Official Skill Specification (2026)
 
-Source: [code.claude.com/docs/en/skills](https://code.claude.com/docs/en/skills)
+Source: [GitHub Copilot — skills](https://docs.github.com/en/copilot)
 
 ## Commands and Skills Are Merged
 
@@ -80,7 +80,6 @@ Plugin skills use a `plugin-name:skill-name` namespace, so they cannot conflict 
 | `$ARGUMENTS` | All arguments passed when invoking |
 | `$ARGUMENTS[N]` | Specific argument by 0-based index |
 | `$N` | Shorthand for `$ARGUMENTS[N]` |
-| `${CLAUDE_SESSION_ID}` | Current session ID |
 
 ## Dynamic Context Injection
 

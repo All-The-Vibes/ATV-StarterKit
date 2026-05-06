@@ -1,6 +1,6 @@
 # Skill Authoring Best Practices
 
-Source: [platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)
+Source: [GitHub Copilot — skills authoring guide](https://docs.github.com/en/copilot)
 
 ## Core Principles
 

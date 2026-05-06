@@ -32,6 +32,16 @@ func TestNoClaudeCodeReferencesInSkills(t *testing.T) {
 		regexp.MustCompile(`(?i)\.claude/`),
 		regexp.MustCompile(`(?i)CLAUDE\.md`),
 		regexp.MustCompile(`(?i)anthropic`),
+		// Claude-Code-specific environment variables (e.g.
+		// CLAUDE_PLUGIN_ROOT, CLAUDE_HOME). These are unset in a
+		// Copilot harness, so leaving them in skill instructions is a
+		// runtime correctness bug, not just naming drift.
+		regexp.MustCompile(`\bCLAUDE_[A-Z][A-Z0-9_]*\b`),
+		// Claude-Code documentation domains. The plain `\.claude/`
+		// pattern above does not match URL hosts like
+		// `code.claude.com` or `platform.claude.com` because there is
+		// no slash immediately after `claude`.
+		regexp.MustCompile(`(?i)(code|platform)\.claude\.(com|ai)`),
 	}
 
 	// Files (or file:line ranges) that legitimately mention these
@@ -39,23 +49,23 @@ func TestNoClaudeCodeReferencesInSkills(t *testing.T) {
 	// review artifact rather than a silent escape hatch.
 	//
 	// Format: "<repo-relative path>" -> reason
+	//
+	// Every entry is asserted to exist on disk below — a stale entry
+	// (path moved/deleted) becomes a test failure rather than a silent
+	// future exemption for whatever shows up at that path next.
 	allowlist := map[string]string{
 		// dspy-ruby is a multi-provider integration guide. Anthropic
 		// appears alongside OpenAI, Gemini, Ollama, and OpenRouter as
 		// one of N supported LLM providers. This is informative, not
 		// drift.
-		".github/skills/dspy-ruby/SKILL.md":                          "multi-provider documentation",
-		".github/skills/dspy-ruby/references/providers.md":           "multi-provider documentation",
-		".github/skills/dspy-ruby/assets/config-template.rb":         "multi-provider configuration template",
-		"pkg/scaffold/templates/skills/dspy-ruby/SKILL.md":           "multi-provider documentation",
-		"pkg/scaffold/templates/skills/dspy-ruby/references/providers.md": "multi-provider documentation",
-		"pkg/scaffold/templates/skills/dspy-ruby/assets/config-template.rb": "multi-provider configuration template",
+		".github/skills/dspy-ruby/SKILL.md":                  "multi-provider documentation",
+		".github/skills/dspy-ruby/references/providers.md":   "multi-provider documentation",
+		".github/skills/dspy-ruby/assets/config-template.rb": "multi-provider configuration template",
 
 		// atv-security documents secret-detection rules. The Anthropic
 		// API key pattern (`sk-ant-*`) and the ${ANTHROPIC_API_KEY}
 		// fix recommendation are legitimate security-rule content.
 		"pkg/scaffold/templates/skills/atv-security/SKILL.md": "security-rule redaction patterns",
-		".github/skills/atv-security/SKILL.md":                "security-rule redaction patterns",
 
 		// agent-native-architecture references documents agent-native
 		// patterns that legitimately reference the Anthropic SDK
@@ -70,6 +80,17 @@ func TestNoClaudeCodeReferencesInSkills(t *testing.T) {
 		// across providers; the regex pattern legitimately includes
 		// CLAUDE/ANTHROPIC alongside OPENAI.
 		".github/skills/onboarding/scripts/inventory.mjs": "secret-detection regex",
+	}
+
+	// Fail fast if any allowlisted path no longer exists on disk. A
+	// stale allowlist silently exempts whatever future file lands at
+	// that path, which is exactly the regression this test exists to
+	// prevent.
+	for rel := range allowlist {
+		abs := filepath.Join(root, filepath.FromSlash(rel))
+		if _, err := os.Stat(abs); err != nil {
+			t.Errorf("allowlisted path %q does not exist: %v (drop the entry or restore the file)", rel, err)
+		}
 	}
 
 	scanRoots := []string{
