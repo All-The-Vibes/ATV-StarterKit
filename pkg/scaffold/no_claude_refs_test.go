@@ -98,6 +98,23 @@ func TestNoClaudeCodeReferencesInSkills(t *testing.T) {
 		filepath.Join(root, "pkg", "scaffold", "templates", "skills"),
 	}
 
+	// Only scan textual instruction surfaces. Skip binaries and asset
+	// bundles by extension. Hoisted out of the WalkDir callback to
+	// avoid reallocating per-file.
+	textExts := map[string]bool{
+		".md":   true,
+		".mdx":  true,
+		".rb":   true,
+		".mjs":  true,
+		".js":   true,
+		".ts":   true,
+		".json": true,
+		".yml":  true,
+		".yaml": true,
+		".sh":   true,
+		".py":   true,
+	}
+
 	type violation struct {
 		path    string
 		line    int
@@ -121,24 +138,14 @@ func TestNoClaudeCodeReferencesInSkills(t *testing.T) {
 			// Only scan textual instruction surfaces. Skip binaries
 			// and asset bundles by extension.
 			ext := strings.ToLower(filepath.Ext(path))
-			textExts := map[string]bool{
-				".md":   true,
-				".mdx":  true,
-				".rb":   true,
-				".mjs":  true,
-				".js":   true,
-				".ts":   true,
-				".json": true,
-				".yml":  true,
-				".yaml": true,
-				".sh":   true,
-				".py":   true,
-			}
 			if !textExts[ext] {
 				return nil
 			}
 
-			rel, _ := filepath.Rel(root, path)
+			rel, relErr := filepath.Rel(root, path)
+			if relErr != nil {
+				return relErr
+			}
 			rel = filepath.ToSlash(rel)
 			if _, allowed := allowlist[rel]; allowed {
 				return nil

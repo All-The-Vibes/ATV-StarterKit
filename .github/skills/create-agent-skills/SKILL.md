@@ -271,5 +271,4 @@ For detailed guidance, see:
 
 ## Sources
 
-- [Extend your agent with skills - Copilot Skills](https://docs.github.com/en/copilot)
-- [GitHub - skills authoring guide](https://docs.github.com/en/copilot)
+- [GitHub Copilot documentation](https://docs.github.com/en/copilot)
