@@ -1,6 +1,6 @@
 # Skill Authoring Best Practices
 
-Source: [platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)
+Source: [GitHub Copilot — skills authoring guide](https://docs.github.com/en/copilot)
 
 ## Core Principles
 
@@ -103,7 +103,7 @@ Use **gerund form** (verb + -ing) for Skill names:
 **Avoid:**
 - Vague: `helper`, `utils`, `tools`
 - Generic: `documents`, `data`, `files`
-- Reserved: `anthropic-*`, `claude-*`
+- Reserved: vendor namespaces (e.g., names that collide with established LLM providers)
 
 ## Writing Effective Descriptions
 

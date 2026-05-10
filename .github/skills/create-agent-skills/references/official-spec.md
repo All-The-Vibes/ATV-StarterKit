@@ -1,10 +1,10 @@
 # Official Skill Specification (2026)
 
-Source: [code.claude.com/docs/en/skills](https://code.claude.com/docs/en/skills)
+Source: [GitHub Copilot — skills](https://docs.github.com/en/copilot)
 
 ## Commands and Skills Are Merged
 
-Custom slash commands have been merged into skills. A file at `.claude/commands/review.md` and a skill at `.claude/skills/review/SKILL.md` both create `/review` and work the same way. Existing `.claude/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to control invocation, and automatic context loading.
+Custom slash commands have been merged into skills. A file at `.github/commands/review.md` and a skill at `.github/skills/review/SKILL.md` both create `/review` and work the same way. Existing `.github/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to control invocation, and automatic context loading.
 
 If a skill and a command share the same name, the skill takes precedence.
 
@@ -61,8 +61,8 @@ Enterprise (highest priority) → Personal → Project → Plugin (lowest priori
 | Type | Path | Applies to |
 |------|------|-----------|
 | Enterprise | See managed settings | All users in organization |
-| Personal | `~/.claude/skills/<name>/SKILL.md` | You, across all projects |
-| Project | `.claude/skills/<name>/SKILL.md` | Anyone working in repository |
+| Personal | `~/.copilot/skills/<name>/SKILL.md` | You, across all projects |
+| Project | `.github/skills/<name>/SKILL.md` | Anyone working in repository |
 | Plugin | `<plugin>/skills/<name>/SKILL.md` | Where plugin is enabled |
 
 Plugin skills use a `plugin-name:skill-name` namespace, so they cannot conflict with other levels.
@@ -80,7 +80,6 @@ Plugin skills use a `plugin-name:skill-name` namespace, so they cannot conflict 
 | `$ARGUMENTS` | All arguments passed when invoking |
 | `$ARGUMENTS[N]` | Specific argument by 0-based index |
 | `$N` | Shorthand for `$ARGUMENTS[N]` |
-| `${CLAUDE_SESSION_ID}` | Current session ID |
 
 ## Dynamic Context Injection
 
@@ -129,6 +128,6 @@ The skill content becomes the subagent's prompt. It won't have access to convers
 
 ## Distribution
 
-- **Project skills**: Commit `.claude/skills/` to version control
+- **Project skills**: Commit `.github/skills/` to version control
 - **Plugins**: Add `skills/` directory to plugin
 - **Enterprise**: Deploy organization-wide through managed settings

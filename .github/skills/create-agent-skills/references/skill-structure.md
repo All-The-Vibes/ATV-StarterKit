@@ -61,7 +61,7 @@ description: What it does and when to use it (specific triggers included)
 - Maximum 64 characters
 - Lowercase letters, numbers, hyphens only
 - Must match directory name
-- No reserved words: "anthropic", "claude"
+- No reserved words (avoid vendor namespaces such as established LLM provider names)
 
 **Examples:**
 - `triage-prs`
