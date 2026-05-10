@@ -1,21 +1,22 @@
 ---
 name: land
-description: Close out a session by committing, pushing, and opening a PR — then handing off. Use when the user says "land", "/land", "land the plane", "land plane", "land it", "let's land", "land this", "bring it in", "wrap it up", "land the plan", "time to land", "ok land", "go ahead and land", or any variation that signals they want to finish, close out, ship, or wrap up the current session's work. Executes the full checklist without asking. Never merges the PR — landing ≠ merging.
+description: Session completion protocol - the opposite of "takeoff". Use this skill whenever the user says "land", "/land", "land the plane", "land it", "let's land", "land this", "bring it in", "wrap it up", "land the plan", "land plane", "time to land", "ok land", "go ahead and land", or any variation that signals they want to finish, close out, ship, or wrap up the current session's work. Executes the full commit → push → PR → handoff checklist without asking. If the user's message contains "land" in the context of finishing work, invoke this skill — it is a keyword trigger, not an exact match.
+argument-hint: "[optional: extra context, e.g. 'skip PR' or 'no handoff notes']"
 ---
 
-# Land the Plane
+# Land the Plane Protocol
 
-The session completion counterpart to `/takeoff`. Where `/takeoff` *starts* work by surfacing the backlog, `/land` *finishes* work by running the full commit → push → PR → handoff checklist.
+The session completion counterpart to `/takeoff`. Where takeoff *starts* work by surfacing the backlog, `/land` *finishes* work by running the full commit → push → PR → handoff checklist.
 
 ## Trigger
 
 Any variation of: `land`, `/land`, `land the plane`, `land it`, `let's land`, `land this`, `bring it in`, `wrap it up`, `land the plan`, `land plane`, `time to land`, `ok land`, `go ahead and land`.
 
-When the user's message contains "land" in the context of finishing/wrapping up work, invoke this protocol. When in doubt, invoke it.
+**This is a keyword trigger, not an exact match.** If the user's message contains "land" in the context of finishing/wrapping up work, invoke this protocol. When in doubt, invoke it.
 
 ## Core principle
 
-"Landing" means **commit, push, and create a PR** — it does **not** mean merge. A PR is how humans review agent work; no PR means no review means no trust. **Never merge unless the user explicitly says "merge this PR".**
+"Landing" means **commit, push, and create a PR** — it does **not** mean merge. A PR is how humans review agent work; no PR means no review means no trust. Never merge unless the user explicitly says "merge this PR".
 
 Work is **not complete until `git push` succeeds**. If push fails, resolve and retry until it works. Do not stop at "ready to push when you are" — you must push.
 
@@ -27,56 +28,63 @@ Run the checklist **in order, completely, without asking**. Each step is non-neg
 
 Review what was worked on this session. Capture anything that's unfinished, deferred, or follow-up so it doesn't vanish when the session closes.
 
-- If the repo has Backlog.md tooling (`backlog/` directory at repo root and the `backlog` CLI available), create tasks for unfinished/follow-up work:
-  ```bash
-  if command -v backlog >/dev/null 2>&1 && [ -d backlog ]; then
-    backlog task create "<title>" --description "<context>"
-  fi
-  ```
-- Otherwise, gather remaining work into a short handoff list and surface it at Step 9.
+- If the project has Backlog.md (a `backlog/` directory at repo root), create tasks for unfinished/follow-up work via the backlog CLI or `mcp__backlog__task_create`.
+- Otherwise, gather remaining work into a short handoff list and surface it to the user at Step 10.
 
 Skip silently if nothing remains.
 
 ### Step 2: Run quality gates (only if code changed this session)
 
-Detect the stack from the repo root and run the matching build + test/lint commands. For ATV-starterkit specifically, this means Go at the root plus an optional Node subproject under `npm/`.
+Run the project's build and test commands. **Detect the stack first** — only run gates for toolchains the repo actually uses. A non-zero exit must halt the routine; never suffix gates with `|| true`.
 
 ```bash
-# Go (repo root) — run when go.mod is present AND Go files changed this session.
-# Quality gates run BEFORE commit, so we cannot rely on HEAD~1; check working tree.
+# pnpm projects (preferred over npm when both lockfiles exist)
+if [ -f pnpm-lock.yaml ]; then
+  pnpm build && pnpm lint
+# Node / Next.js (npm)
+elif [ -f package-lock.json ] || ([ -f package.json ] && [ ! -f pnpm-lock.yaml ] && [ ! -f yarn.lock ]); then
+  npm run build && npm run lint
+fi
+
+# Python
+if [ -f pyproject.toml ] || [ -f setup.py ] || [ -f requirements.txt ]; then
+  pytest && ruff check .
+fi
+
+# Go
 if [ -f go.mod ]; then
-  if { git diff --name-only;
-       git diff --name-only --cached;
-       git ls-files --others --exclude-standard; } | grep -qE '\.go$|^go\.(mod|sum)$'; then
-    go build ./... && go vet ./...
-  fi
+  go build ./... && go vet ./...
 fi
 
-# Node subproject — run when npm/ files have changed (staged, unstaged, or untracked).
-if [ -f npm/package.json ]; then
-  if { git diff --name-only;
-       git diff --name-only --cached;
-       git ls-files --others --exclude-standard; } | grep -q '^npm/'; then
-    (cd npm && npm run build)
-  fi
+# Rust
+if [ -f Cargo.toml ]; then
+  cargo build && cargo test
 fi
-
-# Generic fallbacks (portable to other repos)
-# pnpm:    [ -f pnpm-workspace.yaml ] && pnpm build && pnpm lint
-# npm:     [ -f package.json ] && npm run build && npm run lint
-# Python:  [ -f pyproject.toml ] && pytest && ruff check .
-# Rust:    [ -f Cargo.toml ] && cargo build && cargo test
 ```
 
-If any gate fails (non-zero exit), **halt the routine, fix the failure, and re-run from Step 2 before proceeding to Step 4**. Do not append `|| true` to swallow failures — a broken build does not ship, and a swallowed failure would falsely emit the success banner at Step 10.
+If build or tests fail, **fix them before proceeding**. Do not skip this step. A broken build does not ship. Because the gates are no longer suffixed with `|| true`, a failure here will halt the routine — which is the point.
 
 If no code changed (docs-only, config-only, planning-only sessions), skip quality gates and note that in the handoff.
 
-### Step 3: Update task status (if the repo has task tracking)
+### Step 3: Update task status (if project has task tracking)
 
-- Mark completed tasks as `Done`.
-- Update in-progress tasks with short implementation notes so the next session has context.
-- If the repo uses `backlog_task_id` in plan frontmatter, ensure status reflects reality.
+Mirror Step 1's conditional + literal-command pattern so a fresh agent — one cold-loading the skill on a session where the user said "land it" — can mechanically follow the CLI shape rather than guessing it from prose:
+
+```bash
+if command -v backlog >/dev/null 2>&1 && [ -d backlog ]; then
+  # Mark completed tasks as Done
+  backlog task edit TASK-XYZ --status Done
+
+  # Update in-progress tasks with implementation notes for the next session
+  backlog task edit TASK-XYZ \
+    --status "In Progress" \
+    --notes "<one-line implementation context, commit refs, what's blocking>"
+fi
+```
+
+Substitute the actual task IDs from this session. Skip silently when the `backlog` CLI is absent — the conditional guard covers projects without backlog tooling.
+
+If the project uses `backlog_task_id` in plan frontmatter, ensure status reflects reality.
 
 ### Step 4: Commit all changes
 
@@ -95,11 +103,8 @@ If there are no changes, skip. Do not create empty commits.
 Work is not complete until this step succeeds.
 
 ```bash
+# confirm branch is not main/master — project hooks may block push to main anyway
 branch=$(git branch --show-current)
-if [ -z "$branch" ]; then
-  echo "ERROR: detached HEAD — refusing to push. Check out a branch first." >&2
-  exit 1
-fi
 # only rebase if this branch already tracks a remote — new branches have no upstream yet
 if git rev-parse --verify "origin/$branch" >/dev/null 2>&1; then
   git pull --rebase origin "$branch"
@@ -114,26 +119,24 @@ If push fails (conflicts, hook rejection, branch protection), **resolve and retr
 
 A PR is the review artifact. Agent work without a PR has no trust surface.
 
-Check first whether an **open** PR already exists on this branch. `gh pr view` returns success for closed and merged PRs too, so inspect `state` — not just the exit code — otherwise a stale CLOSED PR will trick the skill into skipping creation and leave the user with nothing to ship:
+`gh pr view` exits 0 for CLOSED and MERGED PRs as well as OPEN ones — so a bare `gh pr view` is unsafe as an "is there a PR?" check. Capture `state` explicitly and only treat `OPEN` as a usable existing PR; otherwise create a fresh one.
 
 ```bash
-if PR_VIEW_OUTPUT=$(gh pr view --json url,title,state 2>&1); then
-  PR_VIEW_EXIT=0
-  PR_VIEW_STATE=$(printf '%s' "$PR_VIEW_OUTPUT" | jq -r '.state // empty' 2>/dev/null)
+pr_state=$(gh pr view --json state -q .state 2>/dev/null || echo "NONE")
+if [ "$pr_state" = "OPEN" ]; then
+  # PR already exists and is open — nothing to do here, but you may want to refresh the body.
+  :
 else
-  PR_VIEW_EXIT=$?
-  PR_VIEW_STATE=""
+  # No PR, or only a CLOSED/MERGED one is associated with this branch — create a fresh one.
+  gh pr create --fill --web=false   # or craft a proper title + body
 fi
-printf '%s\n__GH_PR_VIEW_EXIT__=%s\n__GH_PR_VIEW_STATE__=%s\n' \
-  "$PR_VIEW_OUTPUT" "$PR_VIEW_EXIT" "$PR_VIEW_STATE"
 ```
 
-Treat the branch as having no usable PR when **either** `PR_VIEW_EXIT != 0` **or** `PR_VIEW_STATE != "OPEN"`. In that case, create a fresh PR. If a CLOSED or MERGED PR is found, mention it in the new PR body so reviewers have the breadcrumb. **For PR body construction, follow the conventions in [`git-commit-push-pr`](../git-commit-push-pr/SKILL.md)** — value-first, intent-forward, scaled to the complexity of the change. Do not re-implement that logic here.
-
-Resolve the default branch dynamically — it's not always `main`:
+When creating the PR body, summarize the **full branch** diff (not just the latest commit). Resolve the default branch dynamically — it's not always `main`:
 
 ```bash
 default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+# fallback if remote HEAD isn't set
 if [ -z "$default_branch" ]; then
   default_branch=$(git rev-parse --verify origin/main >/dev/null 2>&1 && echo "main" || echo "master")
 fi
@@ -141,7 +144,7 @@ git log "origin/$default_branch..HEAD" --oneline
 git diff "origin/$default_branch...HEAD" --stat
 ```
 
-Summarize the **full branch** diff (not just the latest commit) when authoring the body. Include a test plan checklist. Share the PR URL at handoff.
+Include a test plan checklist in the body. Share the PR URL at handoff.
 
 **Never merge the PR** unless the user explicitly says "merge this PR". Landing ≠ merging.
 
@@ -152,25 +155,30 @@ git stash list                     # check for session-era stashes
 # drop only stashes from this session; leave older ones alone
 ```
 
-**If working inside a git worktree:** leave the worktree in place while the PR is open. Remove it manually with `git worktree remove <path>` only after the PR is merged or abandoned. Do not attempt to tear down worktrees from this skill.
+If working in a worktree:
+- PR open/pending review: leave the worktree in place so review feedback can be addressed without re-cloning.
+- Work merged or abandoned: remove the worktree (`git worktree remove <path>`) and delete its branch (`git branch -d <name>`).
 
 ### Step 8: Verify
 
 Confirm a clean state:
 
 ```bash
-git status                                          # working tree clean (or only untracked)
-branch=$(git branch --show-current)
-if [ -n "$branch" ] && git rev-parse --verify "origin/$branch" >/dev/null 2>&1; then
-  git log "origin/$branch..HEAD"                    # must be empty — all pushed
-else
-  echo "WARNING: no upstream tracking ref for '$branch' — cannot verify pushed state"
-fi
+git status                                # working tree clean (or only untracked)
+git log "origin/$(git branch --show-current)..HEAD"  # must be empty — all pushed
 ```
 
 If either check fails, loop back and fix. Do not hand off a dirty or unpushed tree.
 
-### Step 9: Hand off
+### Step 9: Capture session state
+
+Persist a written record of the session so the next agent (or human) can resume with full context, not just the verbal handoff in Step 10.
+
+If the project tracks sessions in `docs/sessions/`, `.sessions/`, or an equivalent directory, append a short note there. Otherwise drop a brief handoff into the repo's working notes (e.g., `docs/handoffs/<date>.md`) capturing: branch, PR URL, accomplished, next up, blockers.
+
+Run unconditionally — even on docs-only or planning-only sessions. The note is cheap and the recovery value is high.
+
+### Step 10: Hand off
 
 Provide a concise summary for the next session:
 
@@ -182,7 +190,7 @@ Provide a concise summary for the next session:
 
 Keep it scannable. The next session (human or agent) should be able to take off from this handoff without re-reading the whole transcript.
 
-### Step 10: Final banner
+### Step 11: Final banner
 
 After the handoff summary, emit a single final line:
 
@@ -207,4 +215,4 @@ These are non-negotiable when `/land` is invoked:
 
 ## Project-specific considerations
 
-Some repos have local conventions layered on top of this protocol — read `.github/copilot-instructions.md` (and any `AGENTS.md` at the repo root, when present) for project-specific rules (e.g., branch protection, PR comment workflows, backlog linkage requirements). Project rules override these defaults where they conflict.
+Some repos have local conventions layered on top of this protocol — read `CLAUDE.md` and `AGENTS.md` at the repo root for project-specific rules (e.g., branch protection, PR comment workflows, backlog linkage requirements). Project rules override these defaults where they conflict.

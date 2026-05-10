@@ -1,11 +1,12 @@
 ---
 name: takeoff
-description: Start a session with a prioritized backlog briefing. Use when the user says "takeoff", "take off", "/takeoff", "starting a new session", "what should I work on", "kickoff", "what's next", or wants a prioritized view of the backlog at the start of work. Surfaces the top-priority actionable tasks as bullet groups with status, dependencies, and blockers pulled from Backlog.md when available, or falls back to active plans under `docs/plans/`.
+description: Session kickoff protocol - the opposite of "land the plane". Use this skill whenever the user says "takeoff", "take off", "/takeoff", "starting a new session", "what should I work on", "kickoff", "what's next", or wants a prioritized view of the backlog at the start of work. Surfaces the top-priority backlog tasks as a table with status, dependencies, and blockers pulled from Backlog.md (CLI + MCP). Use this at the start of a coding session to orient on what to work on.
+argument-hint: "[optional: filter by tag, assignee, or count e.g. '--top 5' or '--mine']"
 ---
 
-# Take Off
+# Take Off Protocol
 
-The session kickoff counterpart to `/land`. Where `/land` closes out work, `/takeoff` *starts* work by giving a crisp, prioritized picture of what to pick up.
+The session kickoff counterpart to "land the plane". Where `land the plane` closes out work (commit, push, PR, handoff), `/takeoff` *starts* work by giving a crisp, prioritized picture of the backlog so the user knows what to pick up.
 
 ## Trigger
 
@@ -19,7 +20,7 @@ When in doubt and the user is at the *start* of work (not finishing), invoke thi
 
 A short, scannable briefing with four sections:
 
-1. **Top Priority** — the N highest-priority actionable tasks
+1. **Top Priority Table** — the N highest-priority actionable tasks
 2. **Blocked / Dependent** — tasks that exist but cannot be started
 3. **In Progress** — tasks already underway (not to be double-claimed)
 4. **Recommendation** — one sentence: "Start with `X` because …"
@@ -28,46 +29,57 @@ Keep it terse. The user wants to pick a task and go, not read a report.
 
 ## Execution
 
-### Step 1: Verify backlog tooling is present
+### Step 1: Pick the source of work
 
-Check that the current repo has a `backlog/` directory. If not, fall back to reading plan files in `docs/plans/` and summarizing those instead (Step 2b).
-
-```bash
-test -d backlog && echo "backlog present" || echo "no backlog — will fall back to docs/plans/"
-```
-
-### Step 2: Pull the backlog (preferred path)
-
-Shell out to the backlog CLI only when both the CLI and `backlog/` directory are present. Otherwise fall through to Step 2b:
+Decide where the actionable items come from. Two paths, mutually exclusive — never both:
 
 ```bash
-if command -v backlog >/dev/null 2>&1 && [ -d backlog ]; then
-  backlog task list --plain --sort priority
-  backlog sequence list --plain
+if [ -d backlog ]; then
+  echo "backlog present — using Backlog.md"
+  source="backlog"
+elif [ -d docs/plans ] && ls docs/plans/*.md >/dev/null 2>&1; then
+  echo "no backlog/, falling back to docs/plans/"
+  source="plans"
+else
+  echo "no backlog/ and no docs/plans/ — nothing to surface"
+  source="none"
 fi
 ```
 
-Parse both outputs. Extract: id, title, priority, status, assignee, dependencies, blocked-by.
+- **`source=backlog`** → continue to Step 2.
+- **`source=plans`** → skip Steps 2–3 (they are backlog-specific) and go straight to Step 4, summarizing the plan files in priority order. Tell the user you're using the docs/plans/ fallback because no backlog exists.
+- **`source=none`** → tell the user there's nothing to surface, then jump to Step 6 to emit the banner. The successful-no-work path still counts as a successful completion.
 
-If the `backlog` CLI is absent but the `backlog/` directory is present, read the task markdown files directly and parse frontmatter for the same fields.
+### Step 2: Pull the backlog
 
-### Step 2b: Fallback — read `docs/plans/`
+**Important:** do **not** rely on `backlog task list` as the primary source. When `backlog/config.yml` sets a `task_prefix`, the CLI filters output to that prefix only and silently drops every other task in the backlog. Read the filesystem instead so `/takeoff` always shows **every** task regardless of prefix.
 
-When no `backlog/` directory exists (the default in ATV-starterkit today), scan `docs/plans/` for plans with `status: active` in the YAML frontmatter:
+Enumerate every task file directly:
 
 ```bash
-for plan in docs/plans/*.md; do
-  [ -f "$plan" ] || continue
-  # Only consider plans whose frontmatter has `status: active`.
-  # awk pulls the first YAML block; grep checks for the active marker.
-  if awk '/^---$/{c++; next} c==1' "$plan" | grep -qE '^status:[[:space:]]*active$'; then
-    title=$(awk '/^---$/{c++; next} c==1' "$plan" | grep -E '^title:' | sed 's/^title:[[:space:]]*//; s/^"//; s/"$//')
-    echo "- $(basename "$plan") — ${title:-(untitled)}"
-  fi
-done
+# All task markdown files across the backlog (tasks/, drafts/, nested epic dirs, etc.)
+find backlog -type f -name '*.md' \
+  -not -path 'backlog/archive/*' \
+  -not -path 'backlog/completed/*' \
+  -not -path 'backlog/docs/*' \
+  -not -path 'backlog/decisions/*' \
+  -not -path 'backlog/milestones/*' \
+  -not -name 'README.md'
 ```
 
-Skip plans with `status: done`, `status: archived`, or missing frontmatter. Mention explicitly in the output that this is a `docs/plans/` fallback because the repo has no `backlog/` directory. If the fallback also yields zero active plans, drop into the empty-list edge case (congratulate + suggest `/ce-ideate` or `/ce-plan`).
+For each file, extract YAML frontmatter (the block between the first two `---` lines) and pull: `id`, `title`, `status`, `priority`, `assignee`, `dependencies`, `parent_task_id` (if present), and any `blocked_by` field. Treat missing `priority` as MEDIUM. Treat missing `status` as `To Do`.
+
+If the MCP tool `mcp__backlog__task_list` is available **and** is known to honor every prefix (not the CLI behavior), it can supplement — but the filesystem scan is the source of truth.
+
+Also pull sequence info to detect cross-task dependencies (this command does not filter by prefix):
+
+```bash
+backlog sequence list --plain
+```
+
+Parse both. You want: id, title, priority, status, assignee, dependencies, blocked-by, parent.
+
+After parsing, group tasks by ID prefix (the segment before the first `-`, e.g. `ACANEBULA`, `NEBULA`, `CLEANUP`) so Step 4 can render related clusters together. **Every** prefix must be represented in the output — never narrow to a single prefix unless `--tag` or `--mine` was passed.
 
 ### Step 3: Classify each task
 
@@ -82,17 +94,17 @@ For every task returned, bucket it:
 
 If a task has a dependency, note *which* task blocks it by ID.
 
-### Step 4: Render as bulleted groups
+### Step 4: Render the backlog as bulleted groups
 
 Sort actionable tasks by priority (HIGH → MEDIUM → LOW), then by ID. By default show the top 5 in the top-priority group. If the user passed `--top N`, honor that. If they passed `--mine`, filter to their assignee.
 
-**Format: flat bullet lists grouped by category, with an emoji header on each secondary group.** Tables wrap poorly in narrow terminals. A plain `- ID — Title` bullet reads cleanly at any width.
+**Format: flat bullet lists grouped by category, with an emoji header on each secondary group.** Tables wrap poorly in narrow terminals and compete with the numbered ID column. A plain `- ID — Title` bullet reads cleanly at any width and matches how users already scan backlogs.
 
 Use `—` (em-dash) as the separator between ID and title. For tasks with dependencies, append `(blocked by X, Y)` or `(depends on X)` at the end of the line.
 
 Group headers use these emojis:
 - 🛫 Top-priority actionable group (the main recommendation pool)
-- 🔵 Epic subtasks, or clusters of related follow-ups
+- 🔵 Epic subtasks, or clusters of related follow-ups (e.g., `🔵 DOCREVIEW epic subtasks (children of DOCREVIEW-1)`)
 - 🟢 In Progress
 - ⚪ LOW / Housekeeping
 - 🔴 Blocked / Dependent (only when all blockers are hard blockers)
@@ -109,11 +121,17 @@ Emit the output directly as markdown in your final response — no code fences, 
 - AGENTSAPI-1 — Orchestrator admin-agents client + manifest types
 - AGENTSAPI-2 — Admin Agents list page + row actions (depends on AGENTSAPI-1)
 - NEBULA-42 — PR comment three-step enforcement hook
+- NEBULA-53 — agent-browser coverage audit for Nebula admin agents UI
 
 🔵 DOCREVIEW epic subtasks (children of DOCREVIEW-1)
 
-- DOCREVIEW-1.1 — strip Recommendations strip from final chain message
-- DOCREVIEW-1.2 — generalize Review Document button via ChainConfig
+- DOCREVIEW-1.1 — strip Recommendations / Answered-by / suggestion strip from final chain message
+- DOCREVIEW-1.2 — generalize Review Document button via ChainConfig.producesReviewableDocument
+
+🔵 PIPELINEPANE follow-ups (related to in-progress)
+
+- PIPELINEPANE-3 — stop resetting orchestrationActive after animation completes (blocked by PIPELINEPANE-1, PIPELINEPANE-2)
+- PIPELINEPANE-4 — regression sweep + solutions note (blocked by PIPELINEPANE-3)
 
 🟢 In Progress
 
@@ -122,21 +140,23 @@ Emit the output directly as markdown in your final response — no code fences, 
 ⚪ LOW / Housekeeping
 
 - NEBULA-35 — Enforce backlog.md usage via MCP server and hooks
+- NEBULA-39 — Document backlog-first workflow in AGENTS.md / CLAUDE.md
 
 ### Recommendation
 Start with **AGENTSAPI-1**. It's the next unblocked HIGH-priority item and clears the path for 2 more.
 ```
 
-**Formatting rules:**
-- One task per line. Do not wrap a task across multiple lines.
-- Group headers use H3 (`###`) for top-priority only; secondary groups use a bold-emoji line (e.g., `🔵 DOCREVIEW epic subtasks`), not an H-level heading.
-- Omit groups that have zero tasks. If In Progress is empty, skip the section.
+**Formatting rules for this step:**
+- One task per line. Do not wrap a task across multiple lines — long titles stay on one line and let the terminal soft-wrap them.
+- Group headers use H3 (`###`) for top-priority only; secondary groups use a bold-emoji line (e.g., `🔵 DOCREVIEW epic subtasks`), not an H-level heading. This matches the shape the user has already endorsed.
+- Omit groups that have zero tasks. If In Progress is empty, write `🟢 In Progress — _None_` or just skip it.
 - Never emit a table. No pipes, no box-drawing characters.
-- Do not truncate titles; rely on bullets to wrap cleanly at any width.
+
+**Escape any pipes inside task titles** with `\|` as a defensive measure, even though bullets don't depend on pipe syntax. Do not truncate titles.
 
 ### Step 5: Offer a next step
 
-End with a single question: "Want me to open the plan for `<ID>` and start `/ce-work` on it?" — do not auto-start. Takeoff is for orientation, not execution.
+End with a single question: "Want me to open the plan for `<ID>` and start `/ce:work` on it?" — do not auto-start. Takeoff is for orientation, not execution.
 
 ### Step 6: Final banner
 
@@ -146,26 +166,26 @@ After the recommendation question, emit a single final line:
 ✈️ TAKE OFF — NOW AT 30,000 FEET
 ```
 
-This **must** be the last line of output — no content after it, no code fence, no trailing heading. It fires on every successful completion path, including the no-backlog fallback and the empty-task-list edge case. Do not emit the banner if the routine aborts before producing a briefing.
+This **must** be the last line of output — no content after it, no code fence, no trailing heading, no follow-up prose. It fires on every successful completion path, including the no-backlog fallback (Step 1) and the empty-task-list edge case (see Edge cases). Do not emit the banner if the routine aborts before producing a briefing.
 
 ## Formatting rules
 
-- **Bullets, not tables.** Tables break at narrow widths; bullets flow cleanly.
+- **Bullets, not tables.** Tables break at narrow widths and force column padding; bullets flow cleanly and match how the user already reads a backlog.
 - **Group with emoji headers.** 🛫 top-priority, 🔵 related clusters / epics, 🟢 in progress, ⚪ housekeeping, 🔴 hard-blocked.
-- **Never hide blockers.** Annotate dependencies inline with `(blocked by X)` — don't silently drop the task.
+- **Never hide blockers.** Annotate dependencies inline with `(blocked by X)` or `(depends on X)` — don't silently drop the task.
 - **Show dependency IDs explicitly.** `(blocked by AGENTSAPI-1)` is useful; `(has dependencies)` is not.
 - **Be honest about emptiness.** If there are zero actionable tasks, say so and suggest creating one or picking up in-progress work.
-- **Always end with the takeoff banner.** The final line of every successful invocation must be `✈️ TAKE OFF — NOW AT 30,000 FEET`.
+- **Always end with the takeoff banner.** The final line of every successful invocation must be `✈️ TAKE OFF — NOW AT 30,000 FEET` — including fallback and empty-list paths.
 
 ## Why this shape
 
-Takeoff's job is one concentrated briefing that answers *"what am I about to do and why"* in under 15 seconds of reading. Bullets + a one-line recommendation beat a paragraph because the user is scanning, not reading.
+The user already has a "land the plane" routine that handles closing work. Takeoff's job is the mirror image: one concentrated briefing that answers *"what am I about to do and why"* in under 15 seconds of reading. A table + a one-line recommendation beats a paragraph because the user is scanning, not reading.
 
-Dependencies matter more than priority on their own — a HIGH task that's blocked is worse than a MEDIUM task that's ready. The recommendation should factor in unblocking power, not just raw priority.
+Dependencies matter more than priority on their own — a HIGH task that's blocked is worse than a MEDIUM task that's ready. That's why the table shows `Deps` and why the recommendation should factor in unblocking power, not just raw priority.
 
 ## Arguments
 
-- `--top N` — show N tasks in the top-priority group (default 5)
+- `--top N` — show N tasks in the top-priority table (default 5)
 - `--mine` — filter to tasks assigned to the current user (resolve via `git config user.email` or `git config user.name`)
 - `--all` — also include LOW priority actionable tasks
 - `--tag <tag>` — filter by a backlog tag/label
@@ -174,9 +194,9 @@ If no arguments are given, use defaults.
 
 ## Edge cases
 
-- **No `backlog/` directory** → fall back to `docs/plans/` summaries (Step 2b); tell the user.
-- **`backlog/` present but CLI missing** → parse task markdown files directly.
-- **`backlog` CLI returns non-zero** → report the error honestly, fall back to `docs/plans/`, still emit banner.
+- **No backlog directory** → fall back to `docs/plans/` summaries; tell the user.
+- **CLI missing but MCP present** → use MCP only.
 - **Everything is blocked** → surface the root blockers and ask whether to create a task to unblock them.
-- **Task list is empty** → congratulate the user and suggest `/ce-ideate` or `/ce-plan` to generate new work.
+- **Task list is empty** → congratulate the user and suggest `/ce:ideate` or `/ce:plan` to generate new work.
 - **Tasks without priority set** → treat as MEDIUM.
+- **`backlog/config.yml` sets `task_prefix`** → the CLI's `backlog task list` will only return tasks matching that prefix. Do not use the CLI as the primary source — Step 2 already mandates a filesystem scan to ensure every task across every prefix is surfaced. If the briefing only shows tasks from one prefix, that's the bug — re-scan the filesystem.
