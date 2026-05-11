@@ -215,4 +215,4 @@ These are non-negotiable when `/land` is invoked:
 
 ## Project-specific considerations
 
-Some repos have local conventions layered on top of this protocol — read `CLAUDE.md` and `AGENTS.md` at the repo root for project-specific rules (e.g., branch protection, PR comment workflows, backlog linkage requirements). Project rules override these defaults where they conflict.
+Some repos have local conventions layered on top of this protocol — read `AGENTS.md` at the repo root for project-specific rules (e.g., branch protection, PR comment workflows, backlog linkage requirements). Project rules override these defaults where they conflict.
