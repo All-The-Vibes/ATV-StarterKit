@@ -140,7 +140,7 @@ Emit the output directly as markdown in your final response — no code fences, 
 ⚪ LOW / Housekeeping
 
 - NEBULA-35 — Enforce backlog.md usage via MCP server and hooks
-- NEBULA-39 — Document backlog-first workflow in AGENTS.md / CLAUDE.md
+- NEBULA-39 — Document backlog-first workflow in AGENTS.md
 
 ### Recommendation
 Start with **AGENTSAPI-1**. It's the next unblocked HIGH-priority item and clears the path for 2 more.
