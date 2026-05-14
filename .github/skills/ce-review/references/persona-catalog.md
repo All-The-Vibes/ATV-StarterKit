@@ -13,7 +13,7 @@ Spawned on every review regardless of diff content.
 | `correctness` | `compound-engineering:review:correctness-reviewer` | Logic errors, edge cases, state bugs, error propagation, intent compliance |
 | `testing` | `compound-engineering:review:testing-reviewer` | Coverage gaps, weak assertions, brittle tests, missing edge case tests |
 | `maintainability` | `compound-engineering:review:maintainability-reviewer` | Coupling, complexity, naming, dead code, premature abstraction |
-| `project-standards` | `compound-engineering:review:project-standards-reviewer` | CLAUDE.md and AGENTS.md compliance -- frontmatter, references, naming, cross-platform portability, tool selection |
+| `project-standards` | `compound-engineering:review:project-standards-reviewer` | AGENTS.md compliance -- frontmatter, references, naming, cross-platform portability, tool selection |
 
 **CE agents (unstructured output, synthesized separately):**
 

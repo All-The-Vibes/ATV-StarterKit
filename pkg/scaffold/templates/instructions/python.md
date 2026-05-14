@@ -19,8 +19,6 @@ This is a Python project using the ATV (Agentic Tool & Workflow) Starter Kit.
 - `/ce-compound` — Document solutions for future reference
 - `/atv-security` — Unified security audit: agentic config (secrets, permissions, hooks, MCP, agents) + OWASP Top 10 + STRIDE threat model for application source code
 - `/autoresearch` — Autonomous iterative experiment loop: define a measurable metric and the agent edits → tests → measures → keeps/reverts on a dedicated branch until interrupted
-- `/atv-doctor` — Diagnose ATV install health (versions, file integrity via checksums, MCP prereqs, optional deps)
-- `/atv-update` — Update ATV: auto-updates marketplace plugins; advisory for project scaffold
 - `/lfg` — Full autonomous pipeline (plan → work → review)
 
 ## Documentation Structure

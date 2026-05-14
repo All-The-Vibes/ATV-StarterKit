@@ -129,7 +129,7 @@ Chronological record of work sessions, actions taken, and learnings.
 
 ### 2025-11-12 - Initial Discovery
 
-**By:** Claude Code
+**By:** Copilot CLI
 
 **Actions:**
 - Identified 12 missing test scenarios

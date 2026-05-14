@@ -45,8 +45,8 @@ Automatically gather:
 # Get plugin version
 cat ~/.copilot/plugins/installed_plugins.json 2>/dev/null | grep -A5 "compound-engineering" | head -10 || echo "Plugin info not found"
 
-# Get Claude Code version
-claude --version 2>/dev/null || echo "Claude CLI version unknown"
+# Get GitHub Copilot CLI version
+gh copilot --version 2>/dev/null || echo "Copilot CLI version unknown"
 
 # Get OS info
 uname -a
@@ -65,7 +65,7 @@ Create a well-structured bug report with:
 ## Environment
 
 - **Plugin Version:** [from installed_plugins.json]
-- **Claude Code Version:** [from claude --version]
+- **Copilot CLI Version:** [from gh copilot --version]
 - **OS:** [from uname]
 
 ## What Happened

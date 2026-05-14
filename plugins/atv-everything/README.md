@@ -1,6 +1,6 @@
 # atv-everything
 
-ATV Starter Kit — install everything in one shot: all 31 skills (slash commands like /ce-plan, /atv-security, /autoresearch) and all 51 reviewer/specialist agents. Equivalent to the Full preset of `atv init`, scoped to skills + agents only (no MCP servers, hooks, or instructions templates — for those use `npx atv-starterkit init`).
+ATV Starter Kit — install everything in one shot: all 30 skills (slash commands like /ce-plan, /atv-security, /autoresearch) and all 51 reviewer/specialist agents. Equivalent to the Full preset of `atv init`, scoped to skills + agents only (no MCP servers, hooks, or instructions templates — for those use `npx atv-starterkit init`).
 
 ## Install
 

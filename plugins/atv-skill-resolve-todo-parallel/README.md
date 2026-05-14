@@ -1,6 +1,6 @@
 # atv-skill-resolve-todo-parallel
 
-ATV `resolve_todo_parallel` skill — single-skill plugin (granular install). NOT standalone: some ATV skills dispatch agents bundled separately in `atv-agents`. For typical use install `atv-pack-*` (category bundle) or `atv-everything` (full kit) instead. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.
+ATV `resolve_todo_parallel` skill — single-skill plugin (granular install). Some ATV skills dispatch agents bundled separately in `atv-agents`, so single-skill and category-pack installs may need `atv-agents` alongside them. For the full standalone kit, install `atv-everything`. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.
 
 ## Install
 

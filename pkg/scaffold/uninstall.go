@@ -44,6 +44,7 @@ func (r UninstallResult) Summary() string {
 var atvDirectories = []string{
 	".github/skills",
 	".github/agents",
+	".github/prompts",
 	".github/hooks",
 	".gstack",
 	".atv",

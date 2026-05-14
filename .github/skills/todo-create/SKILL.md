@@ -100,7 +100,7 @@ To check blockers: search for `{dep_id}-complete-*.md` in both paths. Missing ma
 
 ## Key Distinction
 
-This skill manages **durable, cross-session work items** persisted as markdown files. For temporary in-session step tracking, use platform task tools (`TaskCreate`/`TaskUpdate` in Claude Code, `update_plan` in Codex) instead.
+This skill manages **durable, cross-session work items** persisted as markdown files. For temporary in-session step tracking, use platform task tools (`TaskCreate`/`TaskUpdate` in Copilot CLI, `update_plan` in Codex) instead.
 
 ---
 

@@ -64,3 +64,6 @@ node_modules/
 
 # Demo video source — built video lives in assets/demo.mp4
 demo-video/
+
+# Local agent state (session logs, pids, scratch)
+.remember/

@@ -41,7 +41,7 @@ If no explicit PR number was provided (or "current" was specified), check if a P
 gh pr view --json number -q '.number'
 ```
 
-If no PR exists for the current branch, ask the user how to proceed. **Use the platform's blocking question tool** (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini):
+If no PR exists for the current branch, ask the user how to proceed. **Use the platform's blocking question tool** (`ask_user` in Copilot CLI):
 
 ```
 No PR found for the current branch.
@@ -116,7 +116,7 @@ Before recording, create a shot list:
 
 Present the proposed flow to the user for confirmation before recording.
 
-**Use the platform's blocking question tool when available** (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini). Otherwise, present numbered options and wait for the user's reply before proceeding:
+**Use the platform's blocking question tool when available** (`ask_user` in Copilot CLI). Otherwise, present numbered options and wait for the user's reply before proceeding:
 
 ```
 Proposed Video Flow for PR #[number]: [title]
@@ -223,7 +223,7 @@ agent-browser close
 agent-browser --engine chrome --headed --session-name github open https://github.com/login
 ```
 
-The user must log in manually in the browser window (handles 2FA, SSO, OAuth -- any login method). **Use the platform's blocking question tool** (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini). Otherwise, present the message and wait for the user's reply before proceeding:
+The user must log in manually in the browser window (handles 2FA, SSO, OAuth -- any login method). **Use the platform's blocking question tool** (`ask_user` in Copilot CLI). Otherwise, present the message and wait for the user's reply before proceeding:
 
 ```
 GitHub login required for video upload.

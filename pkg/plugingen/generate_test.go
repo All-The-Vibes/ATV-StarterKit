@@ -144,7 +144,7 @@ func TestGenerate_AtvAgentsBundlesAllAgents(t *testing.T) {
 	}
 }
 
-func TestGenerate_MarketplaceListsEveryPlugin(t *testing.T) {
+func TestGenerate_CliMarketplaceListsEveryPlugin(t *testing.T) {
 	tmp := regenerateInto(t)
 	var mp Marketplace
 	readJSON(t, filepath.Join(tmp, ".github", "plugin", "marketplace.json"), &mp)
@@ -179,13 +179,121 @@ func TestGenerate_MarketplaceListsEveryPlugin(t *testing.T) {
 			t.Errorf("marketplace.json missing entry %q", n)
 		}
 	}
+	if len(mp.Plugins) != len(wantNames) {
+		t.Errorf("marketplace.json plugin count: got %d want %d", len(mp.Plugins), len(wantNames))
+	}
 
-	// Entries must be sorted alphabetically for deterministic output.
-	for i := 1; i < len(mp.Plugins); i++ {
+	if len(mp.Plugins) == 0 || mp.Plugins[0].Name != "atv-everything" {
+		t.Fatalf("CLI marketplace should put atv-everything first, got %+v", mp.Plugins)
+	}
+
+	// After the flagship entry, entries remain sorted alphabetically for deterministic output.
+	for i := 2; i < len(mp.Plugins); i++ {
 		if mp.Plugins[i-1].Name > mp.Plugins[i].Name {
 			t.Errorf("marketplace.json plugins not sorted: %q > %q",
 				mp.Plugins[i-1].Name, mp.Plugins[i].Name)
 		}
+	}
+}
+
+func TestGenerate_SourceInstallMarketplaceHasOneFlagshipPlugin(t *testing.T) {
+	tmp := regenerateInto(t)
+	for _, rel := range []string{"marketplace.json", filepath.Join(".claude-plugin", "marketplace.json")} {
+		assertSourceInstallMarketplaceHasOneFlagshipPlugin(t, filepath.Join(tmp, rel))
+	}
+	assertFilesEqual(t, filepath.Join(tmp, "marketplace.json"), filepath.Join(tmp, ".claude-plugin", "marketplace.json"))
+
+	sourceDir := filepath.Join(tmp, "plugins", "atv-everything")
+	for _, path := range []string{
+		filepath.Join(sourceDir, "skills"),
+		filepath.Join(sourceDir, "agents"),
+		filepath.Join(sourceDir, ".claude-plugin", "plugin.json"),
+	} {
+		if _, err := os.Stat(path); err != nil {
+			t.Errorf("source-install entry points at incomplete plugin dir, missing %s: %v", path, err)
+		}
+	}
+
+	var manifest PluginManifest
+	readJSON(t, filepath.Join(sourceDir, ".claude-plugin", "plugin.json"), &manifest)
+	if manifest.Name != "atv-starter-kit" {
+		t.Errorf("source-install plugin manifest name: got %q want atv-starter-kit", manifest.Name)
+	}
+}
+
+func TestGenerate_GranularSkillDescriptionsMentionAgentCompanion(t *testing.T) {
+	tmp := regenerateInto(t)
+	var manifest PluginManifest
+	readJSON(t, filepath.Join(tmp, "plugins", "atv-skill-ce-review", "plugin.json"), &manifest)
+
+	if !strings.Contains(manifest.Description, "installs may need `atv-agents` alongside them") {
+		t.Errorf("granular skill description should tell users when atv-agents is needed, got %q", manifest.Description)
+	}
+	if strings.Contains(manifest.Description, "includes the relevant agents") {
+		t.Errorf("granular skill description should not imply category packs include agents, got %q", manifest.Description)
+	}
+}
+
+func assertSourceInstallMarketplaceHasOneFlagshipPlugin(t *testing.T, path string) {
+	t.Helper()
+	var mp SourceInstallMarketplace
+	readJSON(t, path, &mp)
+
+	if mp.Name != "atv-starter-kit" {
+		t.Errorf("source-install marketplace name: got %q want atv-starter-kit", mp.Name)
+	}
+	if len(mp.Plugins) != 1 {
+		t.Fatalf("source-install marketplace should expose exactly one plugin, got %d", len(mp.Plugins))
+	}
+
+	entry := mp.Plugins[0]
+	if entry.Name != "atv-starter-kit" {
+		t.Errorf("source-install entry name: got %q want atv-starter-kit", entry.Name)
+	}
+	if entry.Source != "./plugins/atv-everything" {
+		t.Errorf("source-install entry source: got %q want ./plugins/atv-everything", entry.Source)
+	}
+	if len(entry.Description) > 120 {
+		t.Errorf("source-install description should fit in a picker row, got %d chars", len(entry.Description))
+	}
+	if strings.Contains(entry.Description, "http") {
+		t.Errorf("source-install description should not include URLs, got %q", entry.Description)
+	}
+	for _, noisyPrefix := range []string{"atv-skill-", "atv-pack-"} {
+		if strings.HasPrefix(entry.Name, noisyPrefix) {
+			t.Errorf("source-install entry should be the flagship plugin, got %q", entry.Name)
+		}
+	}
+	if entry.Name == "atv-agents" {
+		t.Errorf("source-install entry should not expose agents-only plugin")
+	}
+}
+
+func TestGenerate_MaintenanceSkillsCoverSourceAgentPlugins(t *testing.T) {
+	tmp := regenerateInto(t)
+
+	doctorSnippets := []string{
+		"VS Code source-installed AgentPlugins",
+		"hasSourceAgentPlugins",
+		"owner/repo",
+		"ahead/behind",
+		"Never update, reset, delete, or reinstall VS Code AgentPlugin folders from `/atv-doctor`",
+	}
+	updateSnippets := []string{
+		"VS Code source-installed AgentPlugins",
+		"clean and behind-only",
+		"Do not run `git reset`, `git stash`",
+		"Reload or restart VS Code",
+		"Never remove an entire `agent-plugins`",
+	}
+
+	for _, plugin := range []string{"atv-everything", "atv-pack-maintenance", "atv-skill-atv-doctor"} {
+		path := filepath.Join(tmp, "plugins", plugin, "skills", "atv-doctor", "SKILL.md")
+		assertFileContainsAll(t, path, doctorSnippets)
+	}
+	for _, plugin := range []string{"atv-everything", "atv-pack-maintenance", "atv-skill-atv-update"} {
+		path := filepath.Join(tmp, "plugins", plugin, "skills", "atv-update", "SKILL.md")
+		assertFileContainsAll(t, path, updateSnippets)
 	}
 }
 
@@ -202,12 +310,83 @@ func TestGenerate_DeterministicAcrossRuns(t *testing.T) {
 			t.Fatalf("generate: %v", err)
 		}
 	}
-	diffs, err := compareTrees(filepath.Join(tmpA, "plugins"), filepath.Join(tmpB, "plugins"))
+	for _, sub := range []string{"plugins", filepath.Join(".github", "plugin"), ".claude-plugin"} {
+		diffs, err := compareTrees(filepath.Join(tmpA, sub), filepath.Join(tmpB, sub))
+		if err != nil {
+			t.Fatalf("compareTrees %s: %v", sub, err)
+		}
+		if len(diffs) > 0 {
+			t.Errorf("non-deterministic generation in %s, diffs: %v", sub, diffs)
+		}
+	}
+	assertFilesEqual(t, filepath.Join(tmpA, "marketplace.json"), filepath.Join(tmpB, "marketplace.json"))
+}
+
+func TestCompareGeneratedContentIgnoresLineEndingDifferences(t *testing.T) {
+	gotRoot := t.TempDir()
+	wantRoot := t.TempDir()
+	gotPath := filepath.Join(gotRoot, "plugin", "README.md")
+	wantPath := filepath.Join(wantRoot, "plugin", "README.md")
+	if err := os.MkdirAll(filepath.Dir(gotPath), 0o755); err != nil {
+		t.Fatalf("mkdir got: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(wantPath), 0o755); err != nil {
+		t.Fatalf("mkdir want: %v", err)
+	}
+	if err := os.WriteFile(gotPath, []byte("# plugin\n\nbody\n"), 0o644); err != nil {
+		t.Fatalf("write got: %v", err)
+	}
+	if err := os.WriteFile(wantPath, []byte("# plugin\r\n\r\nbody\r\n"), 0o644); err != nil {
+		t.Fatalf("write want: %v", err)
+	}
+
+	diffs, err := compareTrees(gotRoot, wantRoot)
 	if err != nil {
 		t.Fatalf("compareTrees: %v", err)
 	}
-	if len(diffs) > 0 {
-		t.Errorf("non-deterministic generation, diffs: %v", diffs)
+	if len(diffs) != 0 {
+		t.Fatalf("line-ending-only differences should not be reported, got %v", diffs)
+	}
+
+	diffs, err = compareFile(gotPath, wantPath, "plugin/README.md")
+	if err != nil {
+		t.Fatalf("compareFile: %v", err)
+	}
+	if len(diffs) != 0 {
+		t.Fatalf("line-ending-only file differences should not be reported, got %v", diffs)
+	}
+}
+
+func TestCheckCleanReportsPrefixedCatalogDrift(t *testing.T) {
+	tmp := regenerateInto(t)
+	for _, rel := range []string{
+		"marketplace.json",
+		filepath.Join(".claude-plugin", "marketplace.json"),
+		filepath.Join(".github", "plugin", "marketplace.json"),
+	} {
+		path := filepath.Join(tmp, rel)
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("read %s: %v", rel, err)
+		}
+		if err := os.WriteFile(path, append(data, []byte("\n")...), 0o644); err != nil {
+			t.Fatalf("write %s: %v", rel, err)
+		}
+	}
+
+	err := CheckClean(Config{RepoRoot: tmp, KitVersion: "test-1.2.3"})
+	if err == nil {
+		t.Fatal("expected CheckClean to report drift")
+	}
+	message := err.Error()
+	for _, want := range []string{
+		"content differs: marketplace.json",
+		"content differs: .claude-plugin/marketplace.json",
+		"content differs: .github/plugin/marketplace.json",
+	} {
+		if !strings.Contains(message, want) {
+			t.Errorf("CheckClean error missing %q:\n%s", want, message)
+		}
 	}
 }
 
@@ -269,5 +448,34 @@ func readJSON(t *testing.T, path string, v interface{}) {
 	}
 	if err := json.NewDecoder(bytes.NewReader(data)).Decode(v); err != nil {
 		t.Fatalf("decode %s: %v", path, err)
+	}
+}
+
+func assertFileContainsAll(t *testing.T, path string, snippets []string) {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read %s: %v", path, err)
+	}
+	body := string(data)
+	for _, snippet := range snippets {
+		if !strings.Contains(body, snippet) {
+			t.Errorf("%s missing snippet %q", path, snippet)
+		}
+	}
+}
+
+func assertFilesEqual(t *testing.T, leftPath, rightPath string) {
+	t.Helper()
+	left, err := os.ReadFile(leftPath)
+	if err != nil {
+		t.Fatalf("read %s: %v", leftPath, err)
+	}
+	right, err := os.ReadFile(rightPath)
+	if err != nil {
+		t.Fatalf("read %s: %v", rightPath, err)
+	}
+	if !bytes.Equal(left, right) {
+		t.Errorf("files differ: %s and %s", leftPath, rightPath)
 	}
 }

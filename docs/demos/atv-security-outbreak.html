@@ -1,0 +1,3088 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ATV Security Outbreak</title>
+    <style>
+      :root {
+        --bg: #041018;
+        --bg-2: #071520;
+        --panel: rgba(7, 19, 30, 0.78);
+        --panel-strong: rgba(5, 14, 23, 0.92);
+        --panel-soft: rgba(10, 26, 40, 0.72);
+        --line: rgba(121, 205, 255, 0.18);
+        --line-strong: rgba(121, 205, 255, 0.36);
+        --text: #ebf8ff;
+        --muted: rgba(223, 242, 255, 0.72);
+        --safe: #74f6ff;
+        --good: #7df7b2;
+        --warn: #ffd166;
+        --hot: #ff6b81;
+        --violet: #c4a1ff;
+        --blue: #69a8ff;
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        --radius: 8px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at top, rgba(64, 148, 255, 0.12), transparent 36%),
+          radial-gradient(circle at 18% 82%, rgba(255, 107, 129, 0.08), transparent 28%),
+          linear-gradient(180deg, #07151f, #031018 54%, #020a10);
+        color: var(--text);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        letter-spacing: 0;
+      }
+
+      #app,
+      #viewport {
+        width: 100%;
+        height: 100%;
+      }
+
+      #viewport {
+        position: relative;
+        isolation: isolate;
+      }
+
+      #game-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      #label-layer {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .node-label {
+        position: absolute;
+        min-width: 120px;
+        max-width: 150px;
+        padding: 8px 10px 9px;
+        border: 1px solid rgba(124, 197, 255, 0.18);
+        border-radius: 8px;
+        background: rgba(5, 13, 23, 0.82);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+        transform: translate(-50%, -50%);
+        opacity: 0.88;
+        transition:
+          opacity 120ms ease,
+          border-color 120ms ease,
+          box-shadow 120ms ease,
+          background 120ms ease;
+      }
+
+      .node-label.selected {
+        border-color: rgba(255, 255, 255, 0.4);
+        background: rgba(9, 22, 34, 0.92);
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.42);
+        opacity: 1;
+      }
+
+      .node-label.critical {
+        border-color: rgba(255, 107, 129, 0.45);
+      }
+
+      .node-label .name {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: rgba(235, 248, 255, 0.95);
+      }
+
+      .node-label .meta {
+        display: block;
+        margin-top: 3px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .hud-panel,
+      .chip,
+      .strip,
+      .hint,
+      .feed-panel {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--shadow);
+      }
+
+      .chip {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        width: min(370px, calc(100vw - 32px));
+        padding: 14px 16px;
+        border-radius: 8px;
+      }
+
+      .chip .eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(116, 246, 255, 0.88);
+      }
+
+      .chip h2 {
+        margin: 6px 0 6px;
+        font-size: 20px;
+        line-height: 1.1;
+      }
+
+      .chip p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+
+      #guide-toggle {
+        position: absolute;
+        top: 118px;
+        left: 16px;
+        z-index: 4;
+      }
+
+      #guide-drawer {
+        position: absolute;
+        top: 158px;
+        left: 16px;
+        bottom: 168px;
+        width: min(420px, calc(100vw - 32px));
+        padding: 14px 14px 10px;
+        border-radius: 8px;
+        overflow: auto;
+        transform: translateX(calc(-100% - 18px));
+        transition: transform 180ms ease;
+        z-index: 4;
+      }
+
+      #guide-drawer.open {
+        transform: translateX(0);
+      }
+
+      #guide-drawer h3 {
+        margin: 0 0 4px;
+        font-size: 16px;
+      }
+
+      #guide-drawer p {
+        margin: 0 0 10px;
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+
+      .guide-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+
+      .guide-table th,
+      .guide-table td {
+        vertical-align: top;
+        padding: 8px 8px 9px;
+        border-top: 1px solid rgba(121, 205, 255, 0.12);
+        text-align: left;
+      }
+
+      .guide-table th {
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgba(116, 246, 255, 0.84);
+      }
+
+      .guide-callout {
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(121, 205, 255, 0.15);
+        background: rgba(7, 22, 35, 0.84);
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+
+      #status-strip {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(102px, 1fr));
+        gap: 10px;
+        width: min(650px, calc(100vw - 430px));
+        min-width: 540px;
+        padding: 10px;
+        border-radius: 8px;
+        z-index: 2;
+      }
+
+      .stat-card {
+        min-width: 0;
+        padding: 10px 10px 9px;
+        border-radius: 8px;
+        background: rgba(6, 16, 26, 0.78);
+        border: 1px solid rgba(121, 205, 255, 0.14);
+      }
+
+      .stat-card .label {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(235, 248, 255, 0.6);
+      }
+
+      .stat-card strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 20px;
+        line-height: 1;
+      }
+
+      .meter {
+        margin-top: 9px;
+        width: 100%;
+        height: 6px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .meter > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        width: 0%;
+        transition: width 150ms ease;
+      }
+
+      #action-panel {
+        position: absolute;
+        top: 90px;
+        right: 16px;
+        bottom: 132px;
+        width: min(320px, calc(100vw - 32px));
+        padding: 14px;
+        border-radius: 8px;
+        overflow: auto;
+        z-index: 3;
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .panel-head h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .panel-subtle {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      #selected-card {
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(6, 16, 26, 0.78);
+        border: 1px solid rgba(121, 205, 255, 0.12);
+      }
+
+      #selected-card .selected-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      #selected-card h4 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(121, 205, 255, 0.16);
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: rgba(235, 248, 255, 0.82);
+      }
+
+      .selected-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .selected-metric {
+        padding: 9px 10px;
+        border-radius: 8px;
+        background: rgba(10, 24, 38, 0.78);
+        border: 1px solid rgba(121, 205, 255, 0.08);
+      }
+
+      .selected-metric span {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: rgba(235, 248, 255, 0.58);
+      }
+
+      .selected-metric strong {
+        display: block;
+        margin-top: 5px;
+        font-size: 18px;
+      }
+
+      #selected-blurb,
+      #selected-coach,
+      #selected-threats {
+        margin-top: 12px;
+        font-size: 13px;
+        line-height: 1.48;
+      }
+
+      #selected-blurb,
+      #selected-coach {
+        color: var(--muted);
+      }
+
+      #selected-coach strong {
+        color: var(--text);
+      }
+
+      .threat-list {
+        margin: 8px 0 0;
+        padding-left: 18px;
+      }
+
+      .threat-list li + li {
+        margin-top: 6px;
+      }
+
+      .threat-hidden {
+        color: rgba(255, 209, 102, 0.92);
+      }
+
+      #action-grid {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .action-btn {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 8px;
+        min-height: 98px;
+        padding: 12px 12px 11px;
+        border-radius: 8px;
+        border: 1px solid rgba(121, 205, 255, 0.14);
+        background: rgba(8, 20, 31, 0.82);
+        color: var(--text);
+        cursor: pointer;
+        transition:
+          transform 120ms ease,
+          border-color 120ms ease,
+          background 120ms ease,
+          opacity 120ms ease;
+      }
+
+      .action-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        border-color: rgba(121, 205, 255, 0.28);
+        background: rgba(10, 26, 39, 0.9);
+      }
+
+      .action-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .action-btn.recommended {
+        border-color: rgba(125, 247, 178, 0.42);
+        box-shadow: 0 0 0 1px rgba(125, 247, 178, 0.12) inset;
+      }
+
+      .action-btn .keyline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: rgba(235, 248, 255, 0.72);
+      }
+
+      .keycap {
+        display: inline-grid;
+        place-items: center;
+        min-width: 23px;
+        height: 23px;
+        padding: 0 6px;
+        border-radius: 6px;
+        border: 1px solid rgba(121, 205, 255, 0.18);
+        background: rgba(255, 255, 255, 0.04);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .action-btn strong {
+        font-size: 16px;
+        line-height: 1.05;
+      }
+
+      .action-btn small {
+        font-size: 12px;
+        line-height: 1.35;
+        color: var(--muted);
+      }
+
+      .action-btn .cost {
+        margin-top: auto;
+        font-size: 11px;
+        color: rgba(255, 209, 102, 0.88);
+      }
+
+      #sweep-btn {
+        grid-column: 1 / -1;
+        min-height: 110px;
+        border-color: rgba(116, 246, 255, 0.24);
+        background:
+          linear-gradient(180deg, rgba(14, 35, 53, 0.9), rgba(8, 20, 31, 0.88));
+      }
+
+      #feed-panel {
+        position: absolute;
+        left: 16px;
+        right: auto;
+        bottom: 16px;
+        width: min(460px, calc(100vw - 32px));
+        padding: 12px 14px;
+        border-radius: 8px;
+        z-index: 3;
+      }
+
+      #feed-panel h3 {
+        margin: 0 0 10px;
+        font-size: 15px;
+      }
+
+      #feed-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 13px;
+      }
+
+      #feed-list li {
+        display: grid;
+        grid-template-columns: 64px 1fr;
+        gap: 10px;
+        padding: 6px 0;
+        border-top: 1px solid rgba(121, 205, 255, 0.1);
+        color: var(--muted);
+      }
+
+      #feed-list li:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      #feed-list .stamp {
+        color: rgba(116, 246, 255, 0.76);
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .hint {
+        position: absolute;
+        left: 50%;
+        bottom: 20px;
+        transform: translateX(-50%);
+        min-width: 0;
+        max-width: min(780px, calc(100vw - 32px));
+        padding: 12px 14px;
+        border-radius: 999px;
+        font-size: 13px;
+        line-height: 1.45;
+        text-align: center;
+        color: var(--muted);
+        z-index: 2;
+        transition: opacity 180ms ease;
+      }
+
+      .hint.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: rgba(2, 8, 12, 0.56);
+        backdrop-filter: blur(8px);
+        z-index: 6;
+      }
+
+      .overlay.hidden {
+        display: none;
+      }
+
+      .overlay-frame {
+        width: min(760px, 100%);
+        padding: 28px 28px 24px;
+        border-radius: 8px;
+        border: 1px solid rgba(121, 205, 255, 0.18);
+        background:
+          radial-gradient(circle at top, rgba(116, 246, 255, 0.08), transparent 42%),
+          linear-gradient(180deg, rgba(7, 18, 29, 0.96), rgba(4, 12, 20, 0.98));
+        box-shadow: 0 24px 100px rgba(0, 0, 0, 0.52);
+      }
+
+      .overlay-frame .eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(116, 246, 255, 0.84);
+      }
+
+      .overlay-frame h1 {
+        margin: 10px 0 10px;
+        font-size: clamp(34px, 5vw, 56px);
+        line-height: 0.96;
+      }
+
+      .overlay-frame p {
+        margin: 0;
+        max-width: 62ch;
+        font-size: 16px;
+        line-height: 1.55;
+        color: var(--muted);
+      }
+
+      .overlay-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .overlay-card {
+        padding: 14px;
+        border-radius: 8px;
+        background: rgba(8, 21, 33, 0.82);
+        border: 1px solid rgba(121, 205, 255, 0.12);
+      }
+
+      .overlay-card span {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(116, 246, 255, 0.76);
+      }
+
+      .overlay-card strong {
+        display: block;
+        font-size: 18px;
+      }
+
+      .overlay-card p {
+        margin-top: 6px;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .overlay-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin-top: 22px;
+      }
+
+      .primary-btn,
+      .secondary-btn,
+      .mini-btn {
+        border-radius: 8px;
+        border: 1px solid rgba(121, 205, 255, 0.16);
+        background: rgba(9, 24, 38, 0.88);
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      .primary-btn,
+      .secondary-btn {
+        min-height: 46px;
+        padding: 0 16px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .primary-btn {
+        background: linear-gradient(180deg, rgba(28, 88, 138, 0.9), rgba(18, 62, 97, 0.92));
+        border-color: rgba(116, 246, 255, 0.22);
+      }
+
+      .secondary-btn {
+        background: rgba(8, 21, 33, 0.84);
+      }
+
+      .mini-btn {
+        min-height: 34px;
+        padding: 0 12px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .summary-tile {
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(8, 21, 33, 0.82);
+        border: 1px solid rgba(121, 205, 255, 0.12);
+      }
+
+      .summary-tile span {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(235, 248, 255, 0.58);
+      }
+
+      .summary-tile strong {
+        display: block;
+        margin-top: 7px;
+        font-size: 21px;
+      }
+
+      #toast {
+        position: absolute;
+        top: 82px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(121, 205, 255, 0.14);
+        background: rgba(5, 14, 23, 0.92);
+        box-shadow: var(--shadow);
+        font-size: 13px;
+        color: var(--text);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 160ms ease;
+        z-index: 5;
+      }
+
+      #toast.visible {
+        opacity: 1;
+      }
+
+      #scanline {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 28%),
+          repeating-linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.012) 0px,
+            rgba(255, 255, 255, 0.012) 2px,
+            transparent 2px,
+            transparent 5px
+          );
+        mix-blend-mode: screen;
+        opacity: 0.24;
+      }
+
+      #fallback {
+        position: absolute;
+        inset: 0;
+        display: none;
+        place-items: center;
+        padding: 24px;
+        background: rgba(3, 10, 15, 0.96);
+        z-index: 10;
+      }
+
+      #fallback .overlay-frame {
+        width: min(680px, 100%);
+      }
+
+      .accent-hot {
+        color: var(--hot);
+      }
+
+      .accent-good {
+        color: var(--good);
+      }
+
+      @media (max-width: 1200px) {
+        #status-strip {
+          min-width: 0;
+          width: calc(100vw - 32px);
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+
+        #action-panel {
+          top: auto;
+          bottom: 132px;
+          left: auto;
+          height: min(42vh, 420px);
+        }
+      }
+
+      @media (max-height: 760px) and (min-width: 981px) {
+        #action-panel {
+          top: 76px;
+          bottom: 92px;
+          padding: 10px;
+        }
+
+        #selected-card {
+          max-height: 118px;
+          overflow: auto;
+        }
+
+        #selected-card h4,
+        .panel-head h3 {
+          font-size: 15px;
+        }
+
+        .panel-subtle {
+          font-size: 11px;
+        }
+
+        .badge {
+          padding: 4px 7px;
+          font-size: 10px;
+        }
+
+        .selected-grid {
+          gap: 6px;
+          margin-top: 8px;
+        }
+
+        .selected-metric {
+          padding: 7px 8px;
+        }
+
+        .selected-metric span {
+          font-size: 9px;
+        }
+
+        .selected-metric strong {
+          margin-top: 4px;
+          font-size: 14px;
+        }
+
+        #selected-blurb,
+        #selected-coach,
+        #selected-threats {
+          margin-top: 8px;
+          font-size: 11px;
+          line-height: 1.32;
+        }
+
+        .threat-list {
+          margin-top: 5px;
+          padding-left: 14px;
+        }
+
+        .threat-list li + li {
+          margin-top: 3px;
+        }
+
+        #action-grid {
+          margin-top: 8px;
+          gap: 6px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .action-btn {
+          min-height: 72px;
+          gap: 5px;
+          padding: 8px;
+        }
+
+        .action-btn .keyline {
+          gap: 4px;
+          font-size: 9px;
+        }
+
+        .keycap {
+          min-width: 19px;
+          height: 19px;
+          padding: 0 4px;
+          font-size: 9px;
+        }
+
+        .action-btn strong {
+          font-size: 12px;
+        }
+
+        .action-btn small {
+          font-size: 10px;
+          line-height: 1.18;
+        }
+
+        .action-btn .cost {
+          font-size: 10px;
+        }
+
+        #sweep-btn {
+          grid-column: 1 / -1;
+          min-height: 78px;
+        }
+
+        #feed-panel {
+          width: min(360px, calc(100vw - 32px));
+          padding: 10px 12px;
+        }
+
+        #feed-panel h3 {
+          margin: 0 0 6px;
+          font-size: 13px;
+        }
+
+        #feed-list {
+          max-height: 114px;
+          overflow: auto;
+          font-size: 12px;
+        }
+
+        #feed-list li {
+          grid-template-columns: 56px 1fr;
+          gap: 8px;
+          padding: 4px 0;
+        }
+
+        .hint {
+          display: none;
+        }
+      }
+
+      @media (max-width: 980px) {
+        #status-strip {
+          top: auto;
+          left: 16px;
+          right: 16px;
+          bottom: 196px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        #action-panel {
+          right: 16px;
+          left: 16px;
+          width: auto;
+          bottom: 78px;
+          height: 258px;
+        }
+
+        #feed-panel {
+          width: calc(100vw - 32px);
+          bottom: 16px;
+        }
+
+        .hint {
+          display: none;
+        }
+
+        .overlay-grid,
+        .summary-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 720px) {
+        .chip {
+          width: calc(100vw - 32px);
+        }
+
+        #guide-toggle {
+          top: 132px;
+        }
+
+        #guide-drawer {
+          top: 172px;
+          bottom: 292px;
+          width: calc(100vw - 32px);
+        }
+
+        #status-strip {
+          bottom: 344px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        #action-grid {
+          grid-template-columns: 1fr;
+        }
+
+        #action-panel {
+          height: 320px;
+        }
+
+        .overlay-grid,
+        .summary-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition-duration: 0ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="viewport">
+        <canvas id="game-canvas"></canvas>
+        <div id="scanline"></div>
+        <div id="label-layer"></div>
+
+        <section class="chip" id="objective-chip">
+          <div class="eyebrow">ATV StarterKit Security Drill</div>
+          <h2 id="objective-title">Outbreak: Awaiting start</h2>
+          <p id="objective-text">
+            Hold the security surfaces together. The red team wants one issue to spread into the whole repo.
+          </p>
+        </section>
+
+        <button class="mini-btn" id="guide-toggle" type="button">Field Guide</button>
+
+        <aside class="hud-panel" id="guide-drawer">
+          <h3>How this maps to real `atv-security`</h3>
+          <p>
+            Think of each node like one room in a clubhouse. `atv-security` is the grown-up flashlight that checks the
+            whole building, not just one room.
+          </p>
+          <table class="guide-table">
+            <thead>
+              <tr>
+                <th>Surface</th>
+                <th>Explain it like I am 10</th>
+                <th>What happens in the game</th>
+                <th>Why it matters in ATV StarterKit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Secrets</td>
+                <td>These are the keys to the fort.</td>
+                <td>Secret leaks push infection into nearby tools and the app.</td>
+                <td>`atv-security` looks for hardcoded tokens and other exposed secrets.</td>
+              </tr>
+              <tr>
+                <td>MCP</td>
+                <td>This is the robot's tool belt.</td>
+                <td>Wildcard MCP access lets trouble jump further than it should.</td>
+                <td>The real scan checks risky MCP scope and unsafe config patterns.</td>
+              </tr>
+              <tr>
+                <td>Hooks</td>
+                <td>These are chores that run automatically.</td>
+                <td>Hook exfiltration can quietly leak data while work happens.</td>
+                <td>The real scan checks hook scripts and setup steps for unsafe execution.</td>
+              </tr>
+              <tr>
+                <td>Skills and Agents</td>
+                <td>These are the helper's instructions and specialist workers.</td>
+                <td>Prompt injection or bad access chains twist the helper into doing the wrong thing.</td>
+                <td>`atv-security` reviews instruction safety, hidden injections, and risky agent access.</td>
+              </tr>
+              <tr>
+                <td>VS Code / Permissions</td>
+                <td>These are the room rules.</td>
+                <td>Unsafe trust or auto-approve drift makes outbreaks spread faster.</td>
+                <td>The real scan checks permission posture and suspicious extension guidance.</td>
+              </tr>
+              <tr>
+                <td>App + OWASP / STRIDE</td>
+                <td>This is the actual product the team ships.</td>
+                <td>Later waves pressure the app with SSRF, injection, and privilege chains.</td>
+                <td>The unified skill also checks source code with OWASP Top 10 and STRIDE thinking.</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="guide-callout">
+            The big idea: one bad setting can help another bad setting spread. That is why `atv-security` matters. It
+            gives one pass across config, instructions, hooks, permissions, and app risk so you can stop chains before
+            they become an outage.
+          </div>
+        </aside>
+
+        <section class="strip" id="status-strip">
+          <div class="stat-card">
+            <span class="label">Integrity</span>
+            <strong id="integrity-value">100</strong>
+            <div class="meter"><span id="integrity-fill" style="background: linear-gradient(90deg, #70ffbc, #74f6ff);"></span></div>
+          </div>
+          <div class="stat-card">
+            <span class="label">Outbreak</span>
+            <strong id="outbreak-value">0</strong>
+            <div class="meter"><span id="outbreak-fill" style="background: linear-gradient(90deg, #ffd166, #ff6b81);"></span></div>
+          </div>
+          <div class="stat-card">
+            <span class="label">Energy</span>
+            <strong id="energy-value">6 / 6</strong>
+            <div class="meter"><span id="energy-fill" style="background: linear-gradient(90deg, #69a8ff, #74f6ff);"></span></div>
+          </div>
+          <div class="stat-card">
+            <span class="label">Sweep</span>
+            <strong id="sweep-value">0%</strong>
+            <div class="meter"><span id="sweep-fill" style="background: linear-gradient(90deg, #74f6ff, #c4a1ff);"></span></div>
+          </div>
+          <div class="stat-card">
+            <span class="label">Wave Timer</span>
+            <strong id="timer-value">--</strong>
+            <div class="meter"><span id="timer-fill" style="background: linear-gradient(90deg, #c4a1ff, #69a8ff);"></span></div>
+          </div>
+        </section>
+
+        <aside class="hud-panel" id="action-panel">
+          <div class="panel-head">
+            <div>
+              <h3>Containment Desk</h3>
+              <div class="panel-subtle">Select a node to aim your response.</div>
+            </div>
+            <button class="mini-btn" id="restart-top" type="button">Restart</button>
+          </div>
+
+          <div id="selected-card">
+            <div class="selected-title">
+              <h4 id="selected-name">Starter App</h4>
+              <span class="badge" id="selected-badge">App</span>
+            </div>
+            <div class="selected-grid">
+              <div class="selected-metric">
+                <span>Health</span>
+                <strong id="selected-health">100%</strong>
+              </div>
+              <div class="selected-metric">
+                <span>Heat</span>
+                <strong id="selected-heat">0%</strong>
+              </div>
+              <div class="selected-metric">
+                <span>Visible threats</span>
+                <strong id="selected-threat-count">0</strong>
+              </div>
+              <div class="selected-metric">
+                <span>Status</span>
+                <strong id="selected-status">Calm</strong>
+              </div>
+            </div>
+            <div id="selected-blurb"></div>
+            <div id="selected-coach"></div>
+            <div id="selected-threats"></div>
+          </div>
+
+          <div id="action-grid">
+            <button class="action-btn" data-action="scan" type="button">
+              <div class="keyline"><span class="keycap">1</span><span>Scan</span></div>
+              <strong>Scan</strong>
+              <small>Reveal hidden trouble and reduce fog on the selected node.</small>
+              <span class="cost">Cost 1 energy</span>
+            </button>
+            <button class="action-btn" data-action="quarantine" type="button">
+              <div class="keyline"><span class="keycap">2</span><span>Lock lane</span></div>
+              <strong>Quarantine</strong>
+              <small>Slow spread by isolating the risky node for a short window.</small>
+              <span class="cost">Cost 2 energy</span>
+            </button>
+            <button class="action-btn" data-action="patch" type="button">
+              <div class="keyline"><span class="keycap">3</span><span>Fix code</span></div>
+              <strong>Patch</strong>
+              <small>Best against prompt injection, SSRF, and app-side flaws.</small>
+              <span class="cost">Cost 2 energy</span>
+            </button>
+            <button class="action-btn" data-action="rotate-secret" type="button">
+              <div class="keyline"><span class="keycap">4</span><span>Swap keys</span></div>
+              <strong>Rotate Secret</strong>
+              <small>Best when secrets or config keys are leaking into the outbreak.</small>
+              <span class="cost">Cost 2 energy</span>
+            </button>
+            <button class="action-btn" data-action="scope-mcp" type="button">
+              <div class="keyline"><span class="keycap">5</span><span>Tighten tools</span></div>
+              <strong>Scope MCP</strong>
+              <small>Best against wildcard tool access and risky MCP reach.</small>
+              <span class="cost">Cost 2 energy</span>
+            </button>
+            <button class="action-btn" data-action="harden-hook" type="button">
+              <div class="keyline"><span class="keycap">6</span><span>Safer scripts</span></div>
+              <strong>Harden Hook</strong>
+              <small>Best against hook exfiltration and unsafe auto-run steps.</small>
+              <span class="cost">Cost 2 energy</span>
+            </button>
+            <button class="action-btn" data-action="sweep" id="sweep-btn" type="button">
+              <div class="keyline"><span class="keycap">Space</span><span>Unified audit</span></div>
+              <strong>Run `atv-security`</strong>
+              <small>
+                Global sweep: reveal hidden threats, slow spread, lightly stabilize the map, and mark the smartest fix.
+              </small>
+              <span class="cost">Ready at 100% sweep charge</span>
+            </button>
+          </div>
+        </aside>
+
+        <section class="feed-panel" id="feed-panel">
+          <h3>Incident Feed</h3>
+          <ul id="feed-list"></ul>
+        </section>
+
+        <div class="hint" id="controls-hint">
+          Click a node to inspect it. Use <strong>Scan</strong> when a threat is hidden, then hit the best fix.
+          Keyboard: 1-6 for actions, Space for `atv-security`.
+        </div>
+
+        <div id="toast"></div>
+
+        <section class="overlay" id="start-overlay">
+          <div class="overlay-frame">
+            <div class="eyebrow">Outbreak-style red-team sim</div>
+            <h1>ATV Security Outbreak</h1>
+            <p>
+              A red-team chain is moving through the same surfaces that `atv-security` protects in ATV StarterKit:
+              Secrets, MCP, Hooks, Skills, Agents, VS Code, and the App. Stop the spread before repo integrity
+              collapses.
+            </p>
+
+            <div class="overlay-grid">
+              <div class="overlay-card">
+                <span>How to win</span>
+                <strong>Survive four waves</strong>
+                <p>Keep integrity above zero and stop the outbreak meter from maxing out.</p>
+              </div>
+              <div class="overlay-card">
+                <span>Core trick</span>
+                <strong>Use the right fix</strong>
+                <p>Each threat type has a best response. Sweeps reveal the right answer when the map gets noisy.</p>
+              </div>
+              <div class="overlay-card">
+                <span>Why this matters</span>
+                <strong>One issue becomes a chain</strong>
+                <p>The real `atv-security` skill scans config and app risk together so chains are visible early.</p>
+              </div>
+            </div>
+
+            <div class="overlay-actions">
+              <button class="primary-btn" id="start-btn" type="button">Start drill</button>
+              <button class="secondary-btn" id="open-guide-btn" type="button">Open field guide</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="overlay hidden" id="end-overlay">
+          <div class="overlay-frame">
+            <div class="eyebrow" id="end-eyebrow">Simulation complete</div>
+            <h1 id="end-title">Containment held</h1>
+            <p id="end-copy">
+              The outbreak stalled because you used visibility, isolation, and the right targeted fixes before the
+              chain reached every surface.
+            </p>
+
+            <div class="summary-grid">
+              <div class="summary-tile">
+                <span>Final Integrity</span>
+                <strong id="summary-integrity">0</strong>
+              </div>
+              <div class="summary-tile">
+                <span>Peak Outbreak</span>
+                <strong id="summary-outbreak">0</strong>
+              </div>
+              <div class="summary-tile">
+                <span>Threats Resolved</span>
+                <strong id="summary-resolved">0</strong>
+              </div>
+              <div class="summary-tile">
+                <span>Sweeps Used</span>
+                <strong id="summary-sweeps">0</strong>
+              </div>
+            </div>
+
+            <div class="overlay-actions">
+              <button class="primary-btn" id="restart-btn" type="button">Run again</button>
+              <button class="secondary-btn" id="reopen-guide-btn" type="button">Open field guide</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="fallback">
+          <div class="overlay-frame">
+            <div class="eyebrow">Runtime issue</div>
+            <h1>Unable to load Three.js</h1>
+            <p>
+              This demo imports the local `docs/demos/vendor/three.module.js` runtime and expects to be served over
+              HTTP. Open it through a local server instead of double-clicking the file directly.
+            </p>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script type="module">
+      import * as THREE from "./vendor/three.module.js";
+
+      const dom = {
+        canvas: document.getElementById("game-canvas"),
+        labelLayer: document.getElementById("label-layer"),
+        objectiveTitle: document.getElementById("objective-title"),
+        objectiveText: document.getElementById("objective-text"),
+        guideToggle: document.getElementById("guide-toggle"),
+        guideDrawer: document.getElementById("guide-drawer"),
+        openGuideBtn: document.getElementById("open-guide-btn"),
+        reopenGuideBtn: document.getElementById("reopen-guide-btn"),
+        status: {
+          integrityValue: document.getElementById("integrity-value"),
+          integrityFill: document.getElementById("integrity-fill"),
+          outbreakValue: document.getElementById("outbreak-value"),
+          outbreakFill: document.getElementById("outbreak-fill"),
+          energyValue: document.getElementById("energy-value"),
+          energyFill: document.getElementById("energy-fill"),
+          sweepValue: document.getElementById("sweep-value"),
+          sweepFill: document.getElementById("sweep-fill"),
+          timerValue: document.getElementById("timer-value"),
+          timerFill: document.getElementById("timer-fill"),
+        },
+        selected: {
+          name: document.getElementById("selected-name"),
+          badge: document.getElementById("selected-badge"),
+          health: document.getElementById("selected-health"),
+          heat: document.getElementById("selected-heat"),
+          threatCount: document.getElementById("selected-threat-count"),
+          status: document.getElementById("selected-status"),
+          blurb: document.getElementById("selected-blurb"),
+          coach: document.getElementById("selected-coach"),
+          threats: document.getElementById("selected-threats"),
+        },
+        actionButtons: Array.from(document.querySelectorAll("[data-action]")),
+        feedList: document.getElementById("feed-list"),
+        hint: document.getElementById("controls-hint"),
+        toast: document.getElementById("toast"),
+        startOverlay: document.getElementById("start-overlay"),
+        endOverlay: document.getElementById("end-overlay"),
+        startButton: document.getElementById("start-btn"),
+        restartButton: document.getElementById("restart-btn"),
+        restartTop: document.getElementById("restart-top"),
+        fallback: document.getElementById("fallback"),
+        summary: {
+          eyebrow: document.getElementById("end-eyebrow"),
+          title: document.getElementById("end-title"),
+          copy: document.getElementById("end-copy"),
+          integrity: document.getElementById("summary-integrity"),
+          outbreak: document.getElementById("summary-outbreak"),
+          resolved: document.getElementById("summary-resolved"),
+          sweeps: document.getElementById("summary-sweeps"),
+        },
+      };
+
+      const NODE_LAYOUT = [
+        {
+          id: "secrets",
+          label: "Secrets Vault",
+          category: "secrets",
+          position: [-6.8, 1.5, 0],
+          blurb: "These are the keys to the fort. If they leak, the bad team can slip into everything else.",
+          importance: 1.3,
+        },
+        {
+          id: "mcp",
+          label: "MCP Bridge",
+          category: "mcp",
+          position: [-2.45, 4.35, 0],
+          blurb: "This is the robot's tool belt. If it can touch too much, the blast radius gets bigger fast.",
+          importance: 1.15,
+        },
+        {
+          id: "skills",
+          label: "Skills Prompt",
+          category: "skills",
+          position: [3.2, 4.1, 0],
+          blurb: "These are the helper's instructions. A twisted prompt can turn a good helper into a confused one.",
+          importance: 1.15,
+        },
+        {
+          id: "agents",
+          label: "Agent Mesh",
+          category: "agents",
+          position: [7.15, 1.7, 0],
+          blurb: "These are specialist workers. If their access is loose, the outbreak can jump lanes.",
+          importance: 1.2,
+        },
+        {
+          id: "app",
+          label: "Starter App",
+          category: "app",
+          position: [0, 0, 0],
+          blurb: "This is the real product path. If the outbreak reaches here, the whole repo starts losing integrity.",
+          importance: 1.4,
+        },
+        {
+          id: "hooks",
+          label: "Hooks Runner",
+          category: "hooks",
+          position: [-3.9, -4.15, 0],
+          blurb: "These are chores that run automatically. One sneaky script can leak a lot without being noticed.",
+          importance: 1.1,
+        },
+        {
+          id: "permissions",
+          label: "VS Code",
+          category: "permissions",
+          position: [2.95, -4.65, 0],
+          blurb: "These are room rules: trust, approvals, and local editor posture. Loose rules help trouble spread.",
+          importance: 1.05,
+        },
+      ];
+
+      const EDGE_LIST = [
+        ["app", "secrets"],
+        ["app", "mcp"],
+        ["app", "skills"],
+        ["app", "agents"],
+        ["app", "hooks"],
+        ["app", "permissions"],
+        ["mcp", "skills"],
+        ["mcp", "agents"],
+        ["skills", "agents"],
+        ["hooks", "permissions"],
+        ["secrets", "permissions"],
+      ];
+
+      const CATEGORY_CONFIG = {
+        secrets: { label: "Secrets", color: "#ff7a90", preferredAction: "rotate-secret", icon: "secrets" },
+        mcp: { label: "MCP", color: "#7fd8ff", preferredAction: "scope-mcp", icon: "mcp" },
+        hooks: { label: "Hooks", color: "#ffd166", preferredAction: "harden-hook", icon: "hooks" },
+        skills: { label: "Skills", color: "#c4a1ff", preferredAction: "patch", icon: "skills" },
+        agents: { label: "Agents", color: "#7df7b2", preferredAction: "patch", icon: "agents" },
+        permissions: { label: "Permissions", color: "#73f1d3", preferredAction: "quarantine", icon: "permissions" },
+        app: { label: "App", color: "#69a8ff", preferredAction: "patch", icon: "app" },
+      };
+
+      const ACTIONS = {
+        scan: {
+          label: "Scan",
+          cost: 1,
+          key: "1",
+          coach: "Use Scan when you suspect hidden trouble. It turns fog into facts.",
+        },
+        quarantine: {
+          label: "Quarantine",
+          cost: 2,
+          key: "2",
+          coach: "Quarantine is like closing a hallway so the mess cannot spread as quickly.",
+        },
+        patch: {
+          label: "Patch",
+          cost: 2,
+          key: "3",
+          coach: "Patch is the all-purpose code and instruction fix. Great for app and prompt problems.",
+        },
+        "rotate-secret": {
+          label: "Rotate Secret",
+          cost: 2,
+          key: "4",
+          coach: "Rotate Secret means replacing a leaked key before the bad team keeps using it.",
+        },
+        "scope-mcp": {
+          label: "Scope MCP",
+          cost: 2,
+          key: "5",
+          coach: "Scope MCP means telling the helper exactly which tools it may touch. No wildcard reach.",
+        },
+        "harden-hook": {
+          label: "Harden Hook",
+          cost: 2,
+          key: "6",
+          coach: "Harden Hook is cleaning up auto-run scripts so they stop leaking or pulling in risky commands.",
+        },
+        sweep: {
+          label: "Run atv-security",
+          cost: 0,
+          key: "Space",
+          coach: "The sweep reveals hidden issues, slows spread, and points you at the smartest fix.",
+        },
+      };
+
+      const THREAT_TYPES = {
+        "secret-leak": {
+          id: "secret-leak",
+          label: "Secret leak",
+          accent: "#ff7a90",
+          categories: ["secrets", "permissions", "app"],
+          preferredAction: "rotate-secret",
+          infectionRate: 0.68,
+          spreadBase: 22.4,
+          hiddenChance: 0.44,
+          blurb: "Hardcoded key or token drift.",
+        },
+        "wildcard-mcp": {
+          id: "wildcard-mcp",
+          label: "Wildcard MCP",
+          accent: "#7fd8ff",
+          categories: ["mcp", "agents"],
+          preferredAction: "scope-mcp",
+          infectionRate: 0.58,
+          spreadBase: 20.6,
+          hiddenChance: 0.34,
+          blurb: "Tool access is wider than it should be.",
+        },
+        "hook-exfil": {
+          id: "hook-exfil",
+          label: "Hook exfil",
+          accent: "#ffd166",
+          categories: ["hooks", "permissions", "app"],
+          preferredAction: "harden-hook",
+          infectionRate: 0.62,
+          spreadBase: 19.8,
+          hiddenChance: 0.39,
+          blurb: "Auto-run script can leak data or fetch something risky.",
+        },
+        "prompt-injection": {
+          id: "prompt-injection",
+          label: "Prompt injection",
+          accent: "#c4a1ff",
+          categories: ["skills", "agents"],
+          preferredAction: "patch",
+          infectionRate: 0.72,
+          spreadBase: 18.8,
+          hiddenChance: 0.48,
+          blurb: "Instructions are being bent away from the safe path.",
+        },
+        ssrf: {
+          id: "ssrf",
+          label: "SSRF probe",
+          accent: "#7df7b2",
+          categories: ["app", "mcp"],
+          preferredAction: "patch",
+          infectionRate: 0.78,
+          spreadBase: 18.1,
+          hiddenChance: 0.28,
+          blurb: "The app is reaching somewhere it should not.",
+        },
+        "priv-chain": {
+          id: "priv-chain",
+          label: "Privilege chain",
+          accent: "#ffae7a",
+          categories: ["agents", "permissions", "app"],
+          preferredAction: "quarantine",
+          infectionRate: 0.7,
+          spreadBase: 18.4,
+          hiddenChance: 0.34,
+          blurb: "Access is climbing past the lane it should stay in.",
+        },
+      };
+
+      const WAVES = [
+        {
+          name: "Wave 1 - Config drift",
+          objective: "Scan the outer repo map and stop the first config leaks before they bridge inward.",
+          duration: 44,
+          spawnEvery: 12,
+          threats: ["secret-leak", "wildcard-mcp"],
+        },
+        {
+          name: "Wave 2 - Hook chain",
+          objective: "Contain hook exfil and agent prompt tampering before it hops into the app path.",
+          duration: 48,
+          spawnEvery: 10.4,
+          threats: ["hook-exfil", "prompt-injection", "wildcard-mcp"],
+        },
+        {
+          name: "Wave 3 - Source pressure",
+          objective: "Patch app-side risk fast. SSRF and privilege chains are now pushing on the core.",
+          duration: 54,
+          spawnEvery: 8.8,
+          threats: ["ssrf", "priv-chain", "prompt-injection"],
+        },
+        {
+          name: "Wave 4 - Unified audit",
+          objective: "Use `atv-security` sweeps to reveal hidden hotspots, then land the right fixes.",
+          duration: 60,
+          spawnEvery: 7.8,
+          threats: ["secret-leak", "wildcard-mcp", "hook-exfil", "prompt-injection", "ssrf", "priv-chain"],
+        },
+      ];
+
+      const adjacency = EDGE_LIST.reduce((map, [a, b]) => {
+        map[a] = map[a] || [];
+        map[b] = map[b] || [];
+        map[a].push(b);
+        map[b].push(a);
+        return map;
+      }, {});
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x031018);
+      scene.fog = new THREE.Fog(0x031018, 16, 34);
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas: dom.canvas,
+        antialias: true,
+        alpha: true,
+        powerPreference: "high-performance",
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+      const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+      camera.position.set(0, 1.5, 18);
+
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2(10, 10);
+      const reusableVector = new THREE.Vector3();
+      const hoverLift = new THREE.Vector3(0, 1.34, 0);
+
+      const world = {
+        root: new THREE.Group(),
+        edgeGroup: new THREE.Group(),
+        nodeGroup: new THREE.Group(),
+        packetGroup: new THREE.Group(),
+        pulseGroup: new THREE.Group(),
+        backgroundGroup: new THREE.Group(),
+      };
+      scene.add(world.backgroundGroup, world.root);
+      world.root.add(world.edgeGroup, world.nodeGroup, world.packetGroup, world.pulseGroup);
+
+      const textures = createTextures();
+      const interactables = [];
+      const nodeVisuals = new Map();
+      const edgeVisuals = [];
+      const starMaterial = new THREE.PointsMaterial({
+        size: 0.14,
+        sizeAttenuation: true,
+        map: textures.star,
+        transparent: true,
+        depthWrite: false,
+        color: 0x7fd8ff,
+        opacity: 0.7,
+      });
+
+      const palette = {
+        safe: new THREE.Color("#74f6ff"),
+        hot: new THREE.Color("#ff6b81"),
+        warn: new THREE.Color("#ffd166"),
+        shield: new THREE.Color("#7df7b2"),
+        white: new THREE.Color("#ffffff"),
+      };
+
+      const state = {
+        running: false,
+        lastTime: 0,
+        startedAt: 0,
+        selectedNodeId: "app",
+        hoverNodeId: null,
+        waveIndex: 0,
+        waveTimer: WAVES[0].duration,
+        spawnTimer: 5,
+        energy: 6,
+        maxEnergy: 6,
+        energyRegenTick: 0,
+        sweepCharge: 0,
+        sweepSlowdownTimer: 0,
+        integrity: 100,
+        outbreak: 0,
+        maxOutbreak: 0,
+        nextThreatId: 1,
+        threatsResolved: 0,
+        sweepsUsed: 0,
+        hintVisible: true,
+        toastUntil: 0,
+        toastText: "",
+        packets: [],
+        pulses: [],
+        logs: [],
+        threatById: new Map(),
+        nodes: new Map(),
+      };
+
+      window.__ATV_DEBUG = {
+        snapshot() {
+          return {
+            running: state.running,
+            freezeMode,
+            waveIndex: state.waveIndex,
+            waveTimer: state.waveTimer,
+            energy: state.energy,
+            sweepCharge: state.sweepCharge,
+            integrity: state.integrity,
+            outbreak: state.outbreak,
+            maxOutbreak: state.maxOutbreak,
+            threatCount: state.threatById.size,
+            selectedNodeId: state.selectedNodeId,
+            nodes: Array.from(state.nodes.values()).map((node) => ({
+              id: node.id,
+              category: node.category,
+              health: node.health,
+              infection: node.infection,
+              exposure: node.exposure,
+              quarantined: node.quarantined,
+              threatIds: [...node.threatIds],
+            })),
+            threats: Array.from(state.threatById.values()).map((threat) => ({
+              id: threat.id,
+              typeId: threat.typeId,
+              nodeId: threat.nodeId,
+              hidden: threat.hidden,
+              age: threat.age,
+              infectionRate: threat.infectionRate,
+              spreadTimer: threat.spreadTimer,
+            })),
+          };
+        },
+        selectNode(nodeId) {
+          selectNode(nodeId);
+          return this.snapshot();
+        },
+        setSweepCharge(value) {
+          state.sweepCharge = clamp(value, 0, 100);
+          renderHud();
+          return this.snapshot();
+        },
+        runAction(actionId) {
+          attemptAction(actionId);
+          renderHud();
+          renderSelectedPanel();
+          return this.snapshot();
+        },
+      };
+
+      buildBackground();
+      buildGraph();
+      resetGame(true);
+      resize();
+      renderHud();
+      renderSelectedPanel();
+      animate(0);
+
+      dom.startButton.addEventListener("click", () => startGame());
+      dom.restartButton.addEventListener("click", () => startGame());
+      dom.restartTop.addEventListener("click", () => startGame());
+      dom.guideToggle.addEventListener("click", () => toggleGuide());
+      dom.openGuideBtn.addEventListener("click", () => {
+        toggleGuide(true, true);
+        dom.startOverlay.classList.add("hidden");
+      });
+      dom.reopenGuideBtn.addEventListener("click", () => toggleGuide(true, true));
+
+      dom.actionButtons.forEach((button) => {
+        button.addEventListener("click", () => attemptAction(button.dataset.action));
+      });
+
+      window.addEventListener("resize", resize);
+      window.addEventListener("pointermove", handlePointerMove, { passive: true });
+      window.addEventListener("pointerleave", () => {
+        state.hoverNodeId = null;
+      });
+      window.addEventListener("click", handleClick);
+      window.addEventListener("keydown", handleKeydown);
+
+      const bootParams = new URL(window.location.href).searchParams;
+      const freezeMode = bootParams.get("freeze") === "1";
+      if (bootParams.get("guide") === "1") {
+        toggleGuide(true, true);
+        dom.startOverlay.classList.add("hidden");
+      }
+      if (bootParams.get("autostart") === "1") {
+        startGame();
+      }
+
+      function startGame() {
+        resetGame(false);
+        dom.startOverlay.classList.add("hidden");
+        dom.endOverlay.classList.add("hidden");
+        state.running = true;
+        state.startedAt = performance.now() * 0.001;
+        pushLog("Control", "Containment drill started. Watch the outer nodes first.");
+      }
+
+      function resetGame(soft) {
+        state.running = false;
+        state.lastTime = 0;
+        state.selectedNodeId = "app";
+        state.hoverNodeId = null;
+        state.waveIndex = 0;
+        state.waveTimer = WAVES[0].duration;
+        state.spawnTimer = 7.5;
+        state.energy = state.maxEnergy;
+        state.energyRegenTick = 0;
+        state.sweepCharge = 0;
+        state.sweepSlowdownTimer = 0;
+        state.integrity = 100;
+        state.outbreak = 0;
+        state.maxOutbreak = 0;
+        state.nextThreatId = 1;
+        state.threatsResolved = 0;
+        state.sweepsUsed = 0;
+        state.hintVisible = true;
+        state.toastUntil = 0;
+        state.toastText = "";
+        state.packets.forEach((packet) => packet.sprite.removeFromParent());
+        state.pulses.forEach((pulse) => pulse.sprite.removeFromParent());
+        state.packets = [];
+        state.pulses = [];
+        state.logs = [];
+        state.threatById.clear();
+
+        for (const node of state.nodes.values()) {
+          node.health = 100;
+          node.infection = 0;
+          node.exposure = 4;
+          node.quarantined = 0;
+          node.defenseAction = null;
+          node.defenseTimer = 0;
+          node.recommendedAction = null;
+          node.recommendTimer = 0;
+          node.flash = 0;
+          node.hiddenTelemetry = 0;
+          node.threatIds = [];
+        }
+
+        spawnThreat("wildcard-mcp", "mcp", { hidden: false, silent: !soft });
+        spawnThreat("prompt-injection", "skills", { hidden: true, silent: !soft });
+
+        pushLog("Ready", "The map is live. Scan before guessing when the feed looks suspicious.");
+        updateObjective();
+        renderHud();
+        renderSelectedPanel();
+      }
+
+      function buildBackground() {
+        const grid = new THREE.Group();
+        const lineMaterial = new THREE.LineBasicMaterial({
+          color: 0x255a76,
+          transparent: true,
+          opacity: 0.22,
+        });
+        const extent = 14;
+        const step = 1.2;
+        for (let x = -extent; x <= extent; x += step) {
+          const geometry = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(x, -extent, -3.5),
+            new THREE.Vector3(x, extent, -3.5),
+          ]);
+          grid.add(new THREE.Line(geometry, lineMaterial));
+        }
+        for (let y = -extent; y <= extent; y += step) {
+          const geometry = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(-extent, y, -3.5),
+            new THREE.Vector3(extent, y, -3.5),
+          ]);
+          grid.add(new THREE.Line(geometry, lineMaterial));
+        }
+        world.backgroundGroup.add(grid);
+
+        const stars = new THREE.BufferGeometry();
+        const starPositions = [];
+        for (let i = 0; i < 160; i += 1) {
+          starPositions.push(
+            THREE.MathUtils.randFloatSpread(32),
+            THREE.MathUtils.randFloatSpread(22),
+            THREE.MathUtils.randFloat(-12, -4),
+          );
+        }
+        stars.setAttribute("position", new THREE.Float32BufferAttribute(starPositions, 3));
+        const points = new THREE.Points(stars, starMaterial);
+        world.backgroundGroup.add(points);
+
+        const coreHalo = new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: textures.sweep,
+            color: 0x2b7db7,
+            transparent: true,
+            opacity: 0.22,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          }),
+        );
+        coreHalo.scale.set(10.5, 10.5, 1);
+        coreHalo.position.set(0, 0, -1.2);
+        world.backgroundGroup.add(coreHalo);
+      }
+
+      function buildGraph() {
+        const ambient = new THREE.AmbientLight(0x9bdcff, 1.05);
+        scene.add(ambient);
+
+        const keyLight = new THREE.PointLight(0x66d8ff, 2.4, 48, 2);
+        keyLight.position.set(-4, 7, 16);
+        scene.add(keyLight);
+
+        const warmLight = new THREE.PointLight(0xff8577, 1.4, 38, 2);
+        warmLight.position.set(6, -4, 14);
+        scene.add(warmLight);
+
+        for (const nodeDef of NODE_LAYOUT) {
+          const group = new THREE.Group();
+          const [x, y, z] = nodeDef.position;
+          group.position.set(x, y, z);
+
+          const glow = new THREE.Sprite(
+            new THREE.SpriteMaterial({
+              map: textures.ring,
+              transparent: true,
+              color: new THREE.Color(CATEGORY_CONFIG[nodeDef.category].color),
+              opacity: 0.22,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false,
+            }),
+          );
+          glow.scale.set(3.2, 3.2, 1);
+
+          const ring = new THREE.Sprite(
+            new THREE.SpriteMaterial({
+              map: textures.ring,
+              transparent: true,
+              color: 0x74f6ff,
+              opacity: 0.65,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false,
+            }),
+          );
+          ring.scale.set(2.2, 2.2, 1);
+
+          const core = new THREE.Sprite(
+            new THREE.SpriteMaterial({
+              map: textures.nodes[nodeDef.category],
+              transparent: true,
+              color: 0xffffff,
+              depthWrite: false,
+            }),
+          );
+          core.scale.set(1.6, 1.6, 1);
+
+          const hitArea = new THREE.Mesh(
+            new THREE.CircleGeometry(1.24, 24),
+            new THREE.MeshBasicMaterial({
+              transparent: true,
+              opacity: 0,
+              depthWrite: false,
+            }),
+          );
+          hitArea.userData.nodeId = nodeDef.id;
+          interactables.push(hitArea);
+
+          group.add(glow, ring, core, hitArea);
+          world.nodeGroup.add(group);
+
+          const label = document.createElement("div");
+          label.className = "node-label";
+          label.innerHTML = `<span class="name"></span><span class="meta"></span>`;
+          dom.labelLayer.appendChild(label);
+
+          const nodeState = {
+            ...nodeDef,
+            health: 100,
+            infection: 0,
+            exposure: 4,
+            quarantined: 0,
+            defenseAction: null,
+            defenseTimer: 0,
+            recommendedAction: null,
+            recommendTimer: 0,
+            flash: 0,
+            hiddenTelemetry: 0,
+            threatIds: [],
+          };
+
+          state.nodes.set(nodeDef.id, nodeState);
+          nodeVisuals.set(nodeDef.id, { group, glow, ring, core, hitArea, label });
+        }
+
+        for (const [fromId, toId] of EDGE_LIST) {
+          const fromNode = state.nodes.get(fromId);
+          const toNode = state.nodes.get(toId);
+          const geometry = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(...fromNode.position),
+            new THREE.Vector3(...toNode.position),
+          ]);
+          const material = new THREE.LineBasicMaterial({
+            color: 0x2f6d89,
+            transparent: true,
+            opacity: 0.42,
+          });
+          const line = new THREE.Line(geometry, material);
+          world.edgeGroup.add(line);
+          edgeVisuals.push({ fromId, toId, line });
+        }
+      }
+
+      function createTextures() {
+        const nodeTextures = {};
+        for (const [key, config] of Object.entries(CATEGORY_CONFIG)) {
+          nodeTextures[key] = buildNodeTexture(config.icon, config.color);
+        }
+        return {
+          ring: buildRingTexture(),
+          packet: buildPacketTexture(),
+          sweep: buildSweepTexture(),
+          star: buildStarTexture(),
+          nodes: nodeTextures,
+        };
+      }
+
+      function buildNodeTexture(kind, accent) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext("2d");
+        const gradient = ctx.createRadialGradient(128, 112, 12, 128, 128, 114);
+        gradient.addColorStop(0, "rgba(255,255,255,0.98)");
+        gradient.addColorStop(0.15, accent);
+        gradient.addColorStop(0.52, "rgba(7,16,26,0.98)");
+        gradient.addColorStop(0.9, "rgba(7,16,26,0.12)");
+        gradient.addColorStop(1, "rgba(7,16,26,0)");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(128, 128, 112, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(255,255,255,0.4)";
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.arc(128, 128, 88, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.lineWidth = 12;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "rgba(237,245,255,0.96)";
+        ctx.fillStyle = "rgba(237,245,255,0.96)";
+        drawGlyph(ctx, kind);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        return texture;
+      }
+
+      function buildRingTexture() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext("2d");
+        const gradient = ctx.createRadialGradient(128, 128, 40, 128, 128, 118);
+        gradient.addColorStop(0, "rgba(255,255,255,0)");
+        gradient.addColorStop(0.54, "rgba(255,255,255,0)");
+        gradient.addColorStop(0.7, "rgba(255,255,255,0.86)");
+        gradient.addColorStop(0.84, "rgba(255,255,255,0.18)");
+        gradient.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 256, 256);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        return texture;
+      }
+
+      function buildSweepTexture() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext("2d");
+        const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 122);
+        gradient.addColorStop(0, "rgba(255,255,255,0)");
+        gradient.addColorStop(0.45, "rgba(255,255,255,0)");
+        gradient.addColorStop(0.62, "rgba(255,255,255,0.84)");
+        gradient.addColorStop(0.72, "rgba(255,255,255,0.24)");
+        gradient.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 256, 256);
+
+        ctx.strokeStyle = "rgba(255,255,255,0.88)";
+        ctx.lineWidth = 4;
+        for (let i = 0; i < 14; i += 1) {
+          const angle = (Math.PI * 2 * i) / 14;
+          const inner = 88;
+          const outer = 118;
+          ctx.beginPath();
+          ctx.moveTo(128 + Math.cos(angle) * inner, 128 + Math.sin(angle) * inner);
+          ctx.lineTo(128 + Math.cos(angle) * outer, 128 + Math.sin(angle) * outer);
+          ctx.stroke();
+        }
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        return texture;
+      }
+
+      function buildPacketTexture() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 128;
+        canvas.height = 128;
+        const ctx = canvas.getContext("2d");
+        const gradient = ctx.createRadialGradient(64, 64, 2, 64, 64, 58);
+        gradient.addColorStop(0, "rgba(255,255,255,0.98)");
+        gradient.addColorStop(0.28, "rgba(255,255,255,0.9)");
+        gradient.addColorStop(0.6, "rgba(255,255,255,0.12)");
+        gradient.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.ellipse(64, 64, 46, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        return texture;
+      }
+
+      function buildStarTexture() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext("2d");
+        const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        gradient.addColorStop(0, "rgba(255,255,255,0.98)");
+        gradient.addColorStop(0.32, "rgba(255,255,255,0.8)");
+        gradient.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 32, 32);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        return texture;
+      }
+
+      function drawGlyph(ctx, kind) {
+        switch (kind) {
+          case "secrets":
+            ctx.beginPath();
+            ctx.arc(98, 126, 24, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(122, 126);
+            ctx.lineTo(168, 126);
+            ctx.lineTo(168, 112);
+            ctx.moveTo(148, 126);
+            ctx.lineTo(148, 144);
+            ctx.moveTo(160, 126);
+            ctx.lineTo(160, 138);
+            ctx.stroke();
+            break;
+          case "mcp":
+            ctx.strokeRect(74, 74, 32, 32);
+            ctx.strokeRect(150, 74, 32, 32);
+            ctx.strokeRect(112, 146, 32, 32);
+            ctx.beginPath();
+            ctx.moveTo(106, 90);
+            ctx.lineTo(150, 90);
+            ctx.moveTo(90, 106);
+            ctx.lineTo(126, 146);
+            ctx.moveTo(166, 106);
+            ctx.lineTo(130, 146);
+            ctx.stroke();
+            break;
+          case "hooks":
+            ctx.beginPath();
+            ctx.moveTo(136, 62);
+            ctx.lineTo(136, 126);
+            ctx.bezierCurveTo(136, 166, 182, 168, 182, 138);
+            ctx.bezierCurveTo(182, 116, 162, 112, 150, 122);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(102, 62);
+            ctx.lineTo(170, 62);
+            ctx.stroke();
+            break;
+          case "skills":
+            ctx.beginPath();
+            ctx.moveTo(128, 68);
+            ctx.lineTo(140, 104);
+            ctx.lineTo(178, 104);
+            ctx.lineTo(148, 126);
+            ctx.lineTo(160, 164);
+            ctx.lineTo(128, 142);
+            ctx.lineTo(96, 164);
+            ctx.lineTo(108, 126);
+            ctx.lineTo(78, 104);
+            ctx.lineTo(116, 104);
+            ctx.closePath();
+            ctx.stroke();
+            break;
+          case "agents":
+            ctx.beginPath();
+            ctx.moveTo(92, 88);
+            ctx.lineTo(164, 88);
+            ctx.lineTo(180, 114);
+            ctx.lineTo(164, 156);
+            ctx.lineTo(92, 156);
+            ctx.lineTo(76, 114);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(108, 118, 6, 0, Math.PI * 2);
+            ctx.arc(148, 118, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(106, 138);
+            ctx.quadraticCurveTo(128, 150, 150, 138);
+            ctx.stroke();
+            break;
+          case "permissions":
+            ctx.beginPath();
+            ctx.moveTo(94, 80);
+            ctx.lineTo(128, 66);
+            ctx.lineTo(162, 80);
+            ctx.lineTo(162, 122);
+            ctx.quadraticCurveTo(162, 162, 128, 182);
+            ctx.quadraticCurveTo(94, 162, 94, 122);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(112, 124);
+            ctx.lineTo(122, 138);
+            ctx.lineTo(146, 108);
+            ctx.stroke();
+            break;
+          case "app":
+          default:
+            ctx.strokeRect(94, 86, 68, 68);
+            ctx.beginPath();
+            ctx.moveTo(94, 86);
+            ctx.lineTo(128, 62);
+            ctx.lineTo(196, 62);
+            ctx.lineTo(162, 86);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(162, 86);
+            ctx.lineTo(196, 62);
+            ctx.lineTo(196, 130);
+            ctx.lineTo(162, 154);
+            ctx.stroke();
+            break;
+        }
+      }
+
+      function resize() {
+        const { clientWidth, clientHeight } = dom.canvas;
+        renderer.setSize(clientWidth, clientHeight, false);
+        camera.aspect = clientWidth / clientHeight;
+        camera.updateProjectionMatrix();
+      }
+
+      function animate(timestampMs) {
+        requestAnimationFrame(animate);
+        const now = timestampMs * 0.001;
+        const dt = state.lastTime ? Math.min(0.05, now - state.lastTime) : 0.016;
+        state.lastTime = now;
+
+        if (state.running) {
+          updateSimulation(dt, now);
+        }
+
+        updateVisuals(now);
+        renderHud();
+        renderSelectedPanel();
+        renderLabels();
+
+        const wobbleX = pointer.x * 0.85;
+        const wobbleY = pointer.y * 0.45;
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, wobbleX, 0.05);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, 1.45 + wobbleY, 0.05);
+        camera.lookAt(0, 0, 0);
+
+        renderer.render(scene, camera);
+      }
+
+      function updateSimulation(dt, now) {
+        if (freezeMode) {
+          updateToast(now);
+          maybeUpdateHover();
+          return;
+        }
+        updateWave(dt);
+        updateEnergy(dt);
+        updateThreats(dt);
+        updatePackets(dt);
+        updatePulses(dt);
+        updateNodeTimers(dt);
+        computeGlobalMetrics();
+        updateToast(now);
+        maybeUpdateHover();
+        maybeLose();
+      }
+
+      function updateWave(dt) {
+        const wave = WAVES[state.waveIndex];
+        state.waveTimer = Math.max(0, state.waveTimer - dt);
+        state.spawnTimer -= dt;
+
+        if (state.spawnTimer <= 0) {
+          spawnThreat(pickRandom(wave.threats));
+          state.spawnTimer = Math.max(5.4, wave.spawnEvery - Math.random() * 1.2 - state.waveIndex * 0.15);
+        }
+
+        if (state.waveTimer <= 0) {
+          if (state.waveIndex >= WAVES.length - 1) {
+            finishGame(true);
+          } else {
+            state.waveIndex += 1;
+            state.waveTimer = WAVES[state.waveIndex].duration;
+            state.spawnTimer = 5.4;
+            pushLog("Wave", `${WAVES[state.waveIndex].name} is live.`);
+            showToast(WAVES[state.waveIndex].name);
+            updateObjective();
+          }
+        }
+      }
+
+      function updateEnergy(dt) {
+        state.energyRegenTick += dt;
+        while (state.energy < state.maxEnergy && state.energyRegenTick >= 2.35) {
+          state.energy += 1;
+          state.energyRegenTick -= 2.35;
+        }
+
+        const sweepGain = 2.6 + (state.sweepSlowdownTimer > 0 ? 0.6 : 0);
+        state.sweepCharge = clamp(state.sweepCharge + dt * sweepGain, 0, 100);
+      }
+
+      function updateThreats(dt) {
+        const threats = Array.from(state.threatById.values());
+
+        for (const threat of threats) {
+          const node = state.nodes.get(threat.nodeId);
+          if (!node) {
+            continue;
+          }
+
+          const threatType = THREAT_TYPES[threat.typeId];
+          const preferredMatch = node.defenseAction === threatType.preferredAction && node.defenseTimer > 0;
+          let growth = threat.infectionRate * dt;
+          if (preferredMatch) {
+            growth *= 0.45;
+          }
+          if (node.quarantined > 0) {
+            growth *= 0.34;
+          }
+          if (state.sweepSlowdownTimer > 0) {
+            growth *= 0.68;
+          }
+
+          node.infection = clamp(node.infection + growth * 3.1, 0, 100);
+          node.exposure = clamp(node.exposure + growth * 1.4, 0, 100);
+          node.flash = Math.min(1, node.flash + dt * 1.8);
+          threat.spreadTimer -= dt * (state.sweepSlowdownTimer > 0 ? 0.72 : 1);
+          threat.age += dt;
+
+          if (threat.hidden && node.infection > 48) {
+            revealThreat(threat, "Hidden trouble surfaced on its own.");
+          }
+
+          if (threat.spreadTimer <= 0) {
+            threat.spreadTimer = Math.max(8.6, threat.baseSpread - Math.random() * 1.3);
+            attemptSpread(threat);
+          }
+        }
+
+        for (const node of state.nodes.values()) {
+          const visibleCount = getNodeThreats(node.id).length;
+          const danger = Math.max(0, node.infection - 12);
+          const healthLoss = (danger * 0.012 + visibleCount * 0.014) * dt * node.importance;
+          const passiveRecovery = visibleCount === 0 ? 2.2 * dt : 0;
+          node.health = clamp(node.health - healthLoss + passiveRecovery, 0, 100);
+          if (visibleCount === 0) {
+            node.infection = clamp(node.infection - dt * 3.8, 0, 100);
+          }
+        }
+      }
+
+      function updatePackets(dt) {
+        state.packets = state.packets.filter((packet) => {
+          packet.progress += dt * packet.speed;
+          if (packet.progress >= 1) {
+            packet.sprite.removeFromParent();
+            return false;
+          }
+          packet.sprite.position.lerpVectors(packet.from, packet.to, packet.progress);
+          packet.sprite.material.opacity = 0.9 - packet.progress * 0.7;
+          return true;
+        });
+      }
+
+      function updatePulses(dt) {
+        state.pulses = state.pulses.filter((pulse) => {
+          pulse.age += dt;
+          const progress = pulse.age / pulse.life;
+          if (progress >= 1) {
+            pulse.sprite.removeFromParent();
+            return false;
+          }
+          const scale = THREE.MathUtils.lerp(pulse.startScale, pulse.endScale, progress);
+          pulse.sprite.scale.set(scale, scale, 1);
+          pulse.sprite.material.opacity = pulse.opacity * (1 - progress);
+          return true;
+        });
+      }
+
+      function updateNodeTimers(dt) {
+        state.sweepSlowdownTimer = Math.max(0, state.sweepSlowdownTimer - dt);
+
+        for (const node of state.nodes.values()) {
+          node.quarantined = Math.max(0, node.quarantined - dt);
+          node.defenseTimer = Math.max(0, node.defenseTimer - dt);
+          node.recommendTimer = Math.max(0, node.recommendTimer - dt);
+          if (node.recommendTimer === 0) {
+            node.recommendedAction = null;
+          }
+          node.flash = Math.max(0, node.flash - dt * 1.2);
+        }
+      }
+
+      function computeGlobalMetrics() {
+        const nodes = Array.from(state.nodes.values());
+        const avgHealth = nodes.reduce((sum, node) => sum + node.health, 0) / nodes.length;
+        const avgInfection = nodes.reduce((sum, node) => sum + node.infection, 0) / nodes.length;
+        const hotNodes = nodes.filter((node) => node.infection >= 55).length;
+        const threatCount = state.threatById.size;
+
+        state.integrity = clamp(avgHealth, 0, 100);
+        state.outbreak = clamp(avgInfection * 0.48 + threatCount * 2.4 + hotNodes * 4.5, 0, 100);
+        state.maxOutbreak = Math.max(state.maxOutbreak, state.outbreak);
+      }
+
+      function maybeLose() {
+        if (!state.running) {
+          return;
+        }
+        const app = state.nodes.get("app");
+        const secrets = state.nodes.get("secrets");
+        const collapse = [app, secrets].filter((node) => node.health <= 8 || node.infection >= 96).length;
+        if (state.outbreak >= 100 || state.integrity <= 0 || collapse >= 2) {
+          finishGame(false);
+        }
+      }
+
+      function finishGame(win) {
+        state.running = false;
+        dom.endOverlay.classList.remove("hidden");
+        dom.summary.eyebrow.textContent = win ? "Containment complete" : "Containment failed";
+        dom.summary.title.textContent = win ? "ATV surfaces held the line" : "The outbreak crossed the repo";
+        dom.summary.copy.textContent = win
+          ? "You used visibility, isolation, and the right targeted fixes before the threat chain could topple the core."
+          : "Too many chains stayed hidden or unfixed at once. The lesson is the same as the real skill: visibility first, then the right remediation.";
+        dom.summary.integrity.textContent = `${Math.round(state.integrity)}%`;
+        dom.summary.outbreak.textContent = `${Math.round(state.maxOutbreak)}%`;
+        dom.summary.resolved.textContent = String(state.threatsResolved);
+        dom.summary.sweeps.textContent = String(state.sweepsUsed);
+        pushLog("Result", win ? "Containment held. ATV surfaces stayed online." : "Containment failed. The outbreak crossed the repo.");
+      }
+
+      function updateObjective() {
+        const wave = WAVES[state.waveIndex];
+        dom.objectiveTitle.textContent = wave.name;
+        dom.objectiveText.textContent = wave.objective;
+      }
+
+      function spawnThreat(typeId, forcedNodeId, options = {}) {
+        const type = THREAT_TYPES[typeId];
+        if (!type) {
+          return null;
+        }
+        if (state.threatById.size >= 18) {
+          return null;
+        }
+
+        const nodeId = forcedNodeId || pickNodeForThreat(type);
+        const node = state.nodes.get(nodeId);
+        if (!node) {
+          return null;
+        }
+
+        const id = `threat-${state.nextThreatId++}`;
+        const waveScale = 1 + state.waveIndex * 0.09 + Math.random() * 0.14;
+        const hidden = options.hidden ?? Math.random() < type.hiddenChance;
+        const threat = {
+          id,
+          typeId,
+          nodeId,
+          hidden,
+          age: 0,
+          infectionRate: type.infectionRate * waveScale,
+          spreadTimer: Math.max(8.6, type.spreadBase - state.waveIndex * 0.25 + Math.random() * 1.4),
+          baseSpread: Math.max(8.6, type.spreadBase - state.waveIndex * 0.25),
+        };
+
+        state.threatById.set(id, threat);
+        node.threatIds.push(id);
+        node.exposure = clamp(node.exposure + 8, 0, 100);
+        node.infection = clamp(node.infection + 4 + state.waveIndex * 1.6, 0, 100);
+        node.flash = 1;
+
+        if (!options.silent) {
+          if (hidden) {
+            pushLog("Feed", `Weird telemetry just hit ${node.label}. Something is hiding there.`);
+          } else {
+            pushLog(type.label, `${type.blurb} at ${node.label}.`);
+          }
+        }
+        return threat;
+      }
+
+      function pickNodeForThreat(type) {
+        const candidates = Array.from(state.nodes.values()).filter((node) => type.categories.includes(node.category));
+        const weighted = candidates.map((node) => {
+          const defensePenalty = node.defenseAction === type.preferredAction && node.defenseTimer > 0 ? 0.48 : 1;
+          const quarantinePenalty = node.quarantined > 0 ? 0.38 : 1;
+          const pressure = 1 + node.infection / 42;
+          return {
+            value: node.id,
+            weight: Math.max(0.1, pressure * defensePenalty * quarantinePenalty),
+          };
+        });
+        return pickWeighted(weighted);
+      }
+
+      function attemptSpread(threat) {
+        const fromNode = state.nodes.get(threat.nodeId);
+        if (!fromNode || fromNode.quarantined > 0 || fromNode.infection < 34) {
+          return;
+        }
+
+        const neighbors = (adjacency[fromNode.id] || []).map((nodeId) => state.nodes.get(nodeId));
+        const viable = neighbors.filter((node) => node && node.quarantined <= 0);
+        if (!viable.length) {
+          return;
+        }
+
+        const target = pickWeighted(
+          viable.map((node) => {
+            const type = THREAT_TYPES[threat.typeId];
+            const defensePenalty = node.defenseAction === type.preferredAction && node.defenseTimer > 0 ? 0.5 : 1;
+            return {
+              value: node.id,
+              weight: (1 + node.exposure / 30 + node.infection / 50) * defensePenalty,
+            };
+          }),
+        );
+
+        const spawned = spawnThreat(threat.typeId, target, {
+          hidden: Math.random() < THREAT_TYPES[threat.typeId].hiddenChance * 0.9,
+          silent: true,
+        });
+        if (spawned) {
+          createPacket(fromNode.position, state.nodes.get(target).position, THREAT_TYPES[threat.typeId].accent);
+          pushLog(THREAT_TYPES[threat.typeId].label, `${fromNode.label} pushed pressure into ${state.nodes.get(target).label}.`);
+        }
+      }
+
+      function attemptAction(actionId) {
+        if (!state.running) {
+          return;
+        }
+        const action = ACTIONS[actionId];
+        if (!action) {
+          return;
+        }
+
+        if (actionId === "sweep") {
+          runSweep();
+          return;
+        }
+
+        const selected = state.nodes.get(state.selectedNodeId);
+        if (!selected) {
+          showToast("Pick a node first.");
+          return;
+        }
+
+        if (state.energy < action.cost) {
+          showToast("Not enough energy.");
+          return;
+        }
+
+        state.energy -= action.cost;
+        state.energyRegenTick = 0;
+        state.hintVisible = false;
+
+        switch (actionId) {
+          case "scan":
+            performScan(selected);
+            break;
+          case "quarantine":
+            performQuarantine(selected);
+            break;
+          default:
+            performFix(selected, actionId);
+            break;
+        }
+
+        renderHud();
+        renderSelectedPanel();
+      }
+
+      function performScan(node) {
+        let revealed = 0;
+        for (const threat of getNodeThreats(node.id)) {
+          if (threat.hidden) {
+            revealThreat(threat, `Scan found ${THREAT_TYPES[threat.typeId].label} in ${node.label}.`);
+            revealed += 1;
+          }
+        }
+        node.infection = clamp(node.infection - 10, 0, 100);
+        node.health = clamp(node.health + 5, 0, 100);
+        state.sweepCharge = clamp(state.sweepCharge + (revealed ? 14 : 8), 0, 100);
+        pushLog("Scan", revealed ? `${node.label} exposed ${revealed} hidden issue${revealed > 1 ? "s" : ""}.` : `${node.label} looks cleaner now.`);
+      }
+
+      function performQuarantine(node) {
+        node.quarantined = Math.max(node.quarantined, 13);
+        node.infection = clamp(node.infection - 15, 0, 100);
+        node.health = clamp(node.health + 4, 0, 100);
+
+        const nodeThreats = getNodeThreats(node.id);
+        if (nodeThreats.length) {
+          node.recommendedAction = primaryActionForNode(node);
+          node.recommendTimer = Math.max(node.recommendTimer, 8);
+        }
+
+        state.sweepCharge = clamp(state.sweepCharge + 8, 0, 100);
+        createPulse(node.position, "#ffd166", 1.5, 3.8, 0.7);
+        pushLog("Quarantine", `${node.label} is isolated. The outbreak cannot move through it as quickly.`);
+      }
+
+      function performFix(node, actionId) {
+        const preferred = node.recommendedAction && node.recommendTimer > 0 && node.recommendedAction === actionId;
+        const matchingThreats = getNodeThreats(node.id).filter(
+          (threat) => THREAT_TYPES[threat.typeId].preferredAction === actionId,
+        );
+
+        let removed = 0;
+        const removeLimit = preferred ? 2 : 1;
+        for (const threat of matchingThreats.slice(0, removeLimit)) {
+          removeThreat(threat);
+          removed += 1;
+        }
+
+        node.defenseAction = actionId;
+        node.defenseTimer = preferred ? 20 : 16;
+        node.infection = clamp(
+          node.infection - (removed ? 26 + removed * 12 : 12) - (preferred ? 8 : 0),
+          0,
+          100,
+        );
+        node.health = clamp(node.health + 10 + removed * 6, 0, 100);
+        state.sweepCharge = clamp(state.sweepCharge + 11 + removed * 4 + (preferred ? 4 : 0), 0, 100);
+
+        const categoryPreferred = CATEGORY_CONFIG[node.category].preferredAction === actionId;
+        if (!removed && categoryPreferred) {
+          node.infection = clamp(node.infection - 8, 0, 100);
+          node.health = clamp(node.health + 5, 0, 100);
+        }
+
+        createPulse(node.position, CATEGORY_CONFIG[node.category].color, 1.45, 3.3, 0.65);
+        if (removed) {
+          pushLog(ACTIONS[actionId].label, `${ACTIONS[actionId].label} landed on ${node.label} and removed ${removed} threat${removed > 1 ? "s" : ""}.`);
+        } else if (preferred) {
+          pushLog(ACTIONS[actionId].label, `atv-security marked ${ACTIONS[actionId].label} here. The node is stabilizing.`);
+        } else {
+          pushLog(ACTIONS[actionId].label, `${ACTIONS[actionId].label} hardened ${node.label}, but the biggest threat is still somewhere else.`);
+        }
+      }
+
+      function runSweep() {
+        if (state.sweepCharge < 100) {
+          showToast("Sweep charge is not full yet.");
+          return;
+        }
+
+        state.sweepCharge = 0;
+        state.sweepsUsed += 1;
+        state.sweepSlowdownTimer = 12;
+        state.hintVisible = false;
+
+        let revealed = 0;
+        let cleared = 0;
+        let marked = 0;
+        let hottestThreat = null;
+        let hottestScore = -1;
+
+        for (const node of state.nodes.values()) {
+          const nodeThreats = getNodeThreats(node.id);
+          for (const threat of nodeThreats) {
+            if (threat.hidden) {
+              revealThreat(threat, `atv-security surfaced ${THREAT_TYPES[threat.typeId].label} in ${node.label}.`);
+              revealed += 1;
+            }
+            const heat = node.infection + threat.infectionRate * 15;
+            if (heat > hottestScore) {
+              hottestScore = heat;
+              hottestThreat = threat;
+            }
+          }
+
+          if (nodeThreats.length) {
+            node.recommendedAction = primaryActionForNode(node);
+            node.recommendTimer = 12;
+            marked += 1;
+          }
+
+          node.infection = clamp(node.infection - 14, 0, 100);
+          node.health = clamp(node.health + 5, 0, 100);
+          createPulse(node.position, "#74f6ff", 1.5, 4.6, 0.9);
+        }
+
+        if (hottestThreat) {
+          removeThreat(hottestThreat);
+          cleared = 1;
+        }
+
+        createPulse([0, 0, 0], "#74f6ff", 2.6, 8.8, 0.75);
+        pushLog(
+          "atv-security",
+          `Sweep complete. Revealed ${revealed}, cleared ${cleared}, marked ${marked} hotspot${marked === 1 ? "" : "s"}.`,
+        );
+        showToast("Sweep complete. Hidden issues are exposed.");
+      }
+
+      function revealThreat(threat, reason) {
+        if (!threat.hidden) {
+          return;
+        }
+        threat.hidden = false;
+        if (reason) {
+          pushLog("Reveal", reason);
+        }
+      }
+
+      function removeThreat(threat) {
+        if (!threat || !state.threatById.has(threat.id)) {
+          return;
+        }
+        state.threatById.delete(threat.id);
+        const node = state.nodes.get(threat.nodeId);
+        if (node) {
+          node.threatIds = node.threatIds.filter((id) => id !== threat.id);
+          node.infection = clamp(node.infection - 18, 0, 100);
+          node.flash = 1;
+        }
+        state.threatsResolved += 1;
+      }
+
+      function primaryActionForNode(node) {
+        const visibleThreats = getNodeThreats(node.id).filter((threat) => !threat.hidden);
+        if (visibleThreats.length) {
+          const top = visibleThreats.sort(
+            (a, b) => THREAT_TYPES[b.typeId].infectionRate - THREAT_TYPES[a.typeId].infectionRate,
+          )[0];
+          return THREAT_TYPES[top.typeId].preferredAction;
+        }
+        return CATEGORY_CONFIG[node.category].preferredAction;
+      }
+
+      function getNodeThreats(nodeId) {
+        const node = state.nodes.get(nodeId);
+        if (!node) {
+          return [];
+        }
+        return node.threatIds
+          .map((id) => state.threatById.get(id))
+          .filter(Boolean)
+          .sort((a, b) => THREAT_TYPES[b.typeId].infectionRate - THREAT_TYPES[a.typeId].infectionRate);
+      }
+
+      function createPacket(fromPosition, toPosition, color) {
+        const material = new THREE.SpriteMaterial({
+          map: textures.packet,
+          color: new THREE.Color(color),
+          transparent: true,
+          opacity: 0.9,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const sprite = new THREE.Sprite(material);
+        sprite.scale.set(0.92, 0.42, 1);
+        const from = new THREE.Vector3(...fromPosition);
+        const to = new THREE.Vector3(...toPosition);
+        sprite.position.copy(from);
+        world.packetGroup.add(sprite);
+        state.packets.push({
+          sprite,
+          from,
+          to,
+          progress: 0,
+          speed: THREE.MathUtils.randFloat(0.82, 1.26),
+        });
+      }
+
+      function createPulse(position, color, startScale, endScale, opacity) {
+        const sprite = new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: textures.sweep,
+            color: new THREE.Color(color),
+            transparent: true,
+            opacity,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          }),
+        );
+        sprite.scale.set(startScale, startScale, 1);
+        sprite.position.copy(Array.isArray(position) ? new THREE.Vector3(...position) : new THREE.Vector3(...position));
+        world.pulseGroup.add(sprite);
+        state.pulses.push({
+          sprite,
+          age: 0,
+          life: 0.78,
+          startScale,
+          endScale,
+          opacity,
+        });
+      }
+
+      function maybeUpdateHover() {
+        if (dom.startOverlay.classList.contains("hidden") === false) {
+          return;
+        }
+        raycaster.setFromCamera(pointer, camera);
+        const hits = raycaster.intersectObjects(interactables, false);
+        state.hoverNodeId = hits.length ? hits[0].object.userData.nodeId : null;
+      }
+
+      function handlePointerMove(event) {
+        const rect = dom.canvas.getBoundingClientRect();
+        pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      }
+
+      function handleClick(event) {
+        if (!state.running) {
+          return;
+        }
+        const interactiveTarget = event.target.closest("button, .hud-panel, .overlay, .chip, .strip, .feed-panel");
+        if (interactiveTarget) {
+          return;
+        }
+
+        raycaster.setFromCamera(pointer, camera);
+        const hits = raycaster.intersectObjects(interactables, false);
+        if (!hits.length) {
+          return;
+        }
+        const nodeId = hits[0].object.userData.nodeId;
+        selectNode(nodeId);
+      }
+
+      function handleKeydown(event) {
+        if (event.repeat) {
+          return;
+        }
+        if (event.key === "Escape") {
+          toggleGuide(false);
+          return;
+        }
+        if (!dom.startOverlay.classList.contains("hidden")) {
+          if (event.key === "Enter") {
+            startGame();
+          }
+          return;
+        }
+        const key = event.key.toLowerCase();
+        if (key >= "1" && key <= "6") {
+          const map = {
+            1: "scan",
+            2: "quarantine",
+            3: "patch",
+            4: "rotate-secret",
+            5: "scope-mcp",
+            6: "harden-hook",
+          };
+          attemptAction(map[key]);
+        } else if (key === " ") {
+          event.preventDefault();
+          attemptAction("sweep");
+        } else if (key === "r") {
+          startGame();
+        } else if (key === "g") {
+          toggleGuide();
+        }
+      }
+
+      function selectNode(nodeId) {
+        state.selectedNodeId = nodeId;
+        state.hintVisible = false;
+        renderSelectedPanel();
+      }
+
+      function toggleGuide(force, instant = false) {
+        const next = typeof force === "boolean" ? force : !dom.guideDrawer.classList.contains("open");
+        dom.guideDrawer.classList.toggle("open", next);
+        const targetTransform = next ? "translateX(0)" : "translateX(calc(-100% - 18px))";
+        const previousTransition = dom.guideDrawer.style.transition;
+        dom.guideDrawer.style.transition = "none";
+        dom.guideDrawer.style.transform = targetTransform;
+        void dom.guideDrawer.offsetWidth;
+        requestAnimationFrame(() => {
+          dom.guideDrawer.style.transition = previousTransition;
+        });
+        dom.guideDrawer.setAttribute("aria-hidden", next ? "false" : "true");
+        dom.guideToggle.setAttribute("aria-expanded", next ? "true" : "false");
+      }
+
+      function renderHud() {
+        dom.status.integrityValue.textContent = `${Math.round(state.integrity)}%`;
+        dom.status.integrityFill.style.width = `${state.integrity}%`;
+
+        dom.status.outbreakValue.textContent = `${Math.round(state.outbreak)}%`;
+        dom.status.outbreakFill.style.width = `${state.outbreak}%`;
+
+        dom.status.energyValue.textContent = `${state.energy} / ${state.maxEnergy}`;
+        dom.status.energyFill.style.width = `${(state.energy / state.maxEnergy) * 100}%`;
+
+        dom.status.sweepValue.textContent = `${Math.round(state.sweepCharge)}%`;
+        dom.status.sweepFill.style.width = `${state.sweepCharge}%`;
+
+        const wave = WAVES[state.waveIndex];
+        dom.status.timerValue.textContent = `${Math.ceil(state.waveTimer)}s`;
+        dom.status.timerFill.style.width = `${(state.waveTimer / wave.duration) * 100}%`;
+
+        dom.restartTop.textContent = state.running ? "Restart" : "Start drill";
+        dom.restartTop.setAttribute("aria-label", state.running ? "Restart drill" : "Start drill");
+
+        dom.hint.classList.toggle("hidden", !state.hintVisible || !state.running);
+
+        dom.feedList.innerHTML = state.logs
+          .slice(0, 6)
+          .map(
+            (item) =>
+              `<li><span class="stamp">${item.stamp}</span><span>${item.text}</span></li>`,
+          )
+          .join("");
+
+        const sweepButton = dom.actionButtons.find((button) => button.dataset.action === "sweep");
+        if (sweepButton) {
+          sweepButton.disabled = state.sweepCharge < 100 || !state.running;
+          sweepButton.classList.toggle("recommended", state.sweepCharge >= 100);
+        }
+      }
+
+      function renderSelectedPanel() {
+        const node = state.nodes.get(state.selectedNodeId) || state.nodes.get("app");
+        const threats = getNodeThreats(node.id);
+        const visibleThreats = threats.filter((threat) => !threat.hidden);
+        const hiddenThreats = threats.filter((threat) => threat.hidden);
+        const category = CATEGORY_CONFIG[node.category];
+        const recommendedAction = node.recommendedAction && node.recommendTimer > 0 ? node.recommendedAction : primaryActionForNode(node);
+
+        dom.selected.name.textContent = node.label;
+        dom.selected.badge.textContent = category.label;
+        dom.selected.badge.style.borderColor = `${category.color}55`;
+        dom.selected.health.textContent = `${Math.round(node.health)}%`;
+        dom.selected.heat.textContent = `${Math.round(node.infection)}%`;
+        dom.selected.threatCount.textContent = String(visibleThreats.length);
+        dom.selected.status.textContent = summarizeNode(node, visibleThreats.length, hiddenThreats.length);
+        dom.selected.blurb.textContent = node.blurb;
+
+        const coach = ACTIONS[recommendedAction];
+        dom.selected.coach.innerHTML = `<strong>Best move:</strong> ${coach.label}. ${coach.coach}`;
+
+        if (visibleThreats.length || hiddenThreats.length) {
+          const items = [
+            ...visibleThreats.map((threat) => `<li>${THREAT_TYPES[threat.typeId].label} - ${THREAT_TYPES[threat.typeId].blurb}</li>`),
+            ...hiddenThreats.map(
+              () => `<li class="threat-hidden">Hidden signal - Scan or sweep to learn what it really is.</li>`,
+            ),
+          ];
+          dom.selected.threats.innerHTML = `<strong>Threats in this node</strong><ul class="threat-list">${items.join("")}</ul>`;
+        } else {
+          dom.selected.threats.innerHTML = "<strong>No active threat here.</strong>";
+        }
+
+        dom.actionButtons.forEach((button) => {
+          const actionId = button.dataset.action;
+          if (actionId === "sweep") {
+            return;
+          }
+          const action = ACTIONS[actionId];
+          button.disabled = !state.running || state.energy < action.cost;
+          button.classList.toggle("recommended", recommendedAction === actionId && state.running);
+        });
+      }
+
+      function renderLabels() {
+        const width = dom.canvas.clientWidth;
+        const height = dom.canvas.clientHeight;
+        for (const [nodeId, visual] of nodeVisuals.entries()) {
+          const node = state.nodes.get(nodeId);
+          reusableVector.copy(visual.group.position).add(hoverLift).project(camera);
+          const visible = reusableVector.z < 1;
+          visual.label.style.display = visible ? "block" : "none";
+          if (!visible) {
+            continue;
+          }
+          const x = (reusableVector.x * 0.5 + 0.5) * width;
+          const y = (-reusableVector.y * 0.5 + 0.5) * height;
+          visual.label.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+          visual.label.classList.toggle("selected", state.selectedNodeId === nodeId);
+          visual.label.classList.toggle("critical", node.infection >= 62);
+          visual.label.querySelector(".name").textContent = node.label;
+          const visibleThreats = getNodeThreats(nodeId).filter((threat) => !threat.hidden).length;
+          const quarantineTag = node.quarantined > 0 ? "quarantined" : visibleThreats ? `${visibleThreats} live` : "watching";
+          visual.label.querySelector(".meta").textContent = `${Math.round(node.infection)}% hot - ${quarantineTag}`;
+        }
+      }
+
+      function updateVisuals(now) {
+        const t = now - state.startedAt;
+
+        for (const edge of edgeVisuals) {
+          const fromNode = state.nodes.get(edge.fromId);
+          const toNode = state.nodes.get(edge.toId);
+          const pressure = Math.max(fromNode.infection, toNode.infection) / 100;
+          const color = new THREE.Color("#2f6d89").lerp(palette.hot, pressure * 0.65);
+          edge.line.material.color.copy(color);
+          edge.line.material.opacity = 0.24 + pressure * 0.48 + (state.sweepSlowdownTimer > 0 ? 0.08 : 0);
+        }
+
+        for (const [nodeId, visual] of nodeVisuals.entries()) {
+          const node = state.nodes.get(nodeId);
+          const dangerT = node.infection / 100;
+          const baseColor = new THREE.Color(CATEGORY_CONFIG[node.category].color);
+          const ringColor = baseColor.clone().lerp(palette.hot, dangerT * 0.95);
+
+          if (node.quarantined > 0) {
+            ringColor.lerp(palette.warn, 0.42);
+          }
+          if (node.defenseTimer > 0) {
+            ringColor.lerp(palette.shield, 0.28);
+          }
+          if (state.selectedNodeId === nodeId) {
+            ringColor.lerp(palette.white, 0.22);
+          }
+          if (state.hoverNodeId === nodeId && state.selectedNodeId !== nodeId) {
+            ringColor.lerp(palette.white, 0.12);
+          }
+
+          const pulse = Math.sin(t * 2.4 + visual.group.position.x * 0.35 + visual.group.position.y * 0.21) * 0.06;
+          const flashBoost = node.flash * 0.45;
+          visual.ring.material.color.copy(ringColor);
+          visual.ring.material.opacity = 0.54 + dangerT * 0.22 + flashBoost * 0.15;
+          visual.ring.scale.setScalar(2.2 + pulse + dangerT * 0.35 + flashBoost * 0.18 + (state.selectedNodeId === nodeId ? 0.12 : 0));
+
+          visual.glow.material.color.copy(baseColor.clone().lerp(palette.hot, dangerT * 0.8));
+          visual.glow.material.opacity = 0.12 + dangerT * 0.22 + flashBoost * 0.1 + (node.recommendTimer > 0 ? 0.08 : 0);
+          visual.glow.scale.setScalar(3.2 + pulse * 0.8 + dangerT * 0.4);
+
+          visual.core.material.color.setRGB(1, 1 - dangerT * 0.08, 1 - dangerT * 0.18);
+          visual.core.scale.setScalar(1.58 + pulse * 0.4 + flashBoost * 0.09 + (state.selectedNodeId === nodeId ? 0.06 : 0));
+        }
+
+        world.backgroundGroup.rotation.z += 0.0005;
+      }
+
+      function summarizeNode(node, visibleCount, hiddenCount) {
+        if (node.health <= 20 || node.infection >= 78) {
+          return "Critical";
+        }
+        if (node.quarantined > 0) {
+          return "Quarantined";
+        }
+        if (visibleCount > 0) {
+          return "Under attack";
+        }
+        if (hiddenCount > 0) {
+          return "Suspicious";
+        }
+        if (node.defenseTimer > 0) {
+          return "Hardened";
+        }
+        return "Calm";
+      }
+
+      function pushLog(stamp, text) {
+        state.logs.unshift({ stamp, text });
+        state.logs = state.logs.slice(0, 12);
+      }
+
+      function showToast(text) {
+        state.toastText = text;
+        state.toastUntil = performance.now() * 0.001 + 2.4;
+        dom.toast.textContent = text;
+        dom.toast.classList.add("visible");
+      }
+
+      function updateToast(now) {
+        if (state.toastUntil && now >= state.toastUntil) {
+          dom.toast.classList.remove("visible");
+          state.toastUntil = 0;
+        }
+      }
+
+      function pickRandom(values) {
+        return values[Math.floor(Math.random() * values.length)];
+      }
+
+      function pickWeighted(weightedItems) {
+        const total = weightedItems.reduce((sum, item) => sum + item.weight, 0);
+        let cursor = Math.random() * total;
+        for (const item of weightedItems) {
+          cursor -= item.weight;
+          if (cursor <= 0) {
+            return item.value;
+          }
+        }
+        return weightedItems[weightedItems.length - 1].value;
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+    </script>
+  </body>
+</html>

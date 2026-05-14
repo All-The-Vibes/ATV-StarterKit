@@ -37,7 +37,7 @@ These local branches have been deleted from the remote:
 Delete all of them? (y/n)
 ```
 
-Wait for the user's answer using the platform's question tool (e.g., `AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini). If no question tool is available, present the list and wait for the user's reply before proceeding.
+Wait for the user's answer using the platform's question tool (e.g., `ask_user` in Copilot CLI). If no question tool is available, present the list and wait for the user's reply before proceeding.
 
 This is a yes-or-no decision on the entire list -- do not offer multi-selection or per-branch choices.
 

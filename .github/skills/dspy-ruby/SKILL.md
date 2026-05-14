@@ -662,7 +662,7 @@ end
 - GitHub: https://github.com/vicentereig/dspy.rb
 - Documentation: https://oss.vicente.services/dspy.rb/getting-started/
 
-## Guidelines for Claude
+## Guidelines for Copilot
 
 When helping users with DSPy.rb:
 

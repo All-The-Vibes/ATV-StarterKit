@@ -118,7 +118,7 @@ If the gate does not fire, proceed to step 4. The common case (first review roun
 
 ### 4. Plan
 
-Create a task list of all **new** unresolved items grouped by type (e.g., `TaskCreate` in Claude Code, `update_plan` in Codex):
+Create a task list of all **new** unresolved items grouped by type (e.g., `TaskCreate` in Copilot CLI, `update_plan` in Codex):
 - Code changes requested
 - Questions to answer
 - Style/convention fixes
@@ -322,7 +322,7 @@ Still pending from a previous run (count):
 
 If a blocking question tool is available, use it to ask about all pending decisions (both new `needs-human` and previous-run pending) together. If there are only pending decisions and no new work was done, the summary is just the pending items.
 
-If a blocking question tool is available (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini), use it to present the decisions and wait for the user's response. After they decide, process the remaining items: fix the code, compose the reply, post it, and resolve the thread.
+If a blocking question tool is available (`ask_user` in Copilot CLI), use it to present the decisions and wait for the user's response. After they decide, process the remaining items: fix the code, compose the reply, post it, and resolve the thread.
 
 If no question tool is available, present the decisions in the summary output and wait for the user to respond in conversation. If they don't respond, the items remain open on the PR for later handling.
 

@@ -59,7 +59,7 @@ All tokens are optional. Each one present means one less thing to infer. When ab
 
 ### Headless mode rules
 
-- **Skip all user questions.** Never use the platform question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini) or other interactive prompts. Infer intent conservatively if the diff metadata is thin.
+- **Skip all user questions.** Never use the platform question tool (`ask_user` in Copilot CLI) or other interactive prompts. Infer intent conservatively if the diff metadata is thin.
 - **Require a determinable diff scope.** If headless mode cannot determine a diff scope (no branch, PR, or `base:` ref determinable without user interaction), emit `Review failed (headless mode). Reason: no diff scope detected. Re-invoke with a branch name, PR number, or base:<ref>.` and stop without dispatching agents.
 - **Apply only `safe_auto -> review-fixer` findings in a single pass.** No bounded re-review rounds. Leave `gated_auto`, `manual`, `human`, and `release` work unresolved and return them in the structured output.
 - **Return all non-auto findings as structured text output.** Use the headless output envelope format (see Stage 6 below) preserving severity, autofix_class, owner, requires_verification, confidence, evidence[], and pre_existing per finding.
@@ -110,7 +110,7 @@ Routing rules:
 | `compound-engineering:review:correctness-reviewer` | Logic errors, edge cases, state bugs, error propagation |
 | `compound-engineering:review:testing-reviewer` | Coverage gaps, weak assertions, brittle tests |
 | `compound-engineering:review:maintainability-reviewer` | Coupling, complexity, naming, dead code, abstraction debt |
-| `compound-engineering:review:project-standards-reviewer` | CLAUDE.md and AGENTS.md compliance -- frontmatter, references, naming, portability |
+| `compound-engineering:review:project-standards-reviewer` | AGENTS.md compliance -- frontmatter, references, naming, portability |
 | `compound-engineering:review:agent-native-reviewer` | Verify new features are agent-accessible |
 | `compound-engineering:research:learnings-researcher` | Search docs/solutions/ for past issues related to this PR |
 
@@ -316,7 +316,7 @@ Pass this to every reviewer in their spawn prompt. Intent shapes *how hard each 
 
 **When intent is ambiguous:**
 
-- **Interactive mode:** Ask one question using the platform's interactive question tool (AskUserQuestion in Claude Code, request_user_input in Codex): "What is the primary goal of these changes?" Do not spawn reviewers until intent is established.
+- **Interactive mode:** Ask one question using the platform's interactive question tool (AskUserQuestion in Copilot CLI, request_user_input in Codex): "What is the primary goal of these changes?" Do not spawn reviewers until intent is established.
 - **Autofix/report-only/headless modes:** Infer intent conservatively from the branch name, diff, PR metadata, and caller context. Note the uncertainty in Coverage or Verdict reasoning instead of blocking.
 
 ### Stage 2b: Plan discovery (requirements verification)
@@ -368,7 +368,7 @@ This is progress reporting, not a blocking confirmation.
 
 Before spawning sub-agents, find the file paths (not contents) of all relevant standards files for the `project-standards` persona. Use the native file-search/glob tool to locate:
 
-1. Use the native file-search tool (e.g., Glob in Claude Code) to find all `**/claude.md` and `**/agents.md` in the repo.
+1. Use the native file-search tool (the glob tool) to find all `**/AGENTS.md` files in the repo.
 2. Filter to those whose directory is an ancestor of at least one changed file. A standards file governs all files below it (e.g., `plugins/compound-engineering/AGENTS.md` applies to everything under `plugins/compound-engineering/`).
 
 Pass the resulting path list to the `project-standards` persona inside a `<standards-paths>` block in its review context (see Stage 4). The persona reads the files itself, targeting only the sections relevant to the changed file types. This keeps the orchestrator's work cheap (path discovery only) and avoids bloating the subagent prompt with content the reviewer may not fully need.
@@ -379,7 +379,7 @@ Pass the resulting path list to the `project-standards` persona inside a `<stand
 
 Persona sub-agents do focused, scoped work and should use cheaper/faster models to reduce cost and latency. The orchestrator itself stays on the default (most capable) model.
 
-Use the platform's cheapest capable model for all persona and CE sub-agents. In Claude Code, pass `model: "haiku"` in the Agent tool call. On other platforms, use the equivalent fast/cheap tier (e.g., `gpt-4o-mini` in Codex). If the platform has no model override mechanism or the available model names are unknown, omit the model parameter and let agents inherit the default -- a working review on the parent model is better than a broken dispatch from an unrecognized model name.
+Use the platform's cheapest capable model for all persona and CE sub-agents. In Copilot CLI, pass `model: "haiku"` in the Agent tool call. On other platforms, use the equivalent fast/cheap tier (e.g., `gpt-4o-mini` in Codex). If the platform has no model override mechanism or the available model names are unknown, omit the model parameter and let agents inherit the default -- a working review on the parent model is better than a broken dispatch from an unrecognized model name.
 
 CE always-on agents (agent-native-reviewer, learnings-researcher) and CE conditional agents (schema-drift-detector, deployment-verification-agent) also use the cheaper model tier since they perform scoped, focused work.
 
@@ -568,7 +568,7 @@ After presenting findings and verdict (Stage 6), route the next steps by mode. R
 **Interactive mode**
 
 - Apply `safe_auto -> review-fixer` findings automatically without asking. These are safe by definition.
-- Ask a policy question **using the platform's blocking question tool** (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini) only when `gated_auto` or `manual` findings remain after safe fixes. Do not replace with a conversational open-ended question. Adapt the options to match what actually remains:
+- Ask a policy question **using the platform's blocking question tool** (`ask_user` in Copilot CLI) only when `gated_auto` or `manual` findings remain after safe fixes. Do not replace with a conversational open-ended question. Adapt the options to match what actually remains:
 
   **When `gated_auto` findings are present** (with or without `manual`):
   ```

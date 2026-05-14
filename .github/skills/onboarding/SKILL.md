@@ -48,7 +48,7 @@ Guided by the inventory, read files that are essential for understanding the cod
 
 **What to read and why:**
 
-Read files in parallel batches where there are no dependencies between them. For example, batch README.md, entry points, and AGENTS.md/CLAUDE.md together in a single turn since none depend on each other's content.
+Read files in parallel batches where there are no dependencies between them. For example, batch README.md, entry points, and AGENTS.md together in a single turn since none depend on each other's content.
 
 Only read files whose content is needed to write the six sections with concrete, specific detail. The inventory already provides structure, languages, frameworks, scripts, and entry point paths -- don't re-read files just to confirm what the inventory already says. Different repos need different amounts of reading; a small CLI tool might need 4 files, a complex monorepo might need 20. Let the sections drive what you read, not an arbitrary count.
 
@@ -58,7 +58,7 @@ Only read files whose content is needed to write the six sections with concrete,
 2. **Primary entry points** -- the files listed in `entryPoints` from the inventory. These reveal what the application does when it starts.
 3. **Route/controller files** -- look for `routes/`, `app/controllers/`, `src/routes/`, `src/api/`, or similar directories from the inventory structure. Read the main route file to understand the primary flow.
 4. **Configuration files that reveal architecture and external dependencies** -- `docker-compose.yml`, `.env.example`, `.env.sample`, database config, `next.config.*`, `vite.config.*`, or similar. Only read these if they exist in the inventory. **Never read `.env` itself** -- only `.env.example` or `.env.sample` templates. Extract variable names only, never values.
-5. **AGENTS.md or CLAUDE.md** (if exists) -- for project conventions and patterns already documented.
+5. **AGENTS.md** (if exists) -- for project conventions and patterns already documented.
 6. **Discovered documentation** -- the inventory's `docs` list includes each file's title (first heading). Use those titles to decide which docs are relevant to the five sections without reading them first. Only read the full content of docs whose titles indicate direct relevance. Skip dated brainstorm/plan files unless the focus hint specifically calls for them.
 
 Do not read files speculatively. Every file read should be justified by the inventory output and traceable to a section that needs it.
@@ -385,7 +385,7 @@ Write the file to the repo root as `ONBOARDING.md`.
 
 ### Phase 5: Present Result
 
-After writing, inform the user that `ONBOARDING.md` has been generated. Offer next steps using the platform's blocking question tool when available (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini). Otherwise, present numbered options in chat.
+After writing, inform the user that `ONBOARDING.md` has been generated. Offer next steps using the platform's blocking question tool when available (`ask_user` in Copilot CLI). Otherwise, present numbered options in chat.
 
 Options:
 1. Open the file for review

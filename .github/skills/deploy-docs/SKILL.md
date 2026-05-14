@@ -18,8 +18,8 @@ echo "Agents: $(ls plugins/compound-engineering/agents/*.md | wc -l)"
 echo "Skills: $(ls -d plugins/compound-engineering/skills/*/ 2>/dev/null | wc -l)"
 
 # Validate JSON
-cat .claude-plugin/marketplace.json | jq . > /dev/null && echo "✓ marketplace.json valid"
-cat plugins/compound-engineering/.claude-plugin/plugin.json | jq . > /dev/null && echo "✓ plugin.json valid"
+cat .github/plugin/marketplace.json | jq . > /dev/null && echo "✓ marketplace.json valid"
+cat plugins/atv-everything/plugin.json | jq . > /dev/null && echo "✓ plugin.json valid"
 
 # Check all HTML files exist
 for page in index agents commands skills mcp-servers changelog getting-started; do

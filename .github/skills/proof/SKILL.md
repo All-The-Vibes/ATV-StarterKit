@@ -100,7 +100,7 @@ All operations go to `POST https://www.proofeditor.ai/api/agent/{slug}/ops`
 Requires Proof.app running. Bridge at `http://localhost:9847`.
 
 **Required headers:**
-- `X-Agent-Id: claude` (identity for presence)
+- `X-Agent-Id: copilot` (identity for presence)
 - `Content-Type: application/json`
 - `X-Window-Id: <uuid>` (when multiple docs open)
 

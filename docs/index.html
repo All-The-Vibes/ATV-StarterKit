@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ATV Security Outbreak</title>
+  <meta name="description" content="ATV Security Outbreak GitHub Pages entry point.">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #04111b;
+      --panel: rgba(7, 20, 33, 0.94);
+      --line: rgba(120, 206, 255, 0.2);
+      --text: #edf7ff;
+      --muted: #9ab8cb;
+      --accent: #5cbcff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(92, 188, 255, 0.14), transparent 38%),
+        linear-gradient(180deg, #061520, var(--bg));
+      color: var(--text);
+    }
+
+    main {
+      width: min(560px, 100%);
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      line-height: 1.05;
+    }
+
+    p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      background: rgba(10, 29, 46, 0.85);
+    }
+
+    a.primary {
+      background: linear-gradient(180deg, #1d77c3, #145389);
+      border-color: rgba(143, 214, 255, 0.35);
+    }
+
+    code {
+      font-family: Consolas, "SFMono-Regular", monospace;
+      color: #9fe2ff;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>ATV Security Outbreak</h1>
+    <p>Launching the static demo. The root GitHub Pages URL forwards to the playable game and preserves any query flags such as <code>guide=1</code>.</p>
+    <div class="actions">
+      <a class="primary" id="play-link" href="./demos/atv-security-outbreak.html?autostart=1&amp;freeze=1">Open game</a>
+      <a id="guide-link" href="./demos/atv-security-outbreak.html?autostart=1&amp;freeze=1&amp;guide=1">Open guide view</a>
+    </div>
+  </main>
+  <script>
+    const gameUrl = new URL("./demos/atv-security-outbreak.html", window.location.href);
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("autostart")) params.set("autostart", "1");
+    if (!params.has("freeze")) params.set("freeze", "1");
+    gameUrl.search = params.toString();
+
+    const playLink = document.getElementById("play-link");
+    const guideLink = document.getElementById("guide-link");
+    playLink.href = gameUrl.toString();
+
+    const guideParams = new URLSearchParams(params);
+    guideParams.set("guide", "1");
+    const guideUrl = new URL(gameUrl.toString());
+    guideUrl.search = guideParams.toString();
+    guideLink.href = guideUrl.toString();
+
+    window.location.replace(gameUrl.toString());
+  </script>
+</body>
+</html>

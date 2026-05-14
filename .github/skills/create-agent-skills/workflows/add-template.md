@@ -24,7 +24,7 @@ If not a good fit, suggest alternatives (workflow guidance, reference examples).
 ## Step 3: Create Templates Directory
 
 ```bash
-mkdir -p ~/.claude/skills/{skill-name}/templates
+mkdir -p .github/skills/{skill-name}/templates
 ```
 
 ## Step 4: Design Template Structure

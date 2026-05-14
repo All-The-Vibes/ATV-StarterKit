@@ -18,7 +18,7 @@ The agent runs as a long-lived process that responds to events. Events become pr
 ┌─────────────────────────────────────────────────────────────┐
 │                    Agent Loop                                │
 ├─────────────────────────────────────────────────────────────┤
-│  Event Source → Agent (Claude) → Tool Calls → Response      │
+│  Event Source → Agent (Copilot) → Tool Calls → Response      │
 └─────────────────────────────────────────────────────────────┘
                           │
           ┌───────────────┼───────────────┐

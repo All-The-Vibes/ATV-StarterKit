@@ -1,0 +1,30 @@
+{
+  "name": "atv-starter-kit",
+  "owner": {
+    "name": "All The Vibes",
+    "url": "https://github.com/All-The-Vibes"
+  },
+  "metadata": {
+    "description": "Curated VS Code source-install catalog for ATV Starter Kit.",
+    "version": "2.6.3"
+  },
+  "plugins": [
+    {
+      "name": "atv-starter-kit",
+      "description": "ATV Starter Kit for VS Code: all ATV skills and reviewer/specialist agents in one personal install.",
+      "author": {
+        "name": "All The Vibes",
+        "url": "https://github.com/All-The-Vibes"
+      },
+      "homepage": "https://github.com/All-The-Vibes/ATV-StarterKit",
+      "tags": [
+        "atv",
+        "starter-kit",
+        "vscode",
+        "skills",
+        "agents"
+      ],
+      "source": "./plugins/atv-everything"
+    }
+  ]
+}

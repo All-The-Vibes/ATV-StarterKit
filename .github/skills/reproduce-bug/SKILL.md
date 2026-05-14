@@ -14,7 +14,7 @@ Fetch and analyze the bug report to extract structured information before touchi
 
 ### Fetch the issue
 
-If no issue number or URL was provided as an argument, ask the user for one before proceeding (using the platform's question tool -- e.g., `AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini -- or present a prompt and wait for a reply).
+If no issue number or URL was provided as an argument, ask the user for one before proceeding (using the platform's question tool -- e.g., `ask_user` in Copilot CLI -- or present a prompt and wait for a reply).
 
 ```bash
 gh issue view $ARGUMENTS --json title,body,comments,labels,assignees
@@ -40,7 +40,7 @@ Before running anything, form theories about the root cause. This focuses the in
 
 ### Search for relevant code
 
-Use the native content-search tool (e.g., Grep in Claude Code) to find code paths related to the reported symptoms. Search for:
+Use the native content-search tool (the grep tool) to find code paths related to the reported symptoms. Search for:
 
 - Error messages or strings mentioned in the issue
 - Feature names, route paths, or UI labels described in the report
@@ -64,7 +64,7 @@ Attempt to trigger the bug. The reproduction strategy depends on the bug type.
 
 Write or find an existing test that exercises the suspected code path:
 
-1. Search for existing test files covering the affected code using the native file-search tool (e.g., Glob in Claude Code)
+1. Search for existing test files covering the affected code using the native file-search tool (the glob tool)
 2. Run existing tests to see if any already fail
 3. If no test covers the scenario, write a minimal failing test that demonstrates the reported behavior
 4. A failing test that matches the reported symptoms confirms the bug
@@ -82,7 +82,7 @@ agent-browser snapshot -i
 
 If the server is not running, ask the user to start their development server and provide the correct port.
 
-To detect the correct port, check project instruction files (`AGENTS.md`, `CLAUDE.md`) for port references, then `package.json` dev scripts, then `.env` files, falling back to `3000`.
+To detect the correct port, check project instruction files (`AGENTS.md`) for port references, then `package.json` dev scripts, then `.env` files, falling back to `3000`.
 
 #### Follow reproduction steps
 
@@ -111,7 +111,7 @@ When the bug is reproduced:
 For bugs that require specific data conditions, user roles, external service state, or cannot be automated:
 
 1. Document what conditions are needed
-2. Ask the user (using the platform's question tool -- e.g., `AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini -- or present options and wait for a reply) whether they can set up the required conditions
+2. Ask the user (using the platform's question tool -- e.g., `ask_user` in Copilot CLI -- or present options and wait for a reply) whether they can set up the required conditions
 3. Guide them through manual reproduction steps if needed
 
 ### If reproduction fails

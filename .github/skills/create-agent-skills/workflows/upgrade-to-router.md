@@ -10,7 +10,7 @@
 ## Step 1: Select the Skill
 
 ```bash
-ls ~/.claude/skills/
+ls .github/skills/
 ```
 
 Present numbered list, ask: "Which skill should be upgraded to the router pattern?"
@@ -19,8 +19,8 @@ Present numbered list, ask: "Which skill should be upgraded to the router patter
 
 Read the skill:
 ```bash
-cat ~/.claude/skills/{skill-name}/SKILL.md
-ls ~/.claude/skills/{skill-name}/
+cat .github/skills/{skill-name}/SKILL.md
+ls .github/skills/{skill-name}/
 ```
 
 **Already a router?** (has workflows/ and intake question)
@@ -65,8 +65,8 @@ Ask: "Does this breakdown look right? Any adjustments?"
 ## Step 4: Create Directory Structure
 
 ```bash
-mkdir -p ~/.claude/skills/{skill-name}/workflows
-mkdir -p ~/.claude/skills/{skill-name}/references
+mkdir -p .github/skills/{skill-name}/workflows
+mkdir -p .github/skills/{skill-name}/references
 ```
 
 ## Step 5: Extract Workflows

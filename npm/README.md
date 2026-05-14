@@ -95,6 +95,7 @@ Use gstack's browser skills when you want a higher-level QA workflow; use `agent
 | 4 | Skills | `.github/skills/*/SKILL.md` |
 | 5 | Agents | `.github/agents/*.agent.md` |
 | 6 | File Instructions | `.github/*.instructions.md` |
+| 7 | Prompt Shims | `.github/prompts/*.prompt.md` (VS Code Copilot Chat slash commands) |
 
 Plus: `.vscode/extensions.json` and `docs/` structure.
 

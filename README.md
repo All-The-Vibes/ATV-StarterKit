@@ -20,7 +20,7 @@
        <a href="https://blazingbeard.github.io/quests/atv-starterkit.html">🎮 Training Quest</a>
 </p>
 
-<video src="https://github.com/user-attachments/assets/7b6bf18a-2bab-482b-a72d-fac9ab7436c2" width="100%" autoplay loop muted playsinline controls></video>
+https://github.com/user-attachments/assets/7b6bf18a-2bab-482b-a72d-fac9ab7436c2
 
 ---
 
@@ -63,16 +63,16 @@ Install for your project (see the OS-specific sections below for the exact comma
 
 ## Installation
 
-ATV ships in **two flavours** — pick whichever matches your need (or use both):
+ATV ships in **three flavours** — pick whichever matches your need (or combine them):
 
-| | `npx atv-starterkit init` | Copilot CLI marketplace |
-|---|---|---|
-| **Files land in** | Your project's `.github/`, `.vscode/`, `docs/` | `~/.copilot/installed-plugins/` |
-| **Scope** | Project-level, committed, team-shared | Personal, follows you across projects |
-| **What ships** | Skills + agents + MCP + hooks + instructions + setup-steps + docs | Skills + agents only |
-| **Best for** | Bootstrapping a new repo, codifying team workflow | Personal cross-project skills |
+| | `npx atv-starterkit init` | VS Code source install | Copilot CLI marketplace |
+|---|---|---|---|
+| **Files land in** | Your project's `.github/`, `.vscode/`, `docs/` | VS Code AgentPlugin directory | `~/.copilot/installed-plugins/` |
+| **Scope** | Project-level, committed, team-shared | Personal, editor-level | Personal, follows you across CLI projects |
+| **What ships** | Skills + agents + MCP + hooks + instructions + setup-steps + docs | One complete ATV skills + agents bundle | Skills + agents only |
+| **Best for** | Bootstrapping a new repo, codifying team workflow | VS Code Copilot users who want one obvious install choice | CLI users who want bundles or granular skills |
 
-The marketplace path ships skills + agents only. For MCP config, hooks, instructions templates, and docs scaffolding use the npm/binary path.
+The VS Code source-install path gives one complete ATV option. The Copilot CLI marketplace keeps category bundles and per-skill plugins for CLI users. Both personal paths can coexist with the project scaffold. For MCP config, hooks, instructions templates, and docs scaffolding use the npm/binary path.
 
 ### Install — macOS / Linux
 
@@ -91,8 +91,10 @@ atv-starterkit init
 
 # Personal install via Copilot CLI marketplace (cross-project)
 copilot plugin marketplace add All-The-Vibes/ATV-StarterKit
-copilot plugin install atv-everything@atv-starter-kit
+copilot plugin install atv-starter-kit@atv-starter-kit
 ```
+
+For the VS Code source-install path: open the Command Palette → `Chat: Install Plugin from source` → enter `All-The-Vibes/ATV-StarterKit` → choose `atv-starter-kit`.
 
 The npm package downloads the correct platform binary from [GitHub Releases](https://github.com/All-The-Vibes/ATV-StarterKit/releases) — no Go toolchain needed. You can also grab a pre-built binary directly for macOS or Linux (amd64/arm64) from the [latest release](https://github.com/All-The-Vibes/ATV-StarterKit/releases/latest), or build from source:
 
@@ -118,8 +120,10 @@ atv-starterkit init
 
 # Personal install via Copilot CLI marketplace
 copilot plugin marketplace add All-The-Vibes/ATV-StarterKit
-copilot plugin install atv-everything@atv-starter-kit
+copilot plugin install atv-starter-kit@atv-starter-kit
 ```
+
+For the VS Code source-install path: open the Command Palette → `Chat: Install Plugin from source` → enter `All-The-Vibes/ATV-StarterKit` → choose `atv-starter-kit`.
 
 Pre-built Windows binaries (amd64/arm64) are on the [latest release](https://github.com/All-The-Vibes/ATV-StarterKit/releases/latest) page.
 
@@ -224,7 +228,7 @@ Each phase has skills for it; the table shows where each lives. Slash commands r
                      <code>/unslop</code><br />
                      <code>/gstack-retro</code><br />
                      <code>/atv-doctor</code> <sub>— diagnose install drift</sub><br />
-                     <code>/atv-update</code> <sub>— self-update ATV</sub>
+                     <code>/atv-update</code> <sub>— update marketplace plugins + safe source-installed AgentPlugins</sub>
               </td>
        </tr>
 </table>

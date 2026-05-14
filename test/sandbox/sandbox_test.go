@@ -624,6 +624,22 @@ func TestE2EFullGuidedInstallLifecycle(t *testing.T) {
 		assertFileExists(t, filepath.Join(root, ".github", "rails.instructions.md"))
 	})
 
+	t.Run("hook7_prompt_shims", func(t *testing.T) {
+		promptsDir := filepath.Join(root, ".github", "prompts")
+		assertDirExists(t, promptsDir)
+		// Core-skill shims
+		for _, name := range []string{"ce-plan", "ce-work", "ce-review", "takeoff", "land", "learn"} {
+			assertFileExists(t, filepath.Join(promptsDir, name+".prompt.md"))
+		}
+		// Orchestrator shim — selectedLayers includes "orchestrators"
+		assertFileExists(t, filepath.Join(promptsDir, "lfg.prompt.md"))
+		// Sub-skill must NOT be shimmed (not user-facing)
+		nonUserFacing := filepath.Join(promptsDir, "document-review.prompt.md")
+		if _, err := os.Stat(nonUserFacing); err == nil {
+			t.Errorf("non-user-facing skill document-review should not have a prompt shim, got %s", nonUserFacing)
+		}
+	})
+
 	t.Run("vscode_extensions", func(t *testing.T) {
 		path := filepath.Join(root, ".vscode", "extensions.json")
 		assertFileExists(t, path)

@@ -14,7 +14,7 @@ This workflow produces a durable implementation plan. It does **not** implement 
 
 ## Interaction Method
 
-Use the platform's question tool when available. When asking the user a question, prefer the platform's blocking question tool if one exists (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_user` in Gemini). Otherwise, present numbered options in chat and wait for the user's reply before proceeding.
+Use the platform's question tool when available. When asking the user a question, prefer the platform's blocking question tool if one exists (`ask_user` in Copilot CLI). Otherwise, present numbered options in chat and wait for the user's reply before proceeding.
 
 Ask one question at a time. Prefer a concise single-select choice when natural options exist.
 
@@ -163,7 +163,7 @@ Collect:
 - Technology stack and versions (used in section 1.2 to make sharper external research decisions)
 - Architectural patterns and conventions to follow
 - Implementation patterns, relevant files, modules, and tests
-- AGENTS.md guidance that materially affects the plan, with CLAUDE.md used only as compatibility fallback when present
+- AGENTS.md guidance that materially affects the plan
 - Institutional learnings from `docs/solutions/`
 
 #### 1.1b Detect Execution Posture Signals
@@ -997,7 +997,7 @@ Based on selection:
 
 ## Issue Creation
 
-When the user selects "Create Issue", detect their project tracker from `AGENTS.md` or, if needed for compatibility, `CLAUDE.md`:
+When the user selects "Create Issue", detect their project tracker from `AGENTS.md`:
 
 1. Look for `project_tracker: github` or `project_tracker: linear`
 2. If GitHub:

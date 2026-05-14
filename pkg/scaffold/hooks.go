@@ -1,6 +1,6 @@
 package scaffold
 
-// HookType represents each of the 6 Copilot lifecycle hooks.
+// HookType represents each of the 7 Copilot agentic primitives.
 type HookType int
 
 const (
@@ -10,6 +10,7 @@ const (
 	HookSkills             HookType = 4 // .github/skills/*/SKILL.md
 	HookAgents             HookType = 5 // .github/agents/*.agent.md
 	HookFileInstructions   HookType = 6 // .github/*.instructions.md
+	HookPromptShims        HookType = 7 // .github/prompts/*.prompt.md
 )
 
 // HookName returns the human-readable name for a hook type.
@@ -27,6 +28,8 @@ func HookName(h HookType) string {
 		return "Agents"
 	case HookFileInstructions:
 		return "File Instructions"
+	case HookPromptShims:
+		return "Prompt Shims"
 	default:
 		return "Unknown"
 	}

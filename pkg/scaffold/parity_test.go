@@ -199,7 +199,6 @@ func TestDogfoodTemplateParity(t *testing.T) {
 		"git-worktree":              true,
 		"heal-skill":                true,
 		"onboarding":                true,
-		"orchestrating-swarms":      true,
 		"proof":                     true,
 		"rclone":                    true,
 		"report-bug":                true,
@@ -343,4 +342,53 @@ func repoRoot(t *testing.T) string {
 		t.Fatalf("repoRoot %q does not contain go.mod — was the package moved?: %v", root, err)
 	}
 	return root
+}
+
+// TestDogfoodPromptParity ensures every shim that the installer would emit
+// for an allow-listed skill is mirrored byte-for-byte at
+// .github/prompts/<name>.prompt.md in this repo. Without this, the
+// maintainers' VS Code Copilot Chat picker would diverge from what users get
+// after running the installer.
+func TestDogfoodPromptParity(t *testing.T) {
+	root := repoRoot(t)
+	promptsDir := filepath.Join(root, ".github", "prompts")
+
+	for _, name := range promptShimSkillDirectories {
+		want := BuildPromptShim(name)
+		path := filepath.Join(promptsDir, name+".prompt.md")
+		got, err := os.ReadFile(path)
+		if err != nil {
+			t.Errorf("missing dogfood prompt shim %s: %v\n"+
+				"Regenerate via `go generate ./pkg/scaffold/...`.", path, err)
+			continue
+		}
+		if string(got) != string(want) {
+			t.Errorf("dogfood prompt shim %s drifted from BuildPromptShim output.\n"+
+				"Regenerate to restore parity.", path)
+		}
+	}
+
+	// Reverse direction: every file in .github/prompts/ should correspond to
+	// an allow-listed skill (no orphan shims).
+	allow := make(map[string]bool, len(promptShimSkillDirectories))
+	for _, n := range promptShimSkillDirectories {
+		allow[n] = true
+	}
+	entries, err := os.ReadDir(promptsDir)
+	if err != nil {
+		t.Fatalf("reading %s: %v", promptsDir, err)
+	}
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		name := strings.TrimSuffix(e.Name(), ".prompt.md")
+		if name == e.Name() {
+			continue // not a .prompt.md file
+		}
+		if !allow[name] {
+			t.Errorf("orphan prompt shim %s in .github/prompts/ — not in promptShimSkillDirectories. "+
+				"Either add it to the allow-list (pkg/scaffold/prompts.go) or delete the file.", e.Name())
+		}
+	}
 }

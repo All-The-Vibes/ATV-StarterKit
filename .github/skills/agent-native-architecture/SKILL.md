@@ -6,13 +6,13 @@ description: Build applications where agents are first-class citizens. Use this 
 <why_now>
 ## Why Now
 
-Software agents work reliably now. Claude Code demonstrated that an LLM with access to bash and file tools, operating in a loop until an objective is achieved, can accomplish complex multi-step tasks autonomously.
+Software agents work reliably now. Copilot CLI demonstrated that an LLM with access to bash and file tools, operating in a loop until an objective is achieved, can accomplish complex multi-step tasks autonomously.
 
-The surprising discovery: **a really good coding agent is actually a really good general-purpose agent.** The same architecture that lets Claude Code refactor a codebase can let an agent organize your files, manage your reading list, or automate your workflows.
+The surprising discovery: **a really good coding agent is actually a really good general-purpose agent.** The same architecture that lets Copilot CLI refactor a codebase can let an agent organize your files, manage your reading list, or automate your workflows.
 
-The Claude Code SDK makes this accessible. You can build applications where features aren't code you write—they're outcomes you describe, achieved by an agent with tools, operating in a loop until the outcome is reached.
+The Copilot CLI SDK makes this accessible. You can build applications where features aren't code you write—they're outcomes you describe, achieved by an agent with tools, operating in a loop until the outcome is reached.
 
-This opens up a new field: software that works the way Claude Code works, applied to categories far beyond coding.
+This opens up a new field: software that works the way Copilot CLI works, applied to categories far beyond coding.
 </why_now>
 
 <core_principles>
