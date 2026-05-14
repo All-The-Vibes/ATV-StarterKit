@@ -165,7 +165,18 @@ Confirm a clean state:
 
 ```bash
 git status                                # working tree clean (or only untracked)
-git log "origin/$(git branch --show-current)..HEAD"  # must be empty — all pushed
+
+# Verify nothing is unpushed. Guarded so detached HEAD / missing upstream
+# do not error — those states yield an informative notice and skip the check.
+if branch="$(git branch --show-current)" && [ -n "$branch" ]; then
+  if git rev-parse --verify --quiet "refs/remotes/origin/$branch" >/dev/null; then
+    git log "origin/$branch..HEAD"        # must be empty — all pushed
+  else
+    echo "(no origin/$branch yet — push the branch before landing)"
+  fi
+else
+  echo "(detached HEAD — skipping unpushed-commits check)"
+fi
 ```
 
 If either check fails, loop back and fix. Do not hand off a dirty or unpushed tree.

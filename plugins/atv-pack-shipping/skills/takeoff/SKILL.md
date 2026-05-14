@@ -71,10 +71,14 @@ For each file, extract YAML frontmatter (the block between the first two `---` l
 
 If the MCP tool `mcp__backlog__task_list` is available **and** is known to honor every prefix (not the CLI behavior), it can supplement — but the filesystem scan is the source of truth.
 
-Also pull sequence info to detect cross-task dependencies (this command does not filter by prefix):
+If `backlog` is installed, also pull sequence info to detect cross-task dependencies (this command does not filter by prefix). When `backlog` is absent, fall back silently — the filesystem scan above is the authoritative source:
 
 ```bash
-backlog sequence list --plain
+if command -v backlog >/dev/null 2>&1; then
+  backlog sequence list --plain
+else
+  echo "(backlog CLI not installed — relying on filesystem scan for dependency info)"
+fi
 ```
 
 Parse both. You want: id, title, priority, status, assignee, dependencies, blocked-by, parent.
@@ -156,7 +160,7 @@ Start with **AGENTSAPI-1**. It's the next unblocked HIGH-priority item and clear
 
 ### Step 5: Offer a next step
 
-End with a single question: "Want me to open the plan for `<ID>` and start `/ce:work` on it?" — do not auto-start. Takeoff is for orientation, not execution.
+End with a single question: "Want me to open the plan for `<ID>` and start `/ce-work` on it?" — do not auto-start. Takeoff is for orientation, not execution.
 
 ### Step 6: Final banner
 
@@ -197,6 +201,6 @@ If no arguments are given, use defaults.
 - **No backlog directory** → fall back to `docs/plans/` summaries; tell the user.
 - **CLI missing but MCP present** → use MCP only.
 - **Everything is blocked** → surface the root blockers and ask whether to create a task to unblock them.
-- **Task list is empty** → congratulate the user and suggest `/ce:ideate` or `/ce:plan` to generate new work.
+- **Task list is empty** → congratulate the user and suggest `/ce-ideate` or `/ce-plan` to generate new work.
 - **Tasks without priority set** → treat as MEDIUM.
 - **`backlog/config.yml` sets `task_prefix`** → the CLI's `backlog task list` will only return tasks matching that prefix. Do not use the CLI as the primary source — Step 2 already mandates a filesystem scan to ensure every task across every prefix is surfaced. If the briefing only shows tasks from one prefix, that's the bug — re-scan the filesystem.
