@@ -1,0 +1,36 @@
+Mirror-aware SKILL.md invariant harness
+Repo: /home/sschofield/repos/ATV-starterkit
+...  Each check loops over all mirror copies and returns non-zero on first defect
+
+[R1] land Step 8 - detached-HEAD guard
+FAIL .github/skills/land/SKILL.md:168: unguarded git branch --show-current inside git-log argument (breaks on detached HEAD)
+FAIL pkg/scaffold/templates/skills/land/SKILL.md:168: unguarded git branch --show-current inside git-log argument (breaks on detached HEAD)
+FAIL plugins/atv-skill-land/skills/land/SKILL.md:168: unguarded git branch --show-current inside git-log argument (breaks on detached HEAD)
+FAIL plugins/atv-pack-shipping/skills/land/SKILL.md:168: unguarded git branch --show-current inside git-log argument (breaks on detached HEAD)
+FAIL plugins/atv-everything/skills/land/SKILL.md:168: unguarded git branch --show-current inside git-log argument (breaks on detached HEAD)
+
+[R2] takeoff Step 2 - command -v backlog guard
+FAIL .github/skills/takeoff/SKILL.md:77: backlog sequence list --plain invoked without command -v backlog guard
+FAIL pkg/scaffold/templates/skills/takeoff/SKILL.md:77: backlog sequence list --plain invoked without command -v backlog guard
+FAIL plugins/atv-skill-takeoff/skills/takeoff/SKILL.md:77: backlog sequence list --plain invoked without command -v backlog guard
+FAIL plugins/atv-pack-shipping/skills/takeoff/SKILL.md:77: backlog sequence list --plain invoked without command -v backlog guard
+FAIL plugins/atv-everything/skills/takeoff/SKILL.md:77: backlog sequence list --plain invoked without command -v backlog guard
+
+[R3] ghcp-review-resolve 0c - state field + CLOSED|MERGED guard
+FAIL .github/skills/ghcp-review-resolve/SKILL.md:53: state MISSING from section 0c --json field list
+FAIL .github/skills/ghcp-review-resolve/SKILL.md: no co-located CLOSED/MERGED guard prose found
+
+[R4] takeoff - /ce- (hyphen) command form, no /ce: colon form
+FAIL .github/skills/takeoff/SKILL.md:159:End with a single question: "Want me to open the plan for `<ID>` and start `/ce:work` on it?" — do not auto-start. Takeoff is for orientation, not execution.
+FAIL .github/skills/takeoff/SKILL.md:200:- **Task list is empty** → congratulate the user and suggest `/ce:ideate` or `/ce:plan` to generate new work.
+FAIL pkg/scaffold/templates/skills/takeoff/SKILL.md:159:End with a single question: "Want me to open the plan for `<ID>` and start `/ce:work` on it?" — do not auto-start. Takeoff is for orientation, not execution.
+FAIL pkg/scaffold/templates/skills/takeoff/SKILL.md:200:- **Task list is empty** → congratulate the user and suggest `/ce:ideate` or `/ce:plan` to generate new work.
+FAIL plugins/atv-skill-takeoff/skills/takeoff/SKILL.md:159:End with a single question: "Want me to open the plan for `<ID>` and start `/ce:work` on it?" — do not auto-start. Takeoff is for orientation, not execution.
+FAIL plugins/atv-skill-takeoff/skills/takeoff/SKILL.md:200:- **Task list is empty** → congratulate the user and suggest `/ce:ideate` or `/ce:plan` to generate new work.
+FAIL plugins/atv-pack-shipping/skills/takeoff/SKILL.md:159:End with a single question: "Want me to open the plan for `<ID>` and start `/ce:work` on it?" — do not auto-start. Takeoff is for orientation, not execution.
+FAIL plugins/atv-pack-shipping/skills/takeoff/SKILL.md:200:- **Task list is empty** → congratulate the user and suggest `/ce:ideate` or `/ce:plan` to generate new work.
+FAIL plugins/atv-everything/skills/takeoff/SKILL.md:159:End with a single question: "Want me to open the plan for `<ID>` and start `/ce:work` on it?" — do not auto-start. Takeoff is for orientation, not execution.
+FAIL plugins/atv-everything/skills/takeoff/SKILL.md:200:- **Task list is empty** → congratulate the user and suggest `/ce:ideate` or `/ce:plan` to generate new work.
+
+---- Summary ----
+4 invariant check(s) failed.

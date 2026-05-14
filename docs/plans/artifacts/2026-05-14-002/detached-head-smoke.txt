@@ -1,0 +1,15 @@
+=== detached HEAD state ===
+## HEAD (no branch)
+
+=== Running GUARDED snippet (post-fix, from land/SKILL.md Step 8) ===
+(detached HEAD -- skipping unpushed-commits check)
+guarded snippet exit code: 0
+
+=== Running UNGUARDED snippet (pre-fix, original) for contrast ===
+fatal: ambiguous argument 'origin/..HEAD': unknown revision or path not in the working tree.
+Use '--' to separate paths from revisions, like this:
+'git <command> [<revision>...] -- [<file>...]'
+unguarded snippet exit code: 128
+
+=== Verdict ===
+PASS: guarded snippet succeeds on detached HEAD; unguarded original fails as expected.

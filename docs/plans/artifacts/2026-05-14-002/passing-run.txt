@@ -1,0 +1,31 @@
+Mirror-aware SKILL.md invariant harness
+Repo: /home/sschofield/repos/ATV-starterkit
+...  Each check loops over all mirror copies and returns non-zero on first defect
+
+[R1] land Step 8 - detached-HEAD guard
+OK   .github/skills/land/SKILL.md: no unguarded git-log substitution
+OK   pkg/scaffold/templates/skills/land/SKILL.md: no unguarded git-log substitution
+OK   plugins/atv-skill-land/skills/land/SKILL.md: no unguarded git-log substitution
+OK   plugins/atv-pack-shipping/skills/land/SKILL.md: no unguarded git-log substitution
+OK   plugins/atv-everything/skills/land/SKILL.md: no unguarded git-log substitution
+
+[R2] takeoff Step 2 - command -v backlog guard
+OK   .github/skills/takeoff/SKILL.md:78: backlog invocation guarded by command -v backlog
+OK   pkg/scaffold/templates/skills/takeoff/SKILL.md:78: backlog invocation guarded by command -v backlog
+OK   plugins/atv-skill-takeoff/skills/takeoff/SKILL.md:78: backlog invocation guarded by command -v backlog
+OK   plugins/atv-pack-shipping/skills/takeoff/SKILL.md:78: backlog invocation guarded by command -v backlog
+OK   plugins/atv-everything/skills/takeoff/SKILL.md:78: backlog invocation guarded by command -v backlog
+
+[R3] ghcp-review-resolve 0c - state field + CLOSED|MERGED guard
+OK   .github/skills/ghcp-review-resolve/SKILL.md:53: state present in section 0c --json field list
+OK   .github/skills/ghcp-review-resolve/SKILL.md: CLOSED/MERGED early-stop guard prose present
+
+[R4] takeoff - /ce- (hyphen) command form, no /ce: colon form
+OK   .github/skills/takeoff/SKILL.md: no /ce: colon-form command references
+OK   pkg/scaffold/templates/skills/takeoff/SKILL.md: no /ce: colon-form command references
+OK   plugins/atv-skill-takeoff/skills/takeoff/SKILL.md: no /ce: colon-form command references
+OK   plugins/atv-pack-shipping/skills/takeoff/SKILL.md: no /ce: colon-form command references
+OK   plugins/atv-everything/skills/takeoff/SKILL.md: no /ce: colon-form command references
+
+---- Summary ----
+All 4 invariant checks passed.
