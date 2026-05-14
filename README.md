@@ -22,7 +22,7 @@
        <a href="#development">Development</a>
 </p>
 
-<video src="https://github.com/user-attachments/assets/7b6bf18a-2bab-482b-a72d-fac9ab7436c2" width="100%" autoplay loop muted playsinline controls></video>
+https://github.com/user-attachments/assets/7b6bf18a-2bab-482b-a72d-fac9ab7436c2
 
 ---
 
