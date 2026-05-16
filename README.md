@@ -269,6 +269,8 @@ Replaces the old `/cso` slot. Scans agentic config (`.github/`, `.vscode/`) usin
 /atv-security owasp src/api    # OWASP scan scoped to src/api
 ```
 
+Full reference: [`docs/atv-security.md`](docs/atv-security.md) — 33-rule taxonomy, OWASP/STRIDE phase details, scoring, sample report, fix-mode semantics, FAQ.
+
 ### Session bookends — `/takeoff` and `/land`
 
 Two skills frame every Copilot session:
