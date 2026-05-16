@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- **`docs/atv-security.md` — full user reference for `/atv-security`** ([#49](https://github.com/All-The-Vibes/ATV-StarterKit/pull/49)). New top-level documentation surface for the security skill: all 33 config rules described individually across 5 categories (Secrets, Permissions, Hooks, MCP, Agents & Skills), OWASP Top 10 (2021) coverage matrix, STRIDE mapping, scoring formula and A–F grading scale, sample report layout, `fix`-mode semantics (which rules auto-remediate vs advise-only), persistence behaviour, and the v2.5.9 `/cso` → `/atv-security` heritage block. Linked from `README.md` and the `DOCS.md` command index. Closes the gap where the canonical 517-line `SKILL.md` was only readable post-install. No code changes.
+- **README `/atv-security` section expanded** — now lists the three surfaces (33 config rules, OWASP A01-A10, STRIDE 6-class), the two-tier detection model, persistence behaviour, and concrete `fix`-mode examples.
+
 ### Changed
 
 - **`/land` skill** — Step 3 now mirrors Step 1's conditional + literal-command pattern with an explicit `backlog task edit` example, so a fresh agent can mechanically follow the CLI shape rather than guess it from prose. Closes the asymmetric gating reported in [#41](https://github.com/All-The-Vibes/ATV-StarterKit/issues/41). Step 2 quality gates are now stack-detected (each toolchain runs only when its lockfile/config is present) and no longer suffixed with `|| true`, so a failing build actually halts the routine. Step 6 now captures `gh pr view --json state` and only treats `OPEN` as an existing usable PR, so a stale CLOSED/MERGED PR does not block fresh PR creation.
