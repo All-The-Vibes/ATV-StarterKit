@@ -31,7 +31,6 @@ It produces a combined report with per-surface grades, persists it to `docs/secu
 - [Report persistence and the `/cso` heritage block](#report-persistence-and-the-cso-heritage-block)
 - [Heritage: `/cso` → `/atv-security`](#heritage-cso--atv-security)
 - [Limitations and honest disclosure](#limitations-and-honest-disclosure)
-- [FAQ](#faq)
 
 ---
 
@@ -493,42 +492,6 @@ See `CHANGELOG.md` lines 62–86 for the full v2.5.9 release notes.
 - **Stack coverage is biased toward web stacks.** Mobile, embedded, and ML-pipeline-specific patterns are not first-class. PRs welcome.
 - **OWASP A06 is a stub.** It recommends ecosystem tooling rather than reimplementing it. Run `npm audit` etc. separately.
 - **Heritage `/cso` triggers can route unexpectedly.** If you have a gstack installation, both gstack's `/cso` and ATV's `/atv-security` exist. The trigger `cso` is shared semantics; the skills are distinct.
-
----
-
-## FAQ
-
-### Q: I ran `/atv-security` and got "No ATV configuration or application source detected."
-
-Run it from inside a project directory. The skill checks for `.github/`, `.vscode/`, or detectable source files. An empty workspace returns this bail message.
-
-### Q: Why is my OverallScore lower than both surface scores?
-
-STRIDE applies a penalty (−5 per unmitigated threat, capped at −20) on top of the mean of Config and OWASP. If STRIDE found 3 unmitigated threats, you'll see a −15 applied to the overall.
-
-### Q: How do I exclude a directory?
-
-Use a path scope: `/atv-security src/` will run OWASP/STRIDE only against `src/`. To exclude `vendor/` etc., use a more specific scope.
-
-### Q: Can I run this in CI?
-
-The skill is invoked through Copilot Chat — it's an LLM-driven workflow, not a CLI tool. For CI, use deterministic scanners (`gitleaks`, `semgrep`, `bandit`, etc.) and reserve `/atv-security` for human-in-the-loop review.
-
-### Q: Where can I add custom rules?
-
-The rule set lives in `pkg/scaffold/templates/skills/atv-security/SKILL.md` (the canonical source). Edit there and re-run the installer (`atv install`) to push your customizations into your project's `.github/skills/atv-security/SKILL.md`. To contribute upstream, open a PR against [All-The-Vibes/ATV-StarterKit](https://github.com/All-The-Vibes/ATV-StarterKit).
-
-### Q: Why doesn't this skill modify my application code in `mode=fix`?
-
-By design. OWASP and STRIDE findings often have multiple valid remediations (parameterize this query, swap algorithms, add rate limiting where exactly?). Auto-applying one of those would be presumptuous. Config secrets and MCP env vars, by contrast, have one correct fix shape (replace literal with reference), so they're safe to automate.
-
-### Q: I get findings I disagree with. How do I suppress them?
-
-There's no suppression file. Document the false positive in your security report under a heading like `## Accepted Risks` — the surrounding markdown survives upserts, so your notes persist across runs.
-
-### Q: How does this compare to AgentShield?
-
-The 33 config rules are adapted from [AgentShield](https://github.com/affaan-m/agentshield). `/atv-security` wraps them in Copilot's skill format, adds OWASP/STRIDE coverage, and persists reports. If you want AgentShield's standalone CLI (no LLM, no OWASP), use it directly — they're complementary.
 
 ---
 
