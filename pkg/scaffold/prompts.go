@@ -90,6 +90,22 @@ Forward any arguments or context the user provided in this message verbatim to t
 // The output is byte-for-byte deterministic so it can be parity-checked
 // against dogfooded copies under .github/prompts/.
 func BuildPromptShim(skillName string) []byte {
+	if skillName == "unslop" {
+		// unslop ships as an installer template and plugin skill, not as a
+		// dogfooded .github/skills/unslop/ directory in this repo. The generic
+		// shim path would point at a missing SKILL.md, so delegate to the
+		// installed skill by name instead.
+		return []byte(`---
+mode: agent
+description: Run the unslop skill
+---
+
+Invoke the installed ` + "`unslop`" + ` skill and follow its instructions.
+
+Forward any arguments or context the user provided in this message verbatim to the skill.
+`)
+	}
+
 	tmpl, err := template.New("prompt-shim").Parse(promptShimTemplate)
 	if err != nil {
 		panic(fmt.Sprintf("prompt shim template invalid: %v", err))

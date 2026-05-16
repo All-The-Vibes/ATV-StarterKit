@@ -252,7 +252,10 @@ plan → deepen → work (swarm) ──→ review    ⎤              resolve �
                                   unslop   ⎦
 ```
 
-`unslop fix` removes AI slop after review. `compound` saves learnings for future `ce-plan` runs.
+`/unslop` reports code hygiene, comments/docs, frontend/design, and architecture slop.
+`/unslop fix` applies safe hygiene and comments/docs cleanup.
+`/unslop fix all` applies high-priority eligible fixes across all lanes.
+`compound` saves learnings for future `ce-plan` runs.
 
 ### `/autoresearch` — hill-climb against a metric
 
