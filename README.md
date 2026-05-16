@@ -190,7 +190,7 @@ This is the full ATV skill surface from `plugins/atv-everything` and `pkg/scaffo
 | Build | `/ralph-loop` | `atv-pack-quality` | Iterative autonomous task loop with fresh context, filesystem memory, and git versioning. |
 | Build | `/resolve_todo_parallel` | `atv-everything` / single skill | Resolves pending CLI todos in parallel when a branch has many small follow-ups. |
 | Review | `/ce-review` | `atv-pack-review` | Multi-agent code review with security, performance, architecture, and language reviewers. |
-| Review | `/atv-security` | `atv-pack-security` | Unified audit for agentic config, OWASP Top 10 checks, and STRIDE threat modeling. Replaces the old `/cso` slot. |
+| Review | `/atv-security` | `atv-pack-security` | Unified audit for agentic config, OWASP Top 10 checks, and STRIDE threat modeling. Occupies the same Review/security slot where `/gstack-cso` was listed. |
 | Review | `/unslop` | `atv-pack-quality` | De-slops code: simplifies, detects comment rot, and catches design slop before PR. |
 | Test / demo | `/test-browser` | `atv-everything` / single skill | Browser test pass for pages affected by the current PR or branch. |
 | Test / demo | `/feature-video` | `atv-everything` / single skill | Captures a visual walkthrough and adds it to PR context. |
@@ -255,7 +255,7 @@ For tasks with a measurable outcome, `/autoresearch` runs a loop on a dedicated 
 /atv-security owasp src/api    # OWASP scan scoped to src/api
 ```
 
-`/atv-security` scans `.github/` and `.vscode/` config with AgentShield-style rules, then scans application source for OWASP Top 10 and STRIDE risks. Legacy `/cso` wording routes here.
+`/atv-security` scans `.github/` and `.vscode/` config with AgentShield-style rules, then scans application source for OWASP Top 10 and STRIDE risks. In the sprint plan, it occupies the old `/gstack-cso` Review/security slot; legacy `/cso` wording routes here.
 
 ### `/takeoff` and `/land` - session bookends
 

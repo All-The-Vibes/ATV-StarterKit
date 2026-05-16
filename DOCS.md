@@ -43,7 +43,7 @@ Every time you run `/ce-compound`, solved problems get saved to `docs/solutions/
 
 ### gstack — the AI sprint process
 
-gstack adds sprint execution workflows for planning, review, QA, shipping, safety, debugging, and retros. It doesn't just give the AI more tools — it gives it a *role*. `/gstack-review` acts as a staff engineer, while ATV's own `/atv-security` skill carries the chief-security-officer slot that absorbed the former `/cso` flow.
+gstack adds sprint execution workflows for planning, review, QA, shipping, safety, debugging, and retros. It doesn't just give the AI more tools — it gives it a *role*. `/gstack-review` acts as a staff engineer, while ATV's own `/atv-security` skill carries the Review/security slot where `/gstack-cso` used to live.
 
 Includes safety guardrails (`/gstack-careful`, `/gstack-freeze`, `/gstack-guard`) that prevent destructive commands like `rm -rf` or force-pushes.
 
@@ -112,7 +112,7 @@ This is the same 30-skill surface shipped by `plugins/atv-everything` and `pkg/s
 | Build | `/ralph-loop` | `atv-pack-quality` | Iterative autonomous task loop with fresh context, filesystem memory, and git versioning. |
 | Build | `/resolve_todo_parallel` | `atv-everything` / single skill | Parallel resolution of pending CLI todos. |
 | Review | `/ce-review` | `atv-pack-review` | Multi-agent code review across security, performance, architecture, and language concerns. |
-| Review | `/atv-security` | `atv-pack-security` | Agentic config audit + OWASP Top 10 + STRIDE threat modeling. Replaces the old `/cso` slot. |
+| Review | `/atv-security` | `atv-pack-security` | Agentic config audit + OWASP Top 10 + STRIDE threat modeling. Occupies the same Review/security slot where `/gstack-cso` was listed. |
 | Review | `/unslop` | `atv-pack-quality` | Code simplification, comment rot detection, and design slop check. |
 | Test / demo | `/test-browser` | `atv-everything` / single skill | Browser tests for pages affected by the current PR or branch. |
 | Test / demo | `/feature-video` | `atv-everything` / single skill | Visual walkthrough capture for PRs. |
