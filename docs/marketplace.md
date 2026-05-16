@@ -8,7 +8,7 @@ The ATV Starter Kit is available through VS Code source install and as a [GitHub
 |---|---|---|---|
 | **Where files land** | Your project's `.github/`, `.vscode/`, `docs/` | VS Code AgentPlugin directory | `~/.copilot/installed-plugins/` |
 | **Scope** | Project-level, committed to git, shared with the team | Personal/editor-level | Personal, follows you across CLI projects |
-| **What ships** | Skills + agents + MCP config + hooks + instructions + setup-steps + docs scaffolding | One complete ATV skills + agents bundle | Skills + agents only |
+| **What ships** | Skills + agents + MCP config + hooks + instructions + setup-steps + docs scaffolding; guided Full can add gstack + agent-browser | One complete ATV skills + agents bundle, no gstack runtime | Skills + agents only |
 | **Stack-aware** | Yes — Python/Rails/TypeScript instructions and reviewer agents | No — complete personal bundle | No — install plugins manually per project |
 | **Best for** | Bootstrapping a new repo, codifying team-wide AI workflow | VS Code Copilot users who want one obvious install choice | CLI users who want bundles or granular skills |
 
@@ -47,7 +47,7 @@ copilot plugin marketplace browse atv-starter-kit
 copilot plugin install atv-everything@atv-starter-kit
 ```
 
-Bundles **every** ATV skill (30) + **every** reviewer/specialist agent (51). Equivalent in coverage to the Full preset of `atv init` (scoped to skills + agents — no MCP servers, hooks, or instructions templates).
+Bundles **every embedded ATV skill (30)** + **every** reviewer/specialist agent (51). This is the marketplace/source-install bundle, not the whole guided Full project install: it does **not** include gstack, agent-browser, MCP servers, hooks, instructions templates, setup steps, or docs scaffolding.
 
 Advanced standalone agents-only install:
 
@@ -76,7 +76,7 @@ copilot plugin install atv-pack-shipping@atv-starter-kit
 
 ### 3. Granular — single-skill plugins
 
-For each skill listed above (and a few utility skills like `setup`, `feature-video`, `resolve_todo_parallel`, `test-browser`), there is an `atv-skill-<name>` plugin:
+For each skill listed above (and a few utility skills like `setup`, `feature-video`, `resolve_todo_parallel`, `test-browser`), there is an `atv-skill-<name>` plugin. Marketplace plugin names are kebab-case, so underscores in skill directories become hyphens: `resolve_todo_parallel` installs as `atv-skill-resolve-todo-parallel`.
 
 ```bash
 copilot plugin install atv-skill-autoresearch@atv-starter-kit

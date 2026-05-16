@@ -33,7 +33,7 @@ ATV has three install paths. Use the project install when you want the workflow 
 | **Command** | `npx atv-starterkit@latest init` | `Chat: Install Plugin from source` | `copilot plugin install ...@atv-starter-kit` |
 | **Files land in** | Your project's `.github/`, `.vscode/`, `docs/`, `.atv/` | VS Code AgentPlugin directory | `~/.copilot/installed-plugins/` |
 | **Scope** | Team-shared and committed | Personal editor install | Personal CLI install |
-| **Ships** | Skills, prompt shims, agents, MCP config, hooks, instructions, setup steps, docs | Complete ATV skills + agents bundle | Skills + agents only |
+| **Ships** | Skills, prompt shims, agents, MCP config, hooks, instructions, setup steps, docs; guided Full can add gstack + agent-browser | 30 ATV skills + 51 agents from `atv-everything` | ATV skills + agents only, no gstack/runtime scaffold |
 | **Best for** | New repo bootstrap or team workflow | VS Code Copilot Chat users | CLI users who want bundles or single skills |
 
 ### macOS / Linux
@@ -108,7 +108,7 @@ copilot plugin install atv-skill-atv-security@atv-starter-kit
 copilot plugin install atv-skill-autoresearch@atv-starter-kit
 ```
 
-Full tier breakdown: **[docs/marketplace.md](docs/marketplace.md)**.
+> **Heads up:** `atv-pack-*` and `atv-skill-*` installs include skills only. If you install a pack or single skill that dispatches reviewer/research agents, also install `atv-agents@atv-starter-kit`. Full tier breakdown: **[docs/marketplace.md](docs/marketplace.md)**.
 
 ### Prerequisites
 
@@ -148,7 +148,7 @@ After install, open **Copilot Chat** (`⌃⌘I` / `Ctrl+Shift+I`) and run the wo
 /autoresearch    →  Hill-climb autonomously against a measurable metric
 ```
 
-ATV installs **30 skills**, **18 VS Code prompt shims** for the main slash commands, and **51 reviewer/specialist agents**. The prompt shims live in `.github/prompts/` so VS Code Copilot Chat can discover the top-level commands. The full skill source lives in `.github/skills/` for project installs and in the relevant marketplace plugin for personal installs.
+Project installs write **30 embedded ATV skills**, **18 VS Code prompt shims** for the main slash commands, and **51 reviewer/specialist agents** into the repo. VS Code source installs and Copilot CLI marketplace installs provide the ATV skills + agents bundle without repo-local `.github/prompts/` shims. Guided **Full** project installs can also add **25 gstack sprint skills** plus `agent-browser`.
 
 ---
 
@@ -173,7 +173,7 @@ For pillar deep dives, learning mechanics, agent inventory, MCP details, and arc
 
 ## The Sprint Skill Map
 
-This is the full ATV skill surface from `plugins/atv-everything` and `pkg/scaffold/templates/skills`. Every skill also has a granular `atv-skill-<name>` plugin. Category packs install the groups shown below.
+This first table is the **30 embedded ATV skills** from `plugins/atv-everything` and `pkg/scaffold/templates/skills`. Every skill also has a granular marketplace plugin named `atv-skill-<kebab-cased-skill-name>`; for example, `/resolve_todo_parallel` installs as `atv-skill-resolve-todo-parallel`. Category packs install the groups shown below. If you choose the guided **Full** project install, ATV can also sync the gstack add-on skills in the next table.
 
 | Sprint phase | Skill | Pack | What it does |
 |---|---|---|---|
@@ -190,7 +190,7 @@ This is the full ATV skill surface from `plugins/atv-everything` and `pkg/scaffo
 | Build | `/ralph-loop` | `atv-pack-quality` | Iterative autonomous task loop with fresh context, filesystem memory, and git versioning. |
 | Build | `/resolve_todo_parallel` | `atv-everything` / single skill | Resolves pending CLI todos in parallel when a branch has many small follow-ups. |
 | Review | `/ce-review` | `atv-pack-review` | Multi-agent code review with security, performance, architecture, and language reviewers. |
-| Review | `/atv-security` | `atv-pack-security` | Unified audit for agentic config, OWASP Top 10 checks, and STRIDE threat modeling. Occupies the same Review/security slot where `/gstack-cso` was listed. |
+| Review | `/atv-security` | `atv-pack-security` | Default ATV security audit for agentic config, OWASP Top 10 checks, and STRIDE threat modeling. Guided Full can also add gstack `/gstack-cso`. |
 | Review | `/unslop` | `atv-pack-quality` | De-slops code: simplifies, detects comment rot, and catches design slop before PR. |
 | Test / demo | `/test-browser` | `atv-everything` / single skill | Browser test pass for pages affected by the current PR or branch. |
 | Test / demo | `/feature-video` | `atv-everything` / single skill | Captures a visual walkthrough and adds it to PR context. |
@@ -218,7 +218,39 @@ These 18 top-level commands are surfaced in VS Code Copilot Chat by `.github/pro
 /evolve  /instincts  /land  /learn  /lfg  /observe  /takeoff  /unslop
 ```
 
-The remaining skills are still installed. They are helpers, internal orchestrator steps, behavioral references, or optional extras that should not clutter the slash-command picker.
+The remaining embedded ATV skills are still installed. They are helpers, internal orchestrator steps, behavioral references, or optional extras that should not clutter the slash-command picker.
+
+### Guided Full gstack add-ons
+
+Guided Full project installs can also clone and sync gstack. ATV writes these into `gstack-*` skill directories to avoid collisions; some clients may show the unprefixed skill name from the skill frontmatter.
+
+| Sprint phase | gstack skill | What it adds | Runtime |
+|---|---|---|---|
+| Think / Plan | `/gstack-office-hours` | YC-style forcing questions before you commit to a direction. | Markdown |
+| Think / Plan | `/gstack-plan-ceo-review` | Founder/CEO review for scope and product shape. | Markdown |
+| Think / Plan | `/gstack-plan-eng-review` | Engineering review for architecture, data flow, edge cases, and tests. | Markdown |
+| Think / Plan | `/gstack-plan-design-review` | Design-quality review before UI work starts. | Markdown |
+| Think / Plan | `/gstack-design-consultation` | Design-system consultation for brand, typography, color, and layout. | Markdown |
+| Think / Plan | `/gstack-autoplan` | CEO → design → engineering review sequence in one pass. | Markdown |
+| Review | `/gstack-review` | Staff-level pre-landing code review. | Markdown |
+| Review | `/gstack-design-review` | Visual/design audit with iterative fixes. | Markdown |
+| Review | `/gstack-design-shotgun` | Multiple design variants for comparison and feedback. | Markdown |
+| Review | `/gstack-codex` | Independent OpenAI Codex review. | Markdown |
+| Review | `/gstack-cso` | gstack security review. Use `/atv-security` as ATV's default config + OWASP + STRIDE audit. | Markdown |
+| Test / QA | `/gstack-qa` | Browser QA loop that finds, fixes, and verifies bugs. | Bun/browser |
+| Test / QA | `/gstack-qa-only` | Browser QA report without fixes. | Bun/browser |
+| Test / QA | `/gstack-benchmark` | Page speed, Core Web Vitals, and resource-size baselines. | Bun/browser |
+| Test / QA | `/gstack-browse` | Persistent browser runtime for deeper dogfooding. | Bun/browser |
+| Ship / Deploy | `/gstack-ship` | Sync, test, review, push, and open PR. | Markdown |
+| Ship / Deploy | `/gstack-land-and-deploy` | Merge, wait for CI/deploy, and verify production. | Markdown |
+| Ship / Deploy | `/gstack-canary` | Post-deploy monitoring for errors and regressions. | Markdown |
+| Ship / Deploy | `/gstack-document-release` | Update docs to match what shipped. | Markdown |
+| Safety | `/gstack-careful` | Warn before destructive commands. | Markdown |
+| Safety | `/gstack-freeze` | Restrict edits to one directory. | Markdown |
+| Safety | `/gstack-guard` | Careful + Freeze together. | Markdown |
+| Safety | `/gstack-unfreeze` | Remove the freeze boundary. | Markdown |
+| Debug | `/gstack-investigate` | Root-cause investigation before fixes. | Markdown |
+| Reflect | `/gstack-retro` | Weekly/team retrospective with trends and follow-ups. | Markdown |
 
 ---
 
@@ -255,7 +287,7 @@ For tasks with a measurable outcome, `/autoresearch` runs a loop on a dedicated 
 /atv-security owasp src/api    # OWASP scan scoped to src/api
 ```
 
-`/atv-security` scans `.github/` and `.vscode/` config with AgentShield-style rules, then scans application source for OWASP Top 10 and STRIDE risks. In the sprint plan, it occupies the old `/gstack-cso` Review/security slot; legacy `/cso` wording routes here.
+`/atv-security` scans `.github/` and `.vscode/` config with AgentShield-style rules, then scans application source for OWASP Top 10 and STRIDE risks. Use it as ATV's default security pass; guided Full can also add gstack `/gstack-cso` for teams that want that extra role.
 
 ### `/takeoff` and `/land` - session bookends
 

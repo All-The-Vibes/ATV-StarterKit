@@ -113,6 +113,7 @@ var FullPreset = Preset{
 		LayerSetupSteps,
 		LayerFileInstructions,
 		LayerDocsStructure,
+		LayerEasterEggs,
 	},
 	EnableGstackRuntime: true,
 	GstackDirs:          allGstackDirs(),

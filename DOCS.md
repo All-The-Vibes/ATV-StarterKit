@@ -1,6 +1,6 @@
 # ATV 2.0 — Deeper Documentation
 
-This file holds the deep-dive material that used to live in `README.md`. The README now focuses on what ATV is, how to install it on macOS/Linux/Windows, and the full sprint of where each skill fits. Everything else — pillar internals, learning pipeline mechanics, agent inventory, install architecture, and the full skill reference — lives here.
+This file holds the deep-dive material that used to live in `README.md`. The README now focuses on what ATV is, how to install it on macOS/Linux/Windows, and the quick sprint map. Everything else — pillar internals, learning pipeline mechanics, agent inventory, install architecture, gstack add-ons, and the full skill reference — lives here.
 
 [← Back to README](README.md)
 
@@ -43,7 +43,7 @@ Every time you run `/ce-compound`, solved problems get saved to `docs/solutions/
 
 ### gstack — the AI sprint process
 
-gstack adds sprint execution workflows for planning, review, QA, shipping, safety, debugging, and retros. It doesn't just give the AI more tools — it gives it a *role*. `/gstack-review` acts as a staff engineer, while ATV's own `/atv-security` skill carries the Review/security slot where `/gstack-cso` used to live.
+gstack adds sprint execution workflows for planning, review, QA, shipping, safety, debugging, and retros. It doesn't just give the AI more tools — it gives it a *role*. `/gstack-review` acts as a staff engineer; `/gstack-plan-eng-review` acts as an engineering manager; `/gstack-qa` gives the agent a browser-backed QA loop. ATV keeps `/atv-security` as the default config + OWASP + STRIDE security pass, while guided Full can also add gstack `/gstack-cso`.
 
 Includes safety guardrails (`/gstack-careful`, `/gstack-freeze`, `/gstack-guard`) that prevent destructive commands like `rm -rf` or force-pushes.
 
@@ -65,20 +65,21 @@ The guided installer (`--guided`) walks you through four screens:
 |---|---|
 | **Starter** | Repo-local ATV scaffold: core skills, orchestrators, agents, MCP config, instructions, setup steps, and docs. No gstack clone or browser runtime. |
 | **Pro** | Starter plus text-first gstack workflows for planning, review, shipping, safety, debugging, and retros. |
-| **Full** | + all 30 ATV skills, 18 prompt shims, 51 agents, browser tooling, and optional integrations. Bun recommended for gstack generation/browser workflows. |
+| **Full** | Starter plus all ATV skill layers, all selected gstack sprint skills, 18 prompt shims, 51 agents, browser tooling, and optional integrations. Bun recommended for gstack generation/browser workflows. |
 
 **3. Customize** — Power users can drill into category-grouped multi-select. Beginners skip straight to install.
 
-The customize screen exposes opt-in skill layers grouped by intent:
+The customize screen exposes capability groups by intent:
 
-| Layer | Contents |
+| Category | Contents |
 |---|---|
-| **`core-skills`** | Planning, lifecycle, learning, quality, security, behavioral guidelines |
-| **`orchestrators`** | LFG, SLFG, ralph-loop, feature-video, test-browser |
-| **`dev-tools`** | git-worktree, git-commit / git-commit-push-pr, ghcp-review-resolve, onboarding, reproduce-bug, skill-creator, todo-create / -resolve / -triage, changelog, git-clean-gone-branches |
-| **`style-skills`** | dhh-rails-style, andrew-kane-gem-writer, dspy-ruby, every-style-editor, frontend-design |
-| **`media-skills`** | gemini-imagegen, proof, rclone |
-| **`easter-eggs`** | memeIQ |
+| **Planning & Design** | ATV brainstorming, CE ideation/planning, deepen-plan, plus gstack office-hours, CEO/eng/design plan reviews, design consultation, and autoplan. |
+| **Code Review** | CE review, document review, gstack review, design review, design shotgun, and Codex review. |
+| **Security** | ATV Security as the default config + OWASP + STRIDE pass, plus optional gstack CSO. |
+| **QA & Testing** | agent-browser, test-browser, feature-video, and runtime gstack QA/browse/benchmark skills when Bun/browser support is available. |
+| **Shipping & Deploy** | takeoff, CE work, land, LFG/SLFG, compound/refresh, plus gstack ship/deploy/canary/document-release. |
+| **Safety / Debug / Retro** | gstack careful, freeze, guard, unfreeze, investigate, and retro. |
+| **Maintenance / Learning / Fun** | atv-doctor, atv-update, learn, instincts, observe, evolve, and Full's `/meme-iq` easter egg. |
 
 **4. Install + Summary** — Real-time progress with structured telemetry, then actionable next steps.
 
@@ -93,9 +94,9 @@ The customize screen exposes opt-in skill layers grouped by intent:
 
 ---
 
-## Full Skill Reference
+## Embedded ATV Skill Reference
 
-This is the same 30-skill surface shipped by `plugins/atv-everything` and `pkg/scaffold/templates/skills`. Prompt-shimmed skills appear in VS Code Copilot Chat via `.github/prompts/*.prompt.md`; helper skills are still installed, but intentionally kept out of the picker.
+This is the 30-skill embedded ATV surface shipped by `plugins/atv-everything` and `pkg/scaffold/templates/skills`. It is the same skill set used by project installs before any optional gstack sync. Project installs also write prompt shims into `.github/prompts/*.prompt.md` for VS Code Copilot Chat discovery; marketplace/source installs provide skills + agents without repo-local prompt files. Helper skills are still installed, but intentionally kept out of the picker.
 
 | Sprint phase | Skill | Pack | What it does |
 |---|---|---|---|
@@ -112,7 +113,7 @@ This is the same 30-skill surface shipped by `plugins/atv-everything` and `pkg/s
 | Build | `/ralph-loop` | `atv-pack-quality` | Iterative autonomous task loop with fresh context, filesystem memory, and git versioning. |
 | Build | `/resolve_todo_parallel` | `atv-everything` / single skill | Parallel resolution of pending CLI todos. |
 | Review | `/ce-review` | `atv-pack-review` | Multi-agent code review across security, performance, architecture, and language concerns. |
-| Review | `/atv-security` | `atv-pack-security` | Agentic config audit + OWASP Top 10 + STRIDE threat modeling. Occupies the same Review/security slot where `/gstack-cso` was listed. |
+| Review | `/atv-security` | `atv-pack-security` | Default ATV security audit: agentic config + OWASP Top 10 + STRIDE threat modeling. Guided Full can also add gstack `/gstack-cso`. |
 | Review | `/unslop` | `atv-pack-quality` | Code simplification, comment rot detection, and design slop check. |
 | Test / demo | `/test-browser` | `atv-everything` / single skill | Browser tests for pages affected by the current PR or branch. |
 | Test / demo | `/feature-video` | `atv-everything` / single skill | Visual walkthrough capture for PRs. |
@@ -139,6 +140,47 @@ These 18 skills get `.github/prompts/*.prompt.md` shims for VS Code Copilot Chat
 /ce-brainstorm  /ce-compound  /ce-ideate  /ce-plan  /ce-review  /ce-work
 /evolve  /instincts  /land  /learn  /lfg  /observe  /takeoff  /unslop
 ```
+
+## Guided Full gstack Add-on Reference
+
+`atv-everything` installs the embedded ATV bundle only. The guided project **Full** preset can also clone gstack, generate/sync these `gstack-*` skill directories, and install `agent-browser`. Use the gstack-prefixed names below when you need to disambiguate them from ATV skills or other installed workflows.
+
+| Category | Skill | What it does | Runtime |
+|---|---|---|---|
+| Planning | `/gstack-office-hours` | YC-style forcing questions that challenge the product framing before coding. | Markdown |
+| Planning | `/gstack-plan-ceo-review` | CEO/founder-mode plan review for scope, taste, and 10-star product opportunities. | Markdown |
+| Planning | `/gstack-plan-eng-review` | Engineering-manager review for architecture, data flow, diagrams, edge cases, tests, and performance. | Markdown |
+| Planning | `/gstack-plan-design-review` | Designer-eye plan review that scores dimensions and improves the plan before UI work. | Markdown |
+| Planning | `/gstack-design-consultation` | Produces a design system direction: aesthetic, typography, color, layout, spacing, and motion. | Markdown |
+| Planning | `/gstack-autoplan` | Runs CEO, design, and engineering reviews as one auto-decision pipeline. | Markdown |
+| Review | `/gstack-review` | Pre-landing staff-engineer review for structural code risks and merge readiness. | Markdown |
+| Review | `/gstack-design-review` | Live visual/design QA that finds and fixes spacing, hierarchy, interaction, and AI-slop issues. | Markdown |
+| Review | `/gstack-design-shotgun` | Generates multiple design variants and comparison feedback for visual exploration. | Markdown |
+| Review | `/gstack-codex` | Independent OpenAI Codex review for cross-model code review coverage. | Markdown |
+| Security | `/gstack-cso` | gstack security-audit role. ATV's default security workflow remains `/atv-security`. | Markdown |
+| QA | `/gstack-qa` | Browser QA loop that tests the app, fixes bugs, writes regressions, and re-verifies. | Bun/browser |
+| QA | `/gstack-qa-only` | Browser QA report with repro steps and screenshots, without making code changes. | Bun/browser |
+| QA | `/gstack-benchmark` | Performance baselines for page load, Core Web Vitals, and resource sizes. | Bun/browser |
+| QA | `/gstack-browse` | Persistent headless/controlled browser runtime for deeper dogfooding. | Bun/browser |
+| Shipping | `/gstack-ship` | Syncs with main, runs tests, reviews diff, pushes branch, and opens a PR. | Markdown |
+| Shipping | `/gstack-land-and-deploy` | Merges the PR, waits for CI/deploy, then verifies production health. | Markdown |
+| Shipping | `/gstack-canary` | Post-deploy canary monitoring for console errors, page failures, and regressions. | Markdown |
+| Shipping | `/gstack-document-release` | Updates README/architecture/contributing/changelog docs to match shipped changes. | Markdown |
+| Safety | `/gstack-careful` | Warns before destructive commands such as `rm -rf`, force-push, or database drops. | Markdown |
+| Safety | `/gstack-freeze` | Restricts edits to one directory while debugging or touching risky areas. | Markdown |
+| Safety | `/gstack-guard` | Combines careful command warnings with directory-scoped edit guardrails. | Markdown |
+| Safety | `/gstack-unfreeze` | Clears the freeze boundary when you intentionally widen edit scope. | Markdown |
+| Debugging | `/gstack-investigate` | Systematic root-cause investigation workflow: no fixes before cause. | Markdown |
+| Retrospective | `/gstack-retro` | Weekly/team retrospective over commits, trends, quality, and follow-ups. | Markdown |
+
+## Install Scope Cheat Sheet
+
+| Install path | Skill surface | What is not included |
+|---|---|---|
+| `copilot plugin install atv-everything@atv-starter-kit` | 30 embedded ATV skills + 51 agents | gstack, agent-browser, MCP config, hooks, instructions, setup steps, docs scaffolding |
+| VS Code source install `atv-starter-kit` | Same complete ATV skills + agents bundle | gstack, agent-browser, project scaffold files |
+| `npx atv-starterkit init` | Project ATV scaffold with embedded skills, agents, MCP, hooks, instructions, docs | gstack unless guided/custom selected |
+| `npx atv-starterkit init --guided` Full | Embedded ATV skills + selected gstack skills + agent-browser/runtime setup + project scaffold | Nothing intentional; runtime-heavy gstack flows degrade if Bun/browser setup is unavailable |
 
 ## How Learning Works
 

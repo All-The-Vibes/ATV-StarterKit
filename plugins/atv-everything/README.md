@@ -1,6 +1,6 @@
 # atv-everything
 
-ATV Starter Kit — install everything in one shot: all 30 skills (slash commands like /ce-plan, /atv-security, /autoresearch) and all 51 reviewer/specialist agents. Equivalent to the Full preset of `atv init`, scoped to skills + agents only (no MCP servers, hooks, or instructions templates — for those use `npx atv-starterkit init`).
+ATV Starter Kit — install the embedded ATV bundle: all 30 ATV skills (slash commands like /ce-plan, /atv-security, /autoresearch) and all 51 reviewer/specialist agents. For project scaffolding, gstack, agent-browser, MCP servers, hooks, instructions, and setup steps, run `npx atv-starterkit init --guided`.
 
 ## Install
 

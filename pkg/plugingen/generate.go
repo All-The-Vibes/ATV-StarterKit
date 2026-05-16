@@ -233,7 +233,7 @@ func Generate(cfg Config) error {
 	}
 	everythingManifest := PluginManifest{
 		Name:        "atv-everything",
-		Description: fmt.Sprintf("ATV Starter Kit — install everything in one shot: all %d skills (slash commands like /ce-plan, /atv-security, /autoresearch) and all %d reviewer/specialist agents. Equivalent to the Full preset of `atv init`, scoped to skills + agents only (no MCP servers, hooks, or instructions templates — for those use `npx atv-starterkit init`).", len(skillNames), len(agentFiles)),
+		Description: fmt.Sprintf("ATV Starter Kit — install the embedded ATV bundle: all %d ATV skills (slash commands like /ce-plan, /atv-security, /autoresearch) and all %d reviewer/specialist agents. For project scaffolding, gstack, agent-browser, MCP servers, hooks, instructions, and setup steps, run `npx atv-starterkit init --guided`.", len(skillNames), len(agentFiles)),
 		Version:     cfg.KitVersion,
 		Author:      defaultAuthor(),
 		Repository:  defaultRepository(),
@@ -428,7 +428,7 @@ func writeMarketplace(cfg Config, skillNames []string, packs []Pack) error {
 	entries = append(entries, MarketplaceEntry{
 		Name:        "atv-everything",
 		Source:      "atv-everything",
-		Description: "ATV Starter Kit — install everything in one shot: all skills + all reviewer/specialist agents.",
+		Description: "ATV Starter Kit — embedded ATV skills + reviewer/specialist agents. Project Full adds gstack, agent-browser, MCP, hooks, and instructions.",
 		Version:     cfg.KitVersion,
 		Keywords:    []string{"atv", "starter-kit", "everything"},
 		Category:    "starter-kit",

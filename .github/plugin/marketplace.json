@@ -13,7 +13,7 @@
     {
       "name": "atv-everything",
       "source": "atv-everything",
-      "description": "ATV Starter Kit — install everything in one shot: all skills + all reviewer/specialist agents.",
+      "description": "ATV Starter Kit — embedded ATV skills + reviewer/specialist agents. Project Full adds gstack, agent-browser, MCP, hooks, and instructions.",
       "version": "2.6.3",
       "keywords": [
         "atv",
