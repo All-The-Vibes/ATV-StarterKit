@@ -43,7 +43,7 @@ Every time you run `/ce-compound`, solved problems get saved to `docs/solutions/
 
 ### gstack — the AI sprint process
 
-30 slash-command skills covering office hours, engineering review, browser QA, shipping, deploy verification, security audits, and weekly retros. gstack doesn't just give the AI more tools — it gives it a *role*. `/gstack-review` acts as a staff engineer. `/atv-security` (which absorbed the former `/cso` skill) acts as a chief security officer. The skills are opinionated engineering processes encoded as markdown.
+gstack adds sprint execution workflows for planning, review, QA, shipping, safety, debugging, and retros. It doesn't just give the AI more tools — it gives it a *role*. `/gstack-review` acts as a staff engineer, while ATV's own `/atv-security` skill carries the chief-security-officer slot that absorbed the former `/cso` flow.
 
 Includes safety guardrails (`/gstack-careful`, `/gstack-freeze`, `/gstack-guard`) that prevent destructive commands like `rm -rf` or force-pushes.
 
@@ -63,9 +63,9 @@ The guided installer (`--guided`) walks you through four screens:
 
 | Preset | What you get |
 |---|---|
-| **Starter** | Core CE workflow (13 skills). No network calls, instant install. |
-| **Pro** | + gstack sprint skills (35+ skills total) |
-| **Full** | + browser QA, benchmarks, agent-browser, Chrome (45+ skills). Requires Bun. |
+| **Starter** | Repo-local ATV scaffold: core skills, orchestrators, agents, MCP config, instructions, setup steps, and docs. No gstack clone or browser runtime. |
+| **Pro** | Starter plus text-first gstack workflows for planning, review, shipping, safety, debugging, and retros. |
+| **Full** | + all 30 ATV skills, 18 prompt shims, 51 agents, browser tooling, and optional integrations. Bun recommended for gstack generation/browser workflows. |
 
 **3. Customize** — Power users can drill into category-grouped multi-select. Beginners skip straight to install.
 
@@ -95,90 +95,50 @@ The customize screen exposes opt-in skill layers grouped by intent:
 
 ## Full Skill Reference
 
-### Think
+This is the same 30-skill surface shipped by `plugins/atv-everything` and `pkg/scaffold/templates/skills`. Prompt-shimmed skills appear in VS Code Copilot Chat via `.github/prompts/*.prompt.md`; helper skills are still installed, but intentionally kept out of the picker.
 
-| Skill | What it does |
-|---|---|
-| `/takeoff` | Session-start briefing: open PRs, in-flight branches, recent CI, prioritized next move |
-| `/ce-brainstorm` | Interactive dialogue to clarify requirements; produces design docs in `docs/brainstorms/` |
-| `/gstack-office-hours` | YC-style forcing questions that challenge your framing before you write code |
-| `/gstack-plan-ceo-review` | CEO-level review: find the 10-star product hiding in the request |
+| Sprint phase | Skill | Pack | What it does |
+|---|---|---|---|
+| Think | `/takeoff` | `atv-pack-shipping` | Session-start briefing: open PRs, in-flight branches, failed CI, todos, blockers, and next move. |
+| Think | `/brainstorming` | `atv-pack-planning` | Helper for exploring intent, approaches, and design decisions before planning. |
+| Think | `/ce-brainstorm` | `atv-pack-planning` | Turns a vague feature/problem into a focused requirements or brainstorm doc. |
+| Think | `/ce-ideate` | `atv-pack-planning` | Generates and critiques grounded improvement ideas. |
+| Think | `/karpathy-guidelines` | `atv-pack-guidelines` | Behavioral guardrails for simpler, more surgical LLM-assisted code changes. |
+| Plan | `/ce-plan` | `atv-pack-planning` | Implementation plans with repo research, acceptance criteria, and test strategy. |
+| Plan | `/deepen-plan` | `atv-pack-planning` | Helper that deepens an existing plan with parallel research. |
+| Plan | `/document-review` | `atv-pack-review` | Requirements/plan review with specialist reviewers before implementation. |
+| Build | `/ce-work` | `atv-pack-shipping` | Executes planned work while preserving repo patterns and quality gates. |
+| Build | `/autoresearch` | `atv-pack-guidelines` | Autonomous experiment loops for measurable goals. |
+| Build | `/ralph-loop` | `atv-pack-quality` | Iterative autonomous task loop with fresh context, filesystem memory, and git versioning. |
+| Build | `/resolve_todo_parallel` | `atv-everything` / single skill | Parallel resolution of pending CLI todos. |
+| Review | `/ce-review` | `atv-pack-review` | Multi-agent code review across security, performance, architecture, and language concerns. |
+| Review | `/atv-security` | `atv-pack-security` | Agentic config audit + OWASP Top 10 + STRIDE threat modeling. Replaces the old `/cso` slot. |
+| Review | `/unslop` | `atv-pack-quality` | Code simplification, comment rot detection, and design slop check. |
+| Test / demo | `/test-browser` | `atv-everything` / single skill | Browser tests for pages affected by the current PR or branch. |
+| Test / demo | `/feature-video` | `atv-everything` / single skill | Visual walkthrough capture for PRs. |
+| Ship | `/land` | `atv-pack-shipping` | Session-end handoff: quality gates, commit, push, PR, and notes. Never merges by default. |
+| Ship | `/lfg` | `atv-pack-shipping` | Full pipeline: plan → deepen → work → review → unslop → resolve → test → video → compound. |
+| Ship | `/slfg` | `atv-pack-shipping` | Swarm variant of `/lfg` with parallel review/test/unslop. |
+| Reflect | `/ce-compound` | `atv-pack-shipping` | Writes solved-problem docs in `docs/solutions/`. |
+| Reflect | `/ce-compound-refresh` | `atv-pack-shipping` | Refreshes stale or drifted learnings against the current codebase. |
+| Reflect | `/learn` | `atv-pack-learning` | Extracts reusable patterns from recent work into instincts. |
+| Reflect | `/instincts` | `atv-pack-learning` | Shows learned instincts with confidence scores, grouped by domain. |
+| Reflect | `/observe` | `atv-pack-learning` | Focused observation over a domain or file pattern. |
+| Reflect | `/evolve` | `atv-pack-learning` | Promotes mature instincts into full Copilot skills. |
+| Maintain | `/atv-doctor` | `atv-pack-maintenance` | Diagnoses project scaffold, marketplace plugin, and VS Code source-install drift. |
+| Maintain | `/atv-update` | `atv-pack-maintenance` | Updates marketplace plugins and safe source-installed AgentPlugins. Project scaffold refresh is advisory. |
+| Maintain | `/setup` | `atv-everything` / single skill | Project setup helper for compound-engineering workflow configuration. |
+| Optional | `/meme-iq` | `atv-pack-easter-eggs` | Meme generation via memegen.link. |
 
-### Plan
+### Prompt-shimmed commands
 
-| Skill | What it does |
-|---|---|
-| `/ce-plan` | Parallel research agents scan codebase + external docs; auto-discovers brainstorms; outputs plans with acceptance criteria |
-| `/deepen-plan` | Enriches each plan section with best practices and performance guidance |
-| `/gstack-plan-eng-review` | Forces hidden assumptions into the open: architecture, data flow, edge cases |
-| `/gstack-plan-design-review` | Scores design quality 0-10 per dimension; rewrites plan to hit 10 |
-| `/gstack-autoplan` | Runs CEO → design → eng review in one command |
+These 18 skills get `.github/prompts/*.prompt.md` shims for VS Code Copilot Chat discovery:
 
-### Build
-
-| Skill | What it does |
-|---|---|
-| `/ce-work` | Implements against the plan with incremental commits and system-wide sanity checks |
-| `/lfg` | Full pipeline: plan → deepen → work → review → unslop → resolve → test → video → compound |
-| `/slfg` | Parallelized version via swarm agents |
-| `/autoresearch` | Autonomous metric-driven experiment loop on a dedicated branch |
-
-### Review
-
-| Skill | What it does |
-|---|---|
-| `/ce-review` | Parallel review agents: security, performance, architecture, language-specific |
-| `/gstack-review` | Staff-level code review with auto-fix and completeness checks |
-| `/gstack-design-review` | Design audit with atomic fix commits |
-| `/atv-security` | Unified security audit — agentic config (33 AgentShield rules) + OWASP Top 10 + STRIDE. Absorbs former `/cso`. |
-| `/ghcp-review-resolve` | Dual PR review (GitHub Copilot + pr-review-toolkit) with adjudication, inline comments for verified bugs, and fix-and-reply loop that resolves threads via GraphQL |
-| `/gstack-codex` | Cross-model review via OpenAI Codex CLI |
-
-### Test
-
-| Skill | What it does |
-|---|---|
-| `agent-browser` | Direct browser automation: open, snapshot, click, fill, screenshot, inspect |
-| `/gstack-qa` | Full QA loop: find bugs in real browser, fix them, write regressions, re-verify |
-| `/gstack-qa-only` | Report-only QA (no fixes) |
-| `/gstack-benchmark` | Page load baselines, Core Web Vitals, resource sizes |
-| `/gstack-browse` | Persistent browser runtime for deeper sessions |
-
-### Ship
-
-| Skill | What it does |
-|---|---|
-| `/land` | Session-end handoff: commit → push → PR → wrap up. Never merges. |
-| `/gstack-ship` | Sync main, run tests, audit coverage, push, open PR |
-| `/gstack-land-and-deploy` | Merge → CI → deploy → verify production |
-| `/gstack-canary` | Post-deploy monitoring for errors and regressions |
-| `/gstack-document-release` | Auto-update project docs to match what shipped |
-
-### Reflect
-
-| Skill | What it does |
-|---|---|
-| `/ce-compound` | Documents solved problems in `docs/solutions/` for future sessions |
-| `/learn` | Extracts coding patterns from recent work into instincts with confidence scoring |
-| `/instincts` | Dashboard showing all learned patterns grouped by domain |
-| `/evolve` | Promotes mature instincts (confidence >0.8) into permanent Copilot skills |
-| `/observe` | Focused pattern analysis on a specific domain or file pattern |
-| `/unslop` | De-slop pass: code simplification + comment rot + design slop detection |
-| `/gstack-retro` | Team-aware weekly retro with per-person breakdowns |
-| `/gstack-learn` | Per-project self-learning infrastructure |
-| `/atv-doctor` | Diagnose ATV install drift, missing skills, and config issues |
-| `/atv-update` | Self-update the ATV install in your project |
-
-### Safety Guardrails
-
-| Skill | What it does |
-|---|---|
-| `/gstack-careful` | Warns before `rm -rf`, `DROP TABLE`, force-push |
-| `/gstack-freeze` | Restricts edits to one directory while debugging |
-| `/gstack-guard` | Careful + Freeze combined |
-| `/gstack-investigate` | No fixes without systematic investigation first |
-
----
+```text
+/atv-doctor  /atv-security  /atv-update  /autoresearch
+/ce-brainstorm  /ce-compound  /ce-ideate  /ce-plan  /ce-review  /ce-work
+/evolve  /instincts  /land  /learn  /lfg  /observe  /takeoff  /unslop
+```
 
 ## How Learning Works
 

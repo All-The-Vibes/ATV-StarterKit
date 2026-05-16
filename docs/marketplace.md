@@ -47,7 +47,7 @@ copilot plugin marketplace browse atv-starter-kit
 copilot plugin install atv-everything@atv-starter-kit
 ```
 
-Bundles **every** ATV skill (31) + **every** reviewer/specialist agent (51). Equivalent in coverage to the Full preset of `atv init` (scoped to skills + agents — no MCP servers, hooks, or instructions templates).
+Bundles **every** ATV skill (30) + **every** reviewer/specialist agent (51). Equivalent in coverage to the Full preset of `atv init` (scoped to skills + agents — no MCP servers, hooks, or instructions templates).
 
 Advanced standalone agents-only install:
 
