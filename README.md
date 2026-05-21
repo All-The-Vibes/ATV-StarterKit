@@ -261,16 +261,24 @@ plan → deepen → work (swarm) ──→ review    ⎤              resolve �
 
 For tasks with a measurable outcome (perf, bundle size, test pass rate), `/autoresearch` runs an autonomous loop on a dedicated `autoresearch/<tag>` branch — committing each experiment, running the metric command, and keeping or reverting based on the result. Every experiment is logged to `results.tsv`.
 
-### `/atv-security` — security audit in one pass
+### `/atv-security` — config + OWASP + STRIDE in one pass
 
-Replaces the old `/cso` slot. Scans agentic config (`.github/`, `.vscode/`) using AgentShield's 33-rule taxonomy *and* application source code for OWASP Top 10 + STRIDE threats. Legacy `/cso` triggers still route here.
+A single agentic security audit covering three surfaces most other tools only do one of:
+
+- **33 config-security rules** across 5 categories — Secrets (5), Permissions (2), Hooks (11), MCP (4), Agents & Skills (11). Taxonomy adapted from [AgentShield](https://github.com/affaan-m/agentshield).
+- **OWASP Top 10 (2021)** scanned against your application source — A01-A10 with file:line evidence per finding.
+- **STRIDE threat modeling** — six-class threat enumeration (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege) folded into the overall grade.
+
+Two-tier detection: deterministic grep regex (Tier 1) plus LLM-assessed semantic checks (Tier 2, agent reasoning over the actual code). Reports persist to `docs/security/YYYY-MM-DD-security-report.md` with idempotent upserts via `<!-- atv-security -->` / `<!-- cso -->` marker blocks — re-runnable without losing the surrounding human-authored context, backwards-compatible with the former `/cso` skill folded in v2.5.9. `fix` mode auto-remediates the mechanically-safe rules (literal secrets → env references, missing hook timeouts, overbroad permissions) and advises on the rest.
 
 ```bash
-/atv-security                  # full audit, report mode (default)
-/atv-security fix              # full audit, apply safe auto-fixes
-/atv-security config           # config-only scan
-/atv-security owasp src/api    # OWASP scan scoped to src/api
+/atv-security                  # full audit (config + OWASP + STRIDE), report mode (default)
+/atv-security fix              # apply mechanical auto-fixes
+/atv-security config           # config-only scan (skip application code)
+/atv-security owasp src/api    # OWASP scan scoped to src/api/
 ```
+
+Full reference: [`docs/atv-security.md`](docs/atv-security.md) — rule-by-rule detail for all 33 config rules, OWASP coverage matrix, STRIDE mapping, scoring formula, sample report layout, and fix-mode semantics.
 
 ### Session bookends — `/takeoff` and `/land`
 
