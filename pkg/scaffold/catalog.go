@@ -208,7 +208,7 @@ var orchestratorSkillDirectories = []string{
 	"feature-video",
 	"lfg",
 	"ralph-loop",
-	"resolve_todo_parallel",
+	"resolve-todo-parallel",
 	"slfg",
 	"test-browser",
 }
