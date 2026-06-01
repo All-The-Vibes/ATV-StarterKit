@@ -4,15 +4,15 @@
 - **Type:** feat
 - **Date:** 2026-06-01
 - **Owner:** ATV maintainers
-- **Origin:** Comparison of Claude Code's *Dynamic Workflows* vs. ATV's `lfg`/`slfg` skills. Two
-  workflow-runtime features were identified as borrowable into the markdown-skill system:
-  (A) phase-completion markers for **resumability**, (B) passing phase outputs **by reference**.
+- **Origin:** Two workflow-runtime features were identified as borrowable into ATV's `lfg`/`slfg`
+  markdown-skill system: (A) phase-completion markers for **resumability**, (B) passing phase
+  outputs **by reference**.
 
 ## Problem
 
 `lfg` and `slfg` are markdown skills that an LLM executes turn-by-turn, orchestrating a pipeline of
 sub-skills (`ce-plan → ce-work → ce-review → todo-resolve → test-browser → feature-video`). Unlike
-Claude Code Dynamic Workflows (JS executed by a runtime), they have:
+workflow engines that execute JS in a runtime, they have:
 
 1. **No resumability** — an interruption restarts the whole turn; completed phases re-run.
 2. **No artifact-by-reference discipline** — phase outputs flow through the agent's context.
