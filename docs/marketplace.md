@@ -76,7 +76,7 @@ copilot plugin install atv-pack-shipping@atv-starter-kit
 
 ### 3. Granular — single-skill plugins
 
-For each skill listed above (and a few utility skills like `setup`, `feature-video`, `resolve_todo_parallel`, `test-browser`), there is an `atv-skill-<name>` plugin:
+For each skill listed above (and a few utility skills like `setup`, `feature-video`, `resolve-todo-parallel`, `test-browser`), there is an `atv-skill-<name>` plugin:
 
 ```bash
 copilot plugin install atv-skill-autoresearch@atv-starter-kit
