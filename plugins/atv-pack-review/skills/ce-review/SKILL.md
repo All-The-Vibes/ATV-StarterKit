@@ -27,6 +27,7 @@ Parse `$ARGUMENTS` for the following optional tokens. Strip each recognized toke
 | `mode:headless` | `mode:headless` | Select headless mode for programmatic callers (see Mode Detection below) |
 | `base:<sha-or-ref>` | `base:abc1234` or `base:origin/main` | Skip scope detection — use this as the diff base directly |
 | `plan:<path>` | `plan:docs/plans/2026-03-25-001-feat-foo-plan.md` | Load this plan for requirements verification |
+| `run:<run-id>` | `run:2026-06-01-001-feat-foo` | Associate this invocation with an orchestrated `/lfg` or `/slfg` run so artifacts co-locate under the shared run id. Recognize and strip it; it does not change review behavior. Ignore any other unrecognized `key:value` tokens |
 
 All tokens are optional. Each one present means one less thing to infer. When absent, fall back to existing behavior for that stage.
 

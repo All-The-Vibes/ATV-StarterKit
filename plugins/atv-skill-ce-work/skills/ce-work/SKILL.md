@@ -16,6 +16,11 @@ This command takes a work document (plan, specification, or todo file) or a bare
 
 <input_document> #$ARGUMENTS </input_document>
 
+**Orchestration arguments:** `$ARGUMENTS` may include tokens passed by `/lfg` or `/slfg`. Recognize and strip these before triaging the remainder as the work input; ignore other unrecognized `key:value` tokens:
+
+- `run:<run-id>` — associates this invocation with a shared orchestrated run (for artifact co-location). No further action needed.
+- `mode:orchestrated` — **resume-safe execution for orchestrators.** Do NOT create a PR or run shipping/finalize steps; the parent workflow owns those. On entry, reconcile existing state first — inspect the current `git diff`, plan checkboxes, and open todos — and continue incomplete units instead of restarting. This makes re-entry after an interruption idempotent (no duplicated commits or branches).
+
 ## Execution Workflow
 
 ### Phase 0: Input Triage

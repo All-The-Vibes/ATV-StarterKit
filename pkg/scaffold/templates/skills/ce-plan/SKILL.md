@@ -22,6 +22,8 @@ Ask one question at a time. Prefer a concise single-select choice when natural o
 
 <feature_description> #$ARGUMENTS </feature_description>
 
+**Orchestration arguments:** If `$ARGUMENTS` contains a `run:<run-id>` token (passed by `/lfg` or `/slfg`), recognize and strip it before interpreting the remainder as the feature description. It associates this plan with a shared orchestrated run; you do not need to act on it further. Ignore any other unrecognized `key:value` tokens.
+
 **If the feature description above is empty, ask the user:** "What would you like to plan? Please describe the feature, bug fix, or improvement you have in mind."
 
 Do not proceed until you have a clear planning input.
