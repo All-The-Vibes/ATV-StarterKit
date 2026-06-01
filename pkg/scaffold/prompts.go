@@ -64,7 +64,7 @@ var nonUserFacingSkills = []string{
 	// Orchestrator sub-skills — internal building blocks of /lfg.
 	"feature-video",
 	"ralph-loop",
-	"resolve_todo_parallel",
+	"resolve-todo-parallel",
 	"slfg",
 	"test-browser",
 	// Easter-egg skill — discoverable via the easter-eggs layer, not the chat picker.

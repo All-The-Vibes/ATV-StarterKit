@@ -1,5 +1,5 @@
 ---
-name: resolve_todo_parallel
+name: resolve-todo-parallel
 description: Resolve all pending CLI todos using parallel processing
 ---
 

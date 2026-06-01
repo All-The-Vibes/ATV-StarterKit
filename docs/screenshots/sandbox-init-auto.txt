@@ -45,7 +45,7 @@
   ✅ .github/skills/document-review/SKILL.md
   ✅ .github/skills/feature-video/SKILL.md
   ✅ .github/skills/lfg/SKILL.md
-  ✅ .github/skills/resolve_todo_parallel/SKILL.md
+  ✅ .github/skills/resolve-todo-parallel/SKILL.md
   ✅ .github/skills/setup/SKILL.md
   ✅ .github/skills/slfg/SKILL.md
   ✅ .github/skills/test-browser/SKILL.md
