@@ -22,12 +22,11 @@ import (
 // list. Its only job is to catch accidental structural breakage.
 //
 // Scope: the canonical dogfood definitions under `.github/skills` and
-// `.github/agents`, plus the consumer-facing skill templates under
-// `pkg/scaffold/templates/skills`. The agent templates under
-// `pkg/scaffold/templates/agents` are intentionally excluded: they are
-// currently stored in a single-line minified form that is not standard
-// line-delimited YAML frontmatter, which is tracked as separate follow-up
-// debt rather than fixed (or papered over) here.
+// `.github/agents`, plus the consumer-facing templates under
+// `pkg/scaffold/templates/skills` and `pkg/scaffold/templates/agents`. The
+// agent templates were previously stored in a single-line minified form and
+// were excluded; once that corruption was repaired they are now held to the
+// same structural contract as every other shipped definition.
 
 // parsedFrontmatter holds the top-level frontmatter keys and the document body
 // that follow a strict `---` / `---` delimited block.
@@ -277,57 +276,65 @@ func TestSkillFrontmatterSpec(t *testing.T) {
 	}
 }
 
-// TestAgentFrontmatterSpec validates the frontmatter of every canonical agent
-// definition under .github/agents.
+// TestAgentFrontmatterSpec validates the frontmatter of every agent definition
+// in the canonical dogfood tree (.github/agents) and the consumer-facing
+// template tree (pkg/scaffold/templates/agents).
 func TestAgentFrontmatterSpec(t *testing.T) {
 	root := repoRoot(t)
-	agentsDir := filepath.Join(root, ".github", "agents")
 
-	entries, err := os.ReadDir(agentsDir)
-	if err != nil {
-		t.Fatalf("reading agents dir: %v", err)
+	trees := []string{
+		filepath.Join(".github", "agents"),
+		filepath.Join("pkg", "scaffold", "templates", "agents"),
 	}
 
-	count := 0
-	for _, entry := range entries {
-		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".agent.md") {
-			continue
-		}
-		count++
-		rel := filepath.ToSlash(filepath.Join(".github", "agents", entry.Name()))
-
-		raw, err := os.ReadFile(filepath.Join(agentsDir, entry.Name()))
+	for _, tree := range trees {
+		agentsDir := filepath.Join(root, tree)
+		entries, err := os.ReadDir(agentsDir)
 		if err != nil {
-			t.Errorf("%s: unreadable: %v", rel, err)
-			continue
+			t.Fatalf("reading agents tree %s: %v", tree, err)
 		}
 
-		fm, problem := parseFrontmatter(string(raw))
-		if problem != "" {
-			t.Errorf("%s: %s", rel, problem)
-			continue
+		count := 0
+		for _, entry := range entries {
+			if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".agent.md") {
+				continue
+			}
+			count++
+			rel := filepath.ToSlash(filepath.Join(tree, entry.Name()))
+
+			raw, err := os.ReadFile(filepath.Join(agentsDir, entry.Name()))
+			if err != nil {
+				t.Errorf("%s: unreadable: %v", rel, err)
+				continue
+			}
+
+			fm, problem := parseFrontmatter(string(raw))
+			if problem != "" {
+				t.Errorf("%s: %s", rel, problem)
+				continue
+			}
+
+			desc := strings.TrimSpace(fm.keys["description"])
+			if desc == "" {
+				t.Errorf("%s: missing or empty required frontmatter key 'description'", rel)
+			} else if isPlaceholder(desc) {
+				t.Errorf("%s: description is an unfilled placeholder %q", rel, desc)
+			}
+
+			ui, ok := fm.keys["user-invocable"]
+			if !ok {
+				t.Errorf("%s: missing required frontmatter key 'user-invocable'", rel)
+			} else if ui != "true" && ui != "false" {
+				t.Errorf("%s: user-invocable must be 'true' or 'false', got %q", rel, ui)
+			}
+
+			if strings.TrimSpace(fm.body) == "" {
+				t.Errorf("%s: body after frontmatter is empty", rel)
+			}
 		}
 
-		desc := strings.TrimSpace(fm.keys["description"])
-		if desc == "" {
-			t.Errorf("%s: missing or empty required frontmatter key 'description'", rel)
-		} else if isPlaceholder(desc) {
-			t.Errorf("%s: description is an unfilled placeholder %q", rel, desc)
+		if count == 0 {
+			t.Fatalf("no .agent.md definitions found under %s — path drift?", tree)
 		}
-
-		ui, ok := fm.keys["user-invocable"]
-		if !ok {
-			t.Errorf("%s: missing required frontmatter key 'user-invocable'", rel)
-		} else if ui != "true" && ui != "false" {
-			t.Errorf("%s: user-invocable must be 'true' or 'false', got %q", rel, ui)
-		}
-
-		if strings.TrimSpace(fm.body) == "" {
-			t.Errorf("%s: body after frontmatter is empty", rel)
-		}
-	}
-
-	if count == 0 {
-		t.Fatal("no .agent.md definitions found under .github/agents — path drift?")
 	}
 }
