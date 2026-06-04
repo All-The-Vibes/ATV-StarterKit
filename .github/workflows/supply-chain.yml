@@ -1,0 +1,54 @@
+name: Supply Chain
+
+# Governance gate ported from the Copilot Agents Dojo "Supply Chain Policy"
+# (https://github.com/andreaswasita/copilot-agents-dojo). Adopted after the
+# litellm / Shai-Hulud / tj-actions incidents: a mutable tag (e.g. `@v4`) can be
+# re-pointed at a malicious commit, so every third-party GitHub Action must be
+# pinned to an immutable 40-char commit SHA, with the human-readable version in
+# a trailing comment.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  enforce-action-pinning:
+    name: Enforce GitHub Action SHA pinning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: "Reject unpinned uses: in any workflow"
+        run: |
+          set -euo pipefail
+          status=0
+          while IFS= read -r wf; do
+            while IFS= read -r line; do
+              # Extract the value token after "uses:" (drop any trailing comment).
+              ref=$(printf '%s\n' "$line" \
+                    | sed -E 's/^[[:space:]]*-?[[:space:]]*uses:[[:space:]]*//; s/[[:space:]].*$//')
+              # Exempt local composite/reusable workflows and docker refs.
+              case "$ref" in
+                ./*|../*|docker://*) continue ;;
+              esac
+              # Only remote "owner/repo...@ref" entries are subject to the policy.
+              case "$ref" in
+                *@*) : ;;
+                *) continue ;;
+              esac
+              sha="${ref##*@}"
+              if ! printf '%s' "$sha" | grep -Eq '^[0-9a-f]{40}$'; then
+                echo "::error file=$wf::Unpinned action '$ref' - pin to a 40-char commit SHA with a '# vX.Y.Z' version comment."
+                status=1
+              fi
+            done < <(grep -E '^[[:space:]]*-?[[:space:]]*uses:[[:space:]]' "$wf" || true)
+          done < <(find .github/workflows -type f \( -name '*.yml' -o -name '*.yaml' \))
+          if [ "$status" -eq 0 ]; then
+            echo "All GitHub Actions are pinned to commit SHAs."
+          fi
+          exit $status
