@@ -94,7 +94,16 @@ function phasesDir(runsDir, runId) {
 function atomicWriteJson(filePath, obj) {
   const tmp = `${filePath}.${process.pid}.${Date.now()}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(obj, null, 2) + "\n");
-  fs.renameSync(tmp, filePath);
+  try {
+    fs.renameSync(tmp, filePath);
+  } catch (err) {
+    if (err && (err.code === "EEXIST" || err.code === "EPERM")) {
+      fs.rmSync(filePath, { force: true });
+      fs.renameSync(tmp, filePath);
+    } else {
+      throw err;
+    }
+  }
 }
 
 function init(runsDir, { runId, skill, feature, plan }) {
