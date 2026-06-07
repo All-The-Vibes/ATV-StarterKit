@@ -115,12 +115,12 @@ func Packs() []Pack {
 // atv-skill-* plugins and are bundled into atv-everything.
 //
 // Today: setup (project bootstrap), feature-video (demo recording),
-// resolve_todo_parallel (orchestrator helper), test-browser
+// resolve-todo-parallel (orchestrator helper), test-browser
 // (orchestrator helper). These are intentionally pack-less because
 // they're internal helpers rather than user-facing workflows.
 var MiscSkills = []string{
 	"feature-video",
-	"resolve_todo_parallel",
+	"resolve-todo-parallel",
 	"setup",
 	"test-browser",
 }

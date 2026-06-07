@@ -13,12 +13,13 @@ import (
 
 // pluginNameForSkill converts a template skill directory name into a
 // valid Copilot CLI plugin name. Plugin names must be kebab-case
-// (letters, numbers, hyphens only) per the spec, but our template
-// directories occasionally use underscores (e.g. resolve_todo_parallel).
+// (letters, numbers, hyphens only) per the spec. Template directories
+// must also be kebab-case as of Copilot CLI 1.0.55-1, which enforces
+// `^[a-z0-9-]+$` on the SKILL.md `name:` field and silently drops
+// skills that violate it.
 //
-// The skill's slash command and SKILL.md `name:` field are unaffected
-// — they continue to use the underscore form. Only the marketplace-
-// facing plugin name and plugin directory name get sanitized.
+// This function is kept as a defensive sanitizer in case a future
+// template slips back into snake_case before the audit catches it.
 func pluginNameForSkill(skill string) string {
 	return "atv-skill-" + strings.ReplaceAll(skill, "_", "-")
 }
