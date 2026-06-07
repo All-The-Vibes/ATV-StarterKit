@@ -45,8 +45,8 @@ Wait for all three to complete before continuing. Then (parent) `node .github/ho
 
 ## Finalize Phase
 
-11. `/compound-engineering-todo-resolve` — resolve findings, compound on learnings, clean up completed todos. Then `done todo-resolve --run-id <RUN_ID>`.
-12. `/compound-engineering-feature-video` — record the final walkthrough and add to PR. Then `done feature-video --run-id <RUN_ID>`.
+11. `/compound-engineering-todo-resolve` — resolve findings, compound on learnings, clean up completed todos. Then `node .github/hooks/scripts/lfg-state.js done todo-resolve --run-id <RUN_ID>`.
+12. `/compound-engineering-feature-video` — record the final walkthrough and add to PR. Then `node .github/hooks/scripts/lfg-state.js done feature-video --run-id <RUN_ID>`. 
 13. Output `<promise>DONE</promise>` when video is in PR
 
 Start with step 1 now.
