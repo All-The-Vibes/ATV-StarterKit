@@ -31,7 +31,7 @@ After work completes, launch steps 4, 5, and 6 as **parallel swarm agents** (all
 5. `/compound-engineering-test-browser run:<RUN_ID>` — spawn as background Task agent
 6. `/unslop run:<RUN_ID>` — spawn as background Task agent (read-only de-slop report)
 
-Wait for all three to complete before continuing. Then (parent) `done test-browser --run-id <RUN_ID> --artifact <report-path>`.
+Wait for all three to complete before continuing. Then (parent) `node .github/hooks/scripts/lfg-state.js done test-browser --run-id <RUN_ID> --artifact <report-path>`. 
 
 ## Autofix Phase
 
