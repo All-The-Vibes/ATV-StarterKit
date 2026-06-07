@@ -20,8 +20,8 @@ This workflow is **resumable**. A tiny helper tracks which phases are `done` and
 ## Sequential Phase
 
 1. **Optional:** If the `ralph-loop` skill is available, run `/ralph-loop-ralph-loop "finish all slash commands" --completion-promise "DONE"`. If not available or it fails, skip and continue to step 2 immediately.
-2. `/ce-plan $ARGUMENTS run:<RUN_ID>` — **Record the plan file path** from `docs/plans/` for steps 4 and 6. Then (parent) `lfg-state.js bind-plan --run-id <RUN_ID> --plan <plan-path>` and `done ce-plan --run-id <RUN_ID> --artifact <plan-path>`.
-3. `/ce-work mode:orchestrated plan:<plan-path-from-step-2> run:<RUN_ID>` — **Use swarm mode**: Make a Task list and launch an army of agent swarm subagents to build the plan. Then (parent) `done ce-work --run-id <RUN_ID>`.
+2. `/ce-plan $ARGUMENTS run:<RUN_ID>` — **Record the plan file path** from `docs/plans/` for steps 4 and 6. Then (parent) `node .github/hooks/scripts/lfg-state.js bind-plan --run-id <RUN_ID> --plan <plan-path>` and `node .github/hooks/scripts/lfg-state.js done ce-plan --run-id <RUN_ID> --artifact <plan-path>`.
+3. `/ce-work mode:orchestrated plan:<plan-path-from-step-2> run:<RUN_ID>` — **Use swarm mode**: Make a Task list and launch an army of agent swarm subagents to build the plan. Then (parent) `node .github/hooks/scripts/lfg-state.js done ce-work --run-id <RUN_ID>`. 
 
 ## Parallel Phase
 
