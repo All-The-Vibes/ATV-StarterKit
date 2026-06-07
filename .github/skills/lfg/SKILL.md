@@ -23,7 +23,7 @@ This workflow is **resumable**. A tiny helper tracks which phases are `done` and
 
 2. `/ce-plan $ARGUMENTS run:<RUN_ID>`
 
-   GATE: STOP. Verify that the `ce-plan` workflow produced a plan file in `docs/plans/`. If no plan file was created, run `/ce-plan $ARGUMENTS run:<RUN_ID>` again. Do NOT proceed to step 3 until a written plan exists. **Record the plan file path**, then bind it and mark the phase done: `lfg-state.js bind-plan --run-id <RUN_ID> --plan <plan-path>` and `lfg-state.js done ce-plan --run-id <RUN_ID> --artifact <plan-path>`.
+   GATE: STOP. Verify that the `ce-plan` workflow produced a plan file in `docs/plans/`. If no plan file was created, run `/ce-plan $ARGUMENTS run:<RUN_ID>` again. Do NOT proceed to step 3 until a written plan exists. **Record the plan file path**, then bind it and mark the phase done: `node .github/hooks/scripts/lfg-state.js bind-plan --run-id <RUN_ID> --plan <plan-path>` and `node .github/hooks/scripts/lfg-state.js done ce-plan --run-id <RUN_ID> --artifact <plan-path>`. 
 
 3. `/ce-work mode:orchestrated plan:<plan-path-from-step-2> run:<RUN_ID>`
 
