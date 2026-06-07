@@ -13,9 +13,9 @@ This workflow is **resumable**. A tiny helper tracks which phases are `done` and
 
 - **Helper:** `node .github/hooks/scripts/lfg-state.js` — commands `init`, `bind-plan`, `done <phase> --run-id <id> [--artifact <repo-relative-path>]`, `status --run-id <id>`, `run-id-from-plan --plan <path>`. It writes `.atv/runs/<run-id>/` (gitignored, local-only).
 - **On start (resume check):**
-  1. If a recent plan for this feature already exists in `docs/plans/`, derive `RUN_ID` from it: `node .github/hooks/scripts/lfg-state.js run-id-from-plan --plan <plan-path>`. Otherwise create a provisional id: run `init --skill lfg --feature "$ARGUMENTS" --repo <repo> --branch <branch>` and read `run_id`.
-  2. Run `status --run-id <RUN_ID>` and **skip every phase whose sentinel is already `done`**; resume at the first not-done phase.
-- **After each phase passes its gate:** record it with `done <phase> --run-id <RUN_ID> [--artifact <path>]` (pass the artifact path the phase produced; omit when it produced none).
+  1. If a recent plan for this feature already exists in `docs/plans/`, derive `RUN_ID` from it: `node .github/hooks/scripts/lfg-state.js run-id-from-plan --plan <plan-path>`. Otherwise create a provisional id: run `node .github/hooks/scripts/lfg-state.js init --skill lfg --feature "$ARGUMENTS" --repo <repo> --branch <branch>` and read `run_id`.
+  2. Run `node .github/hooks/scripts/lfg-state.js status --run-id <RUN_ID>` and **skip every phase whose sentinel is already `done`**; resume at the first not-done phase.
+- **After each phase passes its gate:** record it with `node .github/hooks/scripts/lfg-state.js done <phase> --run-id <RUN_ID> [--artifact <path>]` (pass the artifact path the phase produced; omit when it produced none).
 - **Pass `run:<RUN_ID>`** to every sub-skill so artifacts co-locate and downstream phases read paths, not full content.
 - **Re-entry safety:** local state is only valid in this worktree; if `.atv/runs/` is absent, infer progress from the plan, branch, and any open PR. Non-`done` phases are re-entered from the start, so `ce-work` MUST be called with `mode:orchestrated` to reconcile existing work instead of duplicating commits/PRs.
 
@@ -27,17 +27,17 @@ This workflow is **resumable**. A tiny helper tracks which phases are `done` and
 
 3. `/ce-work mode:orchestrated plan:<plan-path-from-step-2> run:<RUN_ID>`
 
-   GATE: STOP. Verify that implementation work was performed - files were created or modified beyond the plan. Do NOT proceed to step 4 if no code changes were made. Then `lfg-state.js done ce-work --run-id <RUN_ID>`.
+   GATE: STOP. Verify that implementation work was performed - files were created or modified beyond the plan. Do NOT proceed to step 4 if no code changes were made. Then `node .github/hooks/scripts/lfg-state.js done ce-work --run-id <RUN_ID>`.
 
 4. `/ce-review mode:autofix plan:<plan-path-from-step-2> run:<RUN_ID>`
 
-   Pass the plan file path from step 2 so ce-review can verify requirements completeness. Then `lfg-state.js done ce-review --run-id <RUN_ID> --artifact <review-artifact-path>`.
+   Pass the plan file path from step 2 so ce-review can verify requirements completeness. Then `node .github/hooks/scripts/lfg-state.js done ce-review --run-id <RUN_ID> --artifact <review-artifact-path>`.
 
-5. `/compound-engineering-todo-resolve` — then `lfg-state.js done todo-resolve --run-id <RUN_ID>`
+5. `/compound-engineering-todo-resolve` — then `node .github/hooks/scripts/lfg-state.js done todo-resolve --run-id <RUN_ID>`
 
-6. `/compound-engineering-test-browser` — then `lfg-state.js done test-browser --run-id <RUN_ID> --artifact <report-path>`
+6. `/compound-engineering-test-browser` — then `node .github/hooks/scripts/lfg-state.js done test-browser --run-id <RUN_ID> --artifact <report-path>`
 
-7. `/compound-engineering-feature-video` — then `lfg-state.js done feature-video --run-id <RUN_ID>`
+7. `/compound-engineering-feature-video` — then `node .github/hooks/scripts/lfg-state.js done feature-video --run-id <RUN_ID>`
 
 8. Output `<promise>DONE</promise>` when video is in PR
 

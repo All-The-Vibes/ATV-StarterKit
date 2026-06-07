@@ -222,9 +222,11 @@ function main(argv) {
         artifact: flags.artifact,
       });
       break;
-    case "is-done":
-      out = { phase: positional[0], done: isDone(runsDir, flags["run-id"], positional[0]) };
+    case "is-done": {
+      const phase = positional[0] || flags.phase;
+      out = { phase, done: isDone(runsDir, flags["run-id"], phase) };
       break;
+    }
     case "status":
       out = status(runsDir, flags["run-id"]);
       break;
