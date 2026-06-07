@@ -73,10 +73,18 @@ function parseRunToken(args) {
   return { runId: match[1], rest };
 }
 
+function sanitizeRunId(runId) {
+  const safe = String(runId || "");
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(safe)) {
+    throw new Error(`invalid run id: ${JSON.stringify(runId)}`);
+  }
+  return safe;
+}
+
 // --- filesystem helpers ----------------------------------------------------
 
 function runDir(runsDir, runId) {
-  return path.join(runsDir, runId);
+  return path.join(runsDir, sanitizeRunId(runId));
 }
 
 function phasesDir(runsDir, runId) {
