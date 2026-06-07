@@ -35,8 +35,8 @@ Wait for all three to complete before continuing. Then (parent) `node .github/ho
 
 ## Autofix Phase
 
-7. `/ce-review mode:autofix plan:<plan-path-from-step-2> run:<RUN_ID>` — run sequentially after the parallel phase so it can safely mutate the checkout, apply `safe_auto` fixes, and emit residual todos for step 8. Then (parent) `done ce-review --run-id <RUN_ID> --artifact <review-artifact-path>`.
-8. `/unslop fix` — run sequentially after ce-review autofix to strip AI slop (commented-out code, filler comments, stale TODOs). Then `done unslop --run-id <RUN_ID>`.
+7. `/ce-review mode:autofix plan:<plan-path-from-step-2> run:<RUN_ID>` — run sequentially after the parallel phase so it can safely mutate the checkout, apply `safe_auto` fixes, and emit residual todos for step 8. Then (parent) `node .github/hooks/scripts/lfg-state.js done ce-review --run-id <RUN_ID> --artifact <review-artifact-path>`.
+8. `/unslop fix` — run sequentially after ce-review autofix to strip AI slop (commented-out code, filler comments, stale TODOs). Then `node .github/hooks/scripts/lfg-state.js done unslop --run-id <RUN_ID>`. 
 
 ## Learning Phase
 
