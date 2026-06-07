@@ -35,6 +35,9 @@ Thumbs.db
 # ATV observation logs (ephemeral)
 .atv/observations.jsonl
 
+# ATV LFG/SLFG run state (ephemeral, local-only resumability markers)
+.atv/runs/
+
 # Local planning and session artifacts
 PRD.md
 PROGRESS.md
