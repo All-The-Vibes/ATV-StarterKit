@@ -11,7 +11,7 @@ const zlib = require("zlib");
 
 const REPO_OWNER = "All-The-Vibes";
 const REPO_NAME = "ATV-StarterKit";
-const BINARY_NAME = "atv-installer";
+const BINARY_NAME = "atv-inst-tool";
 
 /**
  * Resolve the platform and architecture to match goreleaser naming.

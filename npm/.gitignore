@@ -1,3 +1,5 @@
 # Downloaded binary (created by postinstall)
 bin/atv-installer
 bin/atv-installer.exe
+bin/atv-inst-tool
+bin/atv-inst-tool.exe
