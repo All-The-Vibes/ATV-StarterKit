@@ -389,6 +389,16 @@ go test ./pkg/monitor/ -v                # watcher + drift detection tests
 go test ./test/sandbox/ -v               # integration tests (E2E scenarios)
 ```
 
+### Contributor conventions
+
+Before adding or changing a skill, agent, prompt shim, plugin manifest, or
+workflow, skim [`.github/known-pitfalls.md`](.github/known-pitfalls.md) — the
+consolidated `DO NOT` register of the conventions this repo already enforces
+(frontmatter shape, harness neutrality, catalog/template parity, generated
+artifacts, and Action SHA pinning). Most entries are backed by a Go test under
+`pkg/scaffold/` or a workflow under `.github/workflows/`, so `go test ./...`
+will tell you if a change trips one.
+
 ## Limitations
 
 - **Bun required for browser skills** — `/gstack-qa`, `/gstack-browse`, `/gstack-benchmark`
