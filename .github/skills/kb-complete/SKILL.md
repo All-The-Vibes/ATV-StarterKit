@@ -170,13 +170,38 @@ projects.
 
 After the resolution gate passes, document what this feature taught the system:
 
+0. **Classify steering feedback** before `/learn` runs.
+   - Sources: resolved P0/P1 review findings, manifest notes named
+     `steering-feedback:`, `/iterate` or PR feedback summaries, goal-ledger
+     feedback, and maintainer comments copied into the completion artifact.
+   - Classify each item as exactly one primary route:
+     `current-only`, `steering-memory`, `observation`, `landmine-candidate`, or
+     `instinct-evidence`.
+   - `current-only`: record in manifest notes only; do not update durable memory.
+   - `steering-memory`: update the steering memory path named by the goal or
+     manifest, usually the goal ledger's `Live Steering` section or
+     `docs/context/operations/steering/<slug>.md`. Keep entries concise:
+     durable scope constraints, known false positives, reviewer preferences, or
+     selection guidance. Do not append raw transcripts or one-off PR details.
+   - `observation`: append one JSONL entry to `.atv/observations.jsonl`.
+     Do not duplicate the resolved P0/P1 entries already written by Step 2;
+     reference those existing entries when they are the evidence source.
+   - `landmine-candidate`: apply `/learn` landmine criteria; record only with
+     owner surface, concrete evidence, fix condition, and verification.
+   - `instinct-evidence`: leave the evidence visible to `/learn`; do not
+     promote it directly to a skill.
+   - If no steering memory path is named, do not create one automatically. Add a
+     manifest note: `steering-feedback: no durable steering memory path`.
+   - Record the result in manifest notes:
+     `steering-feedback: current=<N> memory=<N> observations=<N> landmine-candidates=<N> instinct-evidence=<N>`.
 1. **Invoke `ce-compound`** with context: a one-sentence summary of what was built and any surprising patterns discovered during implementation.
 2. ce-compound writes to `docs/solutions/` with YAML frontmatter — let it run without modification.
 3. If the implementation was pure boilerplate (no novel patterns, no gotchas, no decisions worth preserving), skip with a manifest note: `compound: skipped — standard implementation, no novel patterns`
 4. Per-slice micro-learnings from slice notes feed into the compound context. Reference them when invoking ce-compound.
 5. **Invoke `/learn`** — Extract instincts from this session's work.
    - Run after compound completes (observations from Step 2 are now available)
-   - `/learn` reads: observations.jsonl, recent git history, docs/solutions/, existing instincts
+   - `/learn` reads: observations.jsonl, recent git history, docs/solutions/,
+     existing instincts, and any steering-memory updates classified above
    - Record result in manifest notes: `learn: N new instincts, M updated` or `learn: no new patterns`
    - This is automatic — do not ask the user whether to run it
    - If the work exposed a repo-specific landmine, record it only with owner

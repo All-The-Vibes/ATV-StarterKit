@@ -38,10 +38,11 @@ already opted into a `done.md` workflow.
 ## Pre-Flight
 
 1. **Read the manifest** — confirm `status: completed` (all slices done/skipped). If slices are still `pending` or `in_progress`, stop: "This manifest has unfinished slices. Run `kb-work` first."
-2. **Collect scope context** — scan each slice's `notes` field for `scope-check:` and `scope-discovery:` entries. Build the combined list of actually changed, scope-verified files across all slices. This becomes the review scope.
-3. **Collect memory impact** — scan slice notes for `memory-impact:` and `kb-map-refresh:` entries.
-4. **Identify the branch baseline** — run `git merge-base HEAD main` to establish the diff range.
-5. **Run final snapshot sweep** — invoke `kb-regression-snapshot verify` for all snapshots under `.atv/snapshots/`. If any snapshot fails, STOP before review; later work regressed earlier passing behavior.
+2. **Validate gate ledger** — the manifest must contain `gate_ledger` with `work-to-complete` set to `passed`, and every completed slice must have a passing `slice-<id>-to-done` gate. Run `kb-gate/scripts/check_gate_ledger.py <manifest-path> --gate work-to-complete --allowed-next "kb-complete <manifest-path>"`. If missing, blocked, or the checker fails, stop and invoke `kb-work <manifest-path>` or `kb-gate` to repair the ledger. Do not run completion from a manifest that merely says `status: completed`.
+3. **Collect scope context** — scan each slice's `notes` field for `scope-check:` and `scope-discovery:` entries. Build the combined list of actually changed, scope-verified files across all slices. This becomes the review scope.
+4. **Collect memory impact** — scan slice notes for `memory-impact:` and `kb-map-refresh:` entries.
+5. **Identify the branch baseline** — run `git merge-base HEAD main` to establish the diff range.
+6. **Run final snapshot sweep** — invoke `kb-regression-snapshot verify` for all snapshots under `.atv/snapshots/`. If any snapshot fails, STOP before review; later work regressed earlier passing behavior.
 
 If the manifest has no scope-check notes (older format), fall back to `git diff --name-only $(git merge-base HEAD main)..HEAD` for the file list.
 
@@ -169,13 +170,38 @@ projects.
 
 After the resolution gate passes, document what this feature taught the system:
 
+0. **Classify steering feedback** before `/learn` runs.
+   - Sources: resolved P0/P1 review findings, manifest notes named
+     `steering-feedback:`, `/iterate` or PR feedback summaries, goal-ledger
+     feedback, and maintainer comments copied into the completion artifact.
+   - Classify each item as exactly one primary route:
+     `current-only`, `steering-memory`, `observation`, `landmine-candidate`, or
+     `instinct-evidence`.
+   - `current-only`: record in manifest notes only; do not update durable memory.
+   - `steering-memory`: update the steering memory path named by the goal or
+     manifest, usually the goal ledger's `Live Steering` section or
+     `docs/context/operations/steering/<slug>.md`. Keep entries concise:
+     durable scope constraints, known false positives, reviewer preferences, or
+     selection guidance. Do not append raw transcripts or one-off PR details.
+   - `observation`: append one JSONL entry to `.atv/observations.jsonl`.
+     Do not duplicate the resolved P0/P1 entries already written by Step 2;
+     reference those existing entries when they are the evidence source.
+   - `landmine-candidate`: apply `/learn` landmine criteria; record only with
+     owner surface, concrete evidence, fix condition, and verification.
+   - `instinct-evidence`: leave the evidence visible to `/learn`; do not
+     promote it directly to a skill.
+   - If no steering memory path is named, do not create one automatically. Add a
+     manifest note: `steering-feedback: no durable steering memory path`.
+   - Record the result in manifest notes:
+     `steering-feedback: current=<N> memory=<N> observations=<N> landmine-candidates=<N> instinct-evidence=<N>`.
 1. **Invoke `ce-compound`** with context: a one-sentence summary of what was built and any surprising patterns discovered during implementation.
 2. ce-compound writes to `docs/solutions/` with YAML frontmatter — let it run without modification.
 3. If the implementation was pure boilerplate (no novel patterns, no gotchas, no decisions worth preserving), skip with a manifest note: `compound: skipped — standard implementation, no novel patterns`
 4. Per-slice micro-learnings from slice notes feed into the compound context. Reference them when invoking ce-compound.
 5. **Invoke `/learn`** — Extract instincts from this session's work.
    - Run after compound completes (observations from Step 2 are now available)
-   - `/learn` reads: observations.jsonl, recent git history, docs/solutions/, existing instincts
+   - `/learn` reads: observations.jsonl, recent git history, docs/solutions/,
+     existing instincts, and any steering-memory updates classified above
    - Record result in manifest notes: `learn: N new instincts, M updated` or `learn: no new patterns`
    - This is automatic — do not ask the user whether to run it
    - If the work exposed a repo-specific landmine, record it only with owner
@@ -351,7 +377,30 @@ Prune ephemeral artifacts. Heavy KB usage generates file sprawl — clean it up 
 
 ## Step 5: Done
 
-Update the manifest `status: reviewed` and report:
+Before updating the manifest to `status: reviewed`, write `complete-to-ship` in
+the manifest `gate_ledger`.
+
+Required proof:
+
+- `kb-check` final command/result;
+- `kb-functional-test` or explicit skip reason for every functional/API/CLI/UI slice;
+- `kb-review` mode and finding counts;
+- P0/P1 resolved or human/quarantine blocker recorded;
+- follow-up-resolution summary;
+- proof/demo evidence paths or skip reason;
+- compound/learn/evolve result or non-blocking failure note;
+- project-memory refresh/skip proof;
+- memory-maintenance update;
+- cleanup result;
+- alerts list.
+
+If any required proof is missing, set `complete-to-ship` to `blocked` and do not
+report `KB <name> complete`.
+
+Update the manifest `status: reviewed` only after `complete-to-ship` is
+`passed` or explicitly `quarantined` for out-of-scope issues, and after
+`kb-gate/scripts/check_gate_ledger.py <manifest-path> --gate complete-to-ship --allow-quarantine`
+passes. Then report:
 
 ```text
 KB <name> complete.

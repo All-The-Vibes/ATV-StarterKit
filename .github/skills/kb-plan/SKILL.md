@@ -108,6 +108,25 @@ Some work is legitimately enabling infrastructure: migrations, auth plumbing, sh
 - They are the smallest viable prerequisite
 - The slice names its immediate consumer(s)
 
+### Live-Steering Slices
+
+For recurring, scheduled, or trend-improvement work routed from `kb-goal`,
+include the control-loop fields in the manifest or the first slice plan:
+
+- set point: the invariant, threshold, or direction being driven;
+- sensor: the command, query, test, or review signal that measures the gap;
+- controller: how the next small reviewable increment is selected;
+- actuator: the KB lane, coding agent, or workflow that applies the change;
+- disturbances: outside changes the loop must tolerate;
+- dampener: optional regression gate that keeps the measured problem from
+  getting worse while the loop improves it;
+- scope gate, batch size, WIP bound, and steering-memory path.
+
+Do not force this framing onto one-shot feature work. Do not invent separate
+sensor, controller, and actuator artifacts when the repo's real toolchain fuses
+them; record the fused component and the selection policy. HumanLayer-style CI,
+Bun, CodeLayer, or GitHub Actions runners are examples, not KB defaults.
+
 ### Every Slice Has a Verification Strategy
 
 | Mode | When | Gate |

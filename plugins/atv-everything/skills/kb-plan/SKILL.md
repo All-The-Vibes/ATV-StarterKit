@@ -16,8 +16,12 @@ Break work into independently executable **vertical slices** (tracer bullets). E
 2. Draft thin end-to-end slices with dependencies and verification modes.
 3. Review the breakdown yourself against the source material; ask the user only for blocking decisions.
 4. Write one KB manifest plus one plan file per slice.
-5. Stop after writing the manifest unless the user invoked `klfg` or explicitly asked to execute.
-6. Stage or commit only the generated files when the user explicitly asked for a commit.
+5. Create or update the manifest `gate_ledger`; `plan-to-work` must be
+   `passed` before `kb-work` may execute.
+6. After writing the manifest, continue to `kb-work <manifest-path>` only when
+   execution was requested or an orchestrator called this plan. Otherwise ask
+   once and print the exact next command.
+7. Stage or commit only the generated files when the user explicitly asked for a commit.
 
 ## Interaction Method
 
@@ -25,9 +29,33 @@ Default to non-interactive planning when the source material is clear. Use the p
 
 When assumptions are safe and reversible, record them in the manifest instead of stopping. Ask one concise question only for material uncertainty.
 
-Phase boundary: `kb-plan` produces a manifest and slice plans. It does not automatically invoke `kb-work` unless the user explicitly asked for execution or an orchestrator such as `klfg` called it.
+Planning cannot launder brainstorm ambiguity. If the source contains unresolved
+`ask-now` or `research-first` items, a non-empty `Resolve Before Planning`
+section, or unlabeled material assumptions that affect scope, acceptance
+criteria, architecture direction, safety, or verification, stop and route back
+to `kb-brainstorm`/`kb-gate`. Only `safe-assumption`,
+`defer-to-planning`, and `parked` items may cross into planning, and each must
+be recorded in the manifest.
+
+Phase boundary: `kb-plan` produces a manifest and slice plans. It does not
+automatically invoke `kb-work` unless the user explicitly asked for execution or
+an orchestrator such as `klfg`, `kb-epic`, or `kb-goal` called it.
 
 Execution intent includes phrases such as "go straight to work", "just build it", "don't ask many questions", "continue until done", "run it", or a handoff from `kb-task`, `kb-brainstorm`, or `klfg` that says to continue. In those cases, write the manifest and slice plans first, then immediately invoke `kb-work <manifest-path>`. Never skip manifest creation.
+
+Without execution intent, ask once after the manifest is valid:
+
+```text
+Plan is ready: <manifest-path>
+Continue with `kb-work <manifest-path>` now?
+```
+
+If the user says yes, invoke `kb-work <manifest-path>`. If the user says no, or
+the host cannot invoke the next skill, stop and print:
+
+```text
+Next command: `kb-work <manifest-path>`
+```
 
 ## Input
 
@@ -80,6 +108,25 @@ Some work is legitimately enabling infrastructure: migrations, auth plumbing, sh
 - They are the smallest viable prerequisite
 - The slice names its immediate consumer(s)
 
+### Live-Steering Slices
+
+For recurring, scheduled, or trend-improvement work routed from `kb-goal`,
+include the control-loop fields in the manifest or the first slice plan:
+
+- set point: the invariant, threshold, or direction being driven;
+- sensor: the command, query, test, or review signal that measures the gap;
+- controller: how the next small reviewable increment is selected;
+- actuator: the KB lane, coding agent, or workflow that applies the change;
+- disturbances: outside changes the loop must tolerate;
+- dampener: optional regression gate that keeps the measured problem from
+  getting worse while the loop improves it;
+- scope gate, batch size, WIP bound, and steering-memory path.
+
+Do not force this framing onto one-shot feature work. Do not invent separate
+sensor, controller, and actuator artifacts when the repo's real toolchain fuses
+them; record the fused component and the selection policy. HumanLayer-style CI,
+Bun, CodeLayer, or GitHub Actions runners are examples, not KB defaults.
+
 ### Every Slice Has a Verification Strategy
 
 | Mode | When | Gate |
@@ -107,6 +154,13 @@ Read the brainstorm/PRD/description. Extract:
 - What the user-visible outcomes are
 - What constraints/dependencies exist
 - What's explicitly out of scope
+- Question Gate state: unresolved `ask-now`/`research-first` blockers, safe
+  assumptions, deferred planning questions, and parked forbidden claims.
+
+If the source has unresolved `ask-now` or `research-first` items, stop before
+decomposition. Write or update the `brainstorm-to-plan` gate as `blocked` or
+`needs-human` and set `allowed_next_action` to the smallest repair action, such
+as `kb-brainstorm <requirements-path>`.
 
 ### 1.5. Research (Parallel)
 
@@ -173,6 +227,13 @@ Ask the user only when a material decision remains. Otherwise proceed and record
 
 Run `kb-gate` before writing final plans when validation surfaces P0/P1/P2/P3 issues. P0/P1 block work, but the agent should rectify safe/actionable blockers before asking the user. For P2/P3, ask whether to rectify all fixable issues before moving on.
 
+Before handing off to `kb-work`, write a `plan-to-work` gate in the manifest.
+Load `kb-gate/references/gate-ledger.md` if needed. The gate must include proof
+for: manifest path, every slice plan path, dependency DAG validation, acceptance
+criteria, `expected_files`, verification mode, `test_level`, `functional_risk`,
+HITL classification, and any protected oracle policy. If any proof is missing,
+set `status: blocked` and do not invoke `kb-work`.
+
 ### 4. Generate Plan Files
 
 Create a manifest and individual slice plans.
@@ -187,6 +248,35 @@ brainstorm_path: docs/brainstorms/<source-file>.md
 created: YYYY-MM-DD
 status: active
 workflow_shape: "<direct-chat|single-skill-edit|skill-bundle-change|pipeline-change|multi-stream-epic>"
+gate_ledger:
+  - gate_id: brainstorm-to-plan
+    owner_skill: kb-brainstorm
+    status: passed
+    required_evidence:
+      - "<requirements path exists>"
+      - "Question Gate classification exists"
+      - "Resolve Before Planning is empty"
+      - "no unresolved ask-now or research-first items remain"
+      - "safe assumptions, deferred planning questions, and parked items are recorded"
+    proof:
+      - docs/brainstorms/<source-file>.md
+    blockers: []
+    passed_at: "<timestamp>"
+    allowed_next_action: "kb-plan <requirements-path>"
+  - gate_id: plan-to-work
+    owner_skill: kb-plan
+    status: passed
+    required_evidence:
+      - "<manifest path exists>"
+      - "<all slice plan paths exist>"
+      - "DAG has no missing blockers or cycles"
+      - "each slice has acceptance criteria, expected_files, verification, test_level, functional_risk"
+    proof:
+      - docs/plans/YYYY-MM-DD-000-kb-<name>-manifest.md
+      - docs/plans/YYYY-MM-DD-001-<type>-<name>-plan.md
+    blockers: []
+    passed_at: "<timestamp>"
+    allowed_next_action: "kb-work <manifest-path>"
 slices:
   - id: slice-001
     title: "<title>"
@@ -450,6 +540,7 @@ Omit empty sections. These conventions are defined inline in the top `## Rules` 
 - Confirm every `blockers` entry references an existing slice ID.
 - Confirm no dependency cycles exist.
 - Confirm every slice has a verification mode and acceptance criteria.
+- Confirm the manifest has a `plan-to-work` gate with `status: passed` or `status: blocked`; never leave it absent or pending.
 - Confirm every generated plan path is listed in the manifest.
 - Confirm the manifest body table matches the YAML frontmatter.
 

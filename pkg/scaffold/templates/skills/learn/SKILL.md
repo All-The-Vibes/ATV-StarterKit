@@ -26,6 +26,9 @@ Run these in parallel to collect data:
 3. **Observations** — Read `.atv/observations.jsonl` for tool use patterns from hooks
 4. **Existing instincts** — Read `.atv/instincts/project.yaml` (create if missing)
 5. **Solutions** — Read `docs/solutions/` for documented patterns
+6. **Steering memory** — Read any current goal or manifest steering-memory path
+   named by the caller, such as a `Live Steering` ledger section or
+   `docs/context/operations/steering/<slug>.md`
 
 ### Step 2: Analyze Patterns
 
@@ -54,6 +57,16 @@ Look for recurring patterns across the evidence:
 - Common file editing sequences
 - Preferred build/test commands
 
+**Steering feedback patterns** (from curated steering memory):
+- Permanent scope constraints or false-positive areas
+- Reviewer preferences that should change future target selection
+- Controller-selection guidance for recurring goals
+- Durable "do this next time" feedback repeated across runs
+
+Do not learn from raw transcripts, unclassified PR comments, or one-off
+instructions. If feedback only applied to the current PR, leave it out of
+project instincts.
+
 ### Step 2.5: Apply Recency Decay
 
 Before creating or updating instincts, apply time-based decay to all existing entries:
@@ -79,6 +92,21 @@ Before creating or updating instincts, apply time-based decay to all existing en
 
 For each new pattern discovered, create an instinct entry.
 For patterns that match existing instincts, increase confidence and observation count.
+
+Before creating or updating an instinct from feedback, classify it:
+
+| Route | Use When | Durable Output |
+|---|---|---|
+| `current-only` | Feedback only changes the active PR/session | manifest or PR note only |
+| `steering-memory` | Feedback should steer future target selection but is not yet a broad project instinct | goal ledger or `docs/context/operations/steering/<slug>.md` |
+| `observation` | Feedback is an evidence point for later pattern extraction | `.atv/observations.jsonl` |
+| `landmine-candidate` | Feedback exposes a concrete repo-specific trap | `docs/context/landmines.md` candidate with strict evidence |
+| `instinct-evidence` | Repeated evidence supports a project-wide behavior | `.atv/instincts/project.yaml` |
+
+One verified high-severity trap may become a landmine candidate, but ordinary
+preferences need repeated evidence before becoming instincts. Steering memory is
+the middle layer: it changes future loop behavior without pretending the pattern
+is ready to become a reusable skill.
 
 **Instinct format** (YAML in `.atv/instincts/project.yaml`):
 
