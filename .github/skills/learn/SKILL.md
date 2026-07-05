@@ -23,8 +23,8 @@ Run these in parallel to collect data:
 
 1. **Git history** — `git log --oneline -20` for recent commits
 2. **Recent diffs** — `git diff HEAD~5..HEAD --stat` for what changed
-3. **Observations** — Read `.atv/observations.jsonl` for tool use patterns from hooks
-4. **Existing instincts** — Read `.atv/instincts/project.yaml` (create if missing)
+3. **Observations** — Read `.kb/observations.jsonl` for tool use patterns from hooks (optional; learning works without this feed)
+4. **Existing instincts** — Read `docs/context/kb/instincts/project.yaml` and, if a narrower scope is active, `docs/context/kb/instincts/scoped/<scope-path>.yaml` (create if missing)
 5. **Solutions** — Read `docs/solutions/` for documented patterns
 6. **Steering memory** — Read any current goal or manifest steering-memory path
    named by the caller, such as a `Live Steering` ledger section or
@@ -71,17 +71,17 @@ project instincts.
 
 Before creating or updating instincts, apply time-based decay to all existing entries:
 
-1. For each instinct in `.atv/instincts/project.yaml`:
+1. For each instinct in the active scope file (`docs/context/kb/instincts/scoped/<scope-path>.yaml` or `docs/context/kb/instincts/project.yaml`):
    - Calculate days since `last_seen`
    - Apply decay: `new_confidence = confidence × 0.5^(days_since_last_seen / 90)`
    - Update the confidence value in place
 
 2. **Archive stale instincts:**
-   - If decayed confidence falls below 0.3, move the instinct to `.atv/instincts/archive/YYYY-MM-DD-archived.yaml`
+   - If decayed confidence falls below 0.3, move the instinct to `docs/context/kb/instincts/archive/YYYY-MM-DD-archived.yaml`
    - Add `archived_reason: confidence decayed below 0.3 (last seen: <date>)`
-   - Remove from `project.yaml`
+   - Remove from the source scope file
 
-3. Write updated confidence values back to `project.yaml` before proceeding to Step 3.
+3. Write updated confidence values back to the scope file before proceeding to Step 3.
 
 **Half-life rationale:** 90 days balances stability (project conventions rarely change weekly) with freshness (patterns unused for 6+ months are likely obsolete). At 90 days, an unobserved instinct at 0.85 decays to:
 - 30 days: 0.68
@@ -98,21 +98,64 @@ Before creating or updating an instinct from feedback, classify it:
 | Route | Use When | Durable Output |
 |---|---|---|
 | `current-only` | Feedback only changes the active PR/session | manifest or PR note only |
-| `steering-memory` | Feedback should steer future target selection but is not yet a broad project instinct | goal ledger or `docs/context/operations/steering/<slug>.md` |
-| `observation` | Feedback is an evidence point for later pattern extraction | `.atv/observations.jsonl` |
-| `landmine-candidate` | Feedback exposes a concrete repo-specific trap | `docs/context/landmines.md` candidate with strict evidence |
-| `instinct-evidence` | Repeated evidence supports a project-wide behavior | `.atv/instincts/project.yaml` |
+| `steering-memory` | Feedback should steer future target selection but is not yet a broad instinct | goal ledger or `docs/context/operations/steering/<slug>.md` |
+| `observation` | Feedback is an evidence point for later pattern extraction | `.kb/observations.jsonl` |
+| `scoped-instinct` | Ordinary lesson owned by one scope **(DEFAULT)** | `docs/context/kb/instincts/scoped/<scope-path>.yaml` |
+| `landmine-candidate` | Verified repo-specific trap — instant one-shot fast-path at owning scope | `docs/context/landmines.md` + owning scope file |
+| `instinct-evidence` | Pattern proven across sibling scopes via promotion-on-recurrence only | ancestor scope file or `docs/context/kb/instincts/project.yaml` |
 
-One verified high-severity trap may become a landmine candidate, but ordinary
+Ordinary lessons default to `scoped-instinct` at the narrowest owning scope. `instinct-evidence` (a higher tier) is reached only via promotion-on-recurrence. One verified high-severity trap may become a landmine candidate, but ordinary
 preferences need repeated evidence before becoming instincts. Steering memory is
 the middle layer: it changes future loop behavior without pretending the pattern
 is ready to become a reusable skill.
 
-**Instinct format** (YAML in `.atv/instincts/project.yaml`):
+Measured learning changes that claim a better agent behavior must pass the
+adoption gate before they can be promoted beyond local/scoped use:
+
+```bash
+go run ./cmd/kbcheck learning-adoption --result-path <results.json>
+```
+
+The results must include at least 20 samples, no right-to-wrong regressions, no
+holdout string leakage, and either a two-case net gain or a 10 percentage point
+gain. Rejected candidates may still be recorded as scoped/experimental evidence,
+but they must not become shared/project/global rules.
+
+#### Scope declaration
+
+A skill determines its active scope in this priority order:
+
+1. An explicit `scope:` argument passed to `/learn`
+2. The workflow/domain of the touched surface (e.g. edits under an `audio` pipeline imply `scope: audio`)
+3. Fallback `scope: project` only when no narrower scope is identifiable — **never fall back to global**
+
+#### Pull rule
+
+When working in scope `S`, load the active scope file + all ancestors (up to `project`, then `global`). Never load sibling scopes. Example:
+
+```
+working in audio/voice-eval  →  load: audio/voice-eval, audio, project, global
+                                 never:  image, video, motion, image/comparer
+```
+
+#### Promotion-on-recurrence
+
+The **only** path for a lesson to climb to a higher scope tier: when the same `trigger`+`behavior` pattern independently recurs across **≥ 2 sibling scopes**, write a generalized instinct to their **nearest common ancestor** (not straight to global), citing the originating scopes as evidence.
+
+| Recurs in | Promotes to |
+|---|---|
+| `audio/tts` and `audio/sfx` | `audio` |
+| `audio` and `image` | `project` |
+| domain-neutral, recurs across projects | `global` |
+
+No lesson reaches `global` by any other path.
+
+**Instinct format** (stored in `docs/context/kb/instincts/scoped/<scope-path>.yaml` for workflow/component scopes, or `docs/context/kb/instincts/project.yaml` for `scope: project` / `scope: global`):
 
 ```yaml
 instincts:
   - id: kebab-case-unique-id
+    scope: audio/voice-eval        # narrowest owning scope; default is NOT project
     trigger: "when [specific situation]"
     behavior: "do [specific action]"
     confidence: 0.5
@@ -166,7 +209,7 @@ High-severity landmines may be recorded from one verified observation, but skill
 promotion still belongs to `/evolve` and requires its promotion gate.
 
 **Important constraints:**
-- Maximum 50 active instincts per project
+- Maximum 50 active instincts per scope file (project/global bucket and each scoped file are capped independently; a busy project tier cannot crowd out scoped learning)
 - Each instinct must be atomic — one trigger, one behavior
 - Triggers must be specific (not "when writing code")
 - Behaviors must be actionable (not "write good code")
@@ -174,8 +217,8 @@ promotion still belongs to `/evolve` and requires its promotion gate.
 
 ### Step 4: Write Results
 
-1. Write updated `.atv/instincts/project.yaml`
-2. Ensure `.atv/instincts/` directory exists
+1. Write updated scope file (`docs/context/kb/instincts/scoped/<scope-path>.yaml` for workflow/component scopes, or `docs/context/kb/instincts/project.yaml` for project/global tier)
+2. Ensure `docs/context/kb/instincts/` directory (and `scoped/` subdirectory if needed) exists
 
 ### Step 5: Report
 
@@ -196,7 +239,7 @@ Ready to evolve (confidence > 0.8):
   ★ run-tests-before-commit — consider /evolve to generate a skill
 
 Total: X instincts (Y new, Z updated)
-Instinct file: .atv/instincts/project.yaml
+  Instinct file: docs/context/kb/instincts/scoped/<scope-path>.yaml  (or project.yaml for project-tier)
 ```
 
 ## Notes

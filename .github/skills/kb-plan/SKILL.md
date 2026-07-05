@@ -200,6 +200,7 @@ Break the work into thin end-to-end slices. For each slice, determine:
 - **Verification mode** - tdd / integration / verification-only / hitl. For `tdd`, record the oracle path/command before implementation whenever practical.
 - **Test level** - none / unit / integration / functional-api / functional-cli / functional-browser / full
 - **Functional risk** - none / narrow / broad / full
+- **Model tier** - tiny / small / medium / large
 - **Blocked by** - which other slices must complete first, or none
 - **HITL flag** - does this need human judgment? Most should be `false` if the brainstorm was thorough.
 - **Expected files** - best current forecast of files this slice may create or modify, with operation type. Used by `kb-work` as an orientation and review-scope seed, not as a literal allowlist.
@@ -231,8 +232,24 @@ Before handing off to `kb-work`, write a `plan-to-work` gate in the manifest.
 Load `kb-gate/references/gate-ledger.md` if needed. The gate must include proof
 for: manifest path, every slice plan path, dependency DAG validation, acceptance
 criteria, `expected_files`, verification mode, `test_level`, `functional_risk`,
-HITL classification, and any protected oracle policy. If any proof is missing,
-set `status: blocked` and do not invoke `kb-work`.
+`model_tier`, HITL classification, and any protected oracle policy. If any proof
+is missing, set `status: blocked` and do not invoke `kb-work`.
+
+### Model Tier Contract
+
+Use model tiers to route slice ownership, not to weaken proof. Verification
+requirements stay the same regardless of tier.
+
+| Tier | Good fit | Do not assign |
+|---|---|---|
+| `tiny` | bounded classification, grep-backed inventory, manifest/schema fill-ins, typo/copy/doc-only edits | design choices, implementation across multiple files, security/auth, flaky failures |
+| `small` | narrow mechanical code edits, straightforward tests, local docs updates with clear examples | ambiguous architecture, cross-boundary behavior, user-visible workflows without stronger review |
+| `medium` | ordinary vertical slices, focused refactors, integration wiring with clear acceptance criteria | high-risk architecture/security/data migrations, unresolved product calls |
+| `large` | decomposition, hard debugging, architecture/security decisions, broad migrations, final synthesis/review | tasks with no executable proof path |
+
+When unsure, choose the higher tier. A lower-tier agent may draft a narrow
+classification or patch, but `kb-work` remains responsible for the gate and must
+escalate when evidence contradicts the assigned tier.
 
 ### 4. Generate Plan Files
 
@@ -248,6 +265,9 @@ brainstorm_path: docs/brainstorms/<source-file>.md
 created: YYYY-MM-DD
 status: active
 workflow_shape: "<direct-chat|single-skill-edit|skill-bundle-change|pipeline-change|multi-stream-epic>"
+model_tier_contract:
+  allowed: [tiny, small, medium, large]
+  default: medium
 gate_ledger:
   - gate_id: brainstorm-to-plan
     owner_skill: kb-brainstorm
@@ -270,7 +290,7 @@ gate_ledger:
       - "<manifest path exists>"
       - "<all slice plan paths exist>"
       - "DAG has no missing blockers or cycles"
-      - "each slice has acceptance criteria, expected_files, verification, test_level, functional_risk"
+      - "each slice has acceptance criteria, expected_files, verification, test_level, functional_risk, model_tier"
     proof:
       - docs/plans/YYYY-MM-DD-000-kb-<name>-manifest.md
       - docs/plans/YYYY-MM-DD-001-<type>-<name>-plan.md
@@ -285,6 +305,7 @@ slices:
     verification: tdd
     test_level: unit
     functional_risk: none
+    model_tier: medium
     hitl: false
     status: pending
     owner: agent
@@ -306,6 +327,7 @@ slices:
     verification: tdd
     test_level: functional-browser
     functional_risk: narrow
+    model_tier: large
     hitl: false
     status: pending
     notes: ""
@@ -341,6 +363,7 @@ blockers: []
 verification: tdd
 test_level: unit
 functional_risk: none
+model_tier: medium
 hitl: false
 expected_files:
   - path: ""
@@ -361,6 +384,7 @@ The plan body should include:
 
 - What to build, expressed as end-to-end behavior
 - Acceptance criteria
+- Model tier and why that tier is sufficient
 - Expected files (must match `expected_files` in frontmatter as the initial forecast; actual touched files may expand during `kb-work` when justified by the acceptance criteria and recorded in the scope ledger)
 - Test scenarios specific enough for TDD or integration verification
 - Protected oracle candidates when expected behavior is known before implementation: tests, fixtures, scorers, snapshots, or contract files that should be written or selected first, proven RED when practical, and protected from mutation with SHA before implementation continues

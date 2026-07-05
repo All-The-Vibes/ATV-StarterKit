@@ -27,7 +27,7 @@ Use:
 Store snapshots at:
 
 ```text
-.atv/snapshots/<slice-id>.json
+.kb/snapshots/<slice-id>.json
 ```
 
 ## Snapshot Shape
@@ -78,7 +78,7 @@ If any snapshot fails, STOP. Mark the current slice `🔒 blocked` with the fail
 Capture:
 
 ```text
-snapshot-capture: PASS JE3 -> .atv/snapshots/JE3.json
+snapshot-capture: PASS JE3 -> .kb/snapshots/JE3.json
 ```
 
 Verify:
@@ -90,7 +90,7 @@ snapshot-verify: PASS 7/7 snapshots
 or:
 
 ```text
-snapshot-verify: FAIL .atv/snapshots/JE3.json
+snapshot-verify: FAIL .kb/snapshots/JE3.json
 failed: dom-element /dashboard .margin-value
 expected: 42%
 observed: <missing>

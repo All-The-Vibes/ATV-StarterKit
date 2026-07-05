@@ -17,6 +17,7 @@ This is the autonomous debugging lane. Use `kb-fix` for tiny known bugs; use `kb
 - Treat model knowledge as stale by default for dependencies, frameworks, browser/runtime behavior, build tools, package managers, platform APIs, and third-party services. Go read current docs, issue trackers, changelogs, source, or known fixes when those facts affect the fix.
 - Ask the user only for credentials/MFA, unavailable private input, risky/destructive action, production writes, subjective product intent, or a genuine choice with multiple reasonable outcomes.
 - Prefer deterministic evidence over prose: commands, failing tests, browser assertions, console/network logs, traces, screenshots, API responses, service logs, and exit codes.
+- When a bug has a repeatable sensor, prefer `kbcheck sense` + `kbcheck accept` so the fix proves RED-before-GREEN instead of latest-green only.
 - For UI-reachable bugs, drive the rendered UI with Playwright, CDP, Agent Browser, or the repo's browser transport. Screenshots are evidence, not the pass/fail oracle.
 - Do not stop after "I found the issue." Stop only when fixed and verified, honestly blocked, or explicitly told to stop.
 
@@ -39,6 +40,7 @@ This is the autonomous debugging lane. Use `kb-fix` for tiny known bugs; use `kb
 
 3. **Reproduce before editing**
    - Build at least one agent-runnable reproduction signal before changing code.
+   - If practical, write or select a compact `<check.json>` and record the failing state with `go run ./cmd/kbcheck sense --check <check.json> --trace .kb/trace.jsonl`.
    - If the bug is intermittent, run the reproduction enough times to identify frequency or conditions.
    - If no reproduction is possible after three strategies, record the attempted signals and switch to the closest deterministic probe instead of guessing.
 
@@ -62,6 +64,7 @@ This is the autonomous debugging lane. Use `kb-fix` for tiny known bugs; use `kb
 
 7. **Verify and iterate**
    - Re-run the original reproduction.
+   - If a proof-spine check was recorded, run `sense` again and require `go run ./cmd/kbcheck accept --check <check.json> --trace .kb/trace.jsonl` before closing.
    - Run the relevant regression checks from `kb-check`.
    - For UI bugs, run browser assertions through the rendered UI and capture console/network cleanliness after each interaction.
    - Compare failure signatures after each attempt:
@@ -91,7 +94,7 @@ If the sentence depends on "probably", "usually", "I think", or remembered frame
 - search exact error signatures and dependency versions for known fixes before inventing one.
 
 8. **Close the loop**
-   - Record the final proof: command/test/browser assertion, exit status, artifact path, and timestamp when available.
+   - Record the final proof: command/test/browser assertion, `kbcheck accept` result when used, exit status, artifact path, and timestamp when available.
    - Update `todo.md` or handoff only if work remains blocked or follow-up is real.
    - Run `kb-map refresh` when the fix changes durable behavior, commands, architecture, integration knowledge, or a sharp edge worth remembering.
    - If the fix teaches a reusable lesson, let `kb-complete`/`ce-compound` capture it when part of a manifest flow; otherwise note the learning target for later compounding.

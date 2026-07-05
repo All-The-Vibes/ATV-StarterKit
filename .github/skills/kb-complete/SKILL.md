@@ -42,7 +42,7 @@ already opted into a `done.md` workflow.
 3. **Collect scope context** — scan each slice's `notes` field for `scope-check:` and `scope-discovery:` entries. Build the combined list of actually changed, scope-verified files across all slices. This becomes the review scope.
 4. **Collect memory impact** — scan slice notes for `memory-impact:` and `kb-map-refresh:` entries.
 5. **Identify the branch baseline** — run `git merge-base HEAD main` to establish the diff range.
-6. **Run final snapshot sweep** — invoke `kb-regression-snapshot verify` for all snapshots under `.atv/snapshots/`. If any snapshot fails, STOP before review; later work regressed earlier passing behavior.
+6. **Run final snapshot sweep** — invoke `kb-regression-snapshot verify` for all snapshots under `.kb/snapshots/`. If any snapshot fails, STOP before review; later work regressed earlier passing behavior.
 
 If the manifest has no scope-check notes (older format), fall back to `git diff --name-only $(git merge-base HEAD main)..HEAD` for the file list.
 
@@ -91,7 +91,7 @@ After resolving all P0/P1s, update the manifest notes with a summary:
 
 **Feed learnings to the observation log:**
 
-For each resolved P0/P1 finding, append one line to `.atv/observations.jsonl`:
+For each resolved P0/P1 finding, append one line to `.kb/observations.jsonl`:
 
 ```json
 {"ts":"<ISO-8601>","hook":"kb-review","tool":"kb-complete","args":{"finding_type":"<category>","severity":"P0|P1","resolution":"<what was fixed>"},"cwd":"<repo-root>","result":"resolved"}
@@ -99,7 +99,7 @@ For each resolved P0/P1 finding, append one line to `.atv/observations.jsonl`:
 
 This connects the review → learn pipeline. Only P0/P1 findings are worth learning from — P2/P3 are style preferences, not systemic patterns.
 
-Create `.atv/observations.jsonl` if it doesn't exist. Append, never overwrite.
+Create `.kb/observations.jsonl` if it doesn't exist. Append, never overwrite.
 
 ## Step 2.5: Follow-Up Resolution Gate
 
@@ -148,13 +148,15 @@ Acceptable proof formats:
 - Playwright/Cypress/CDP trace path or browser assertion artifact;
 - API response log path with status/schema assertion result;
 - CLI output log path with command and exit code;
-- regression snapshot result from `.atv/snapshots/<slice-id>.json` with all previous snapshots passing.
+- `go run ./cmd/kbcheck accept --check <check.json> --trace .kb/trace.jsonl` result for repaired failures with a RED-before-GREEN trace;
+- regression snapshot result from `.kb/snapshots/<slice-id>.json` with all previous snapshots passing.
 
 Not acceptable:
 
 - "I checked and it works";
 - "Page loaded successfully";
 - "Tests pass" without the actual command or test file, exit code, and timestamp;
+- latest passing check with no recorded prior RED when the work claims to fix a known failure;
 - screenshots or prose-only notes without an executable assertion/result;
 - any model-only visual inspection.
 
@@ -183,7 +185,7 @@ After the resolution gate passes, document what this feature taught the system:
      `docs/context/operations/steering/<slug>.md`. Keep entries concise:
      durable scope constraints, known false positives, reviewer preferences, or
      selection guidance. Do not append raw transcripts or one-off PR details.
-   - `observation`: append one JSONL entry to `.atv/observations.jsonl`.
+   - `observation`: append one JSONL entry to `.kb/observations.jsonl`.
      Do not duplicate the resolved P0/P1 entries already written by Step 2;
      reference those existing entries when they are the evidence source.
    - `landmine-candidate`: apply `/learn` landmine criteria; record only with
@@ -210,7 +212,7 @@ After the resolution gate passes, document what this feature taught the system:
    - If the work fixed an active landmine, move it to resolved/archive only
      after the verification command passes.
 6. **Check evolution cadence:**
-   - Read `.atv/kb-completions.txt` (create with `0` if missing)
+   - Read `docs/context/kb/kb-completions.txt` (create with `0` if missing)
    - Increment by 1
    - Write the new value back
    - If the new value is divisible by 5:
@@ -361,9 +363,9 @@ Alerts are concise status lines, not extra ceremony. They should tell the user e
 
 Prune ephemeral artifacts. Heavy KB usage generates file sprawl — clean it up per-feature, not manually.
 
-1. **QA screenshots** — delete `.atv/qa-screenshots/` contents for this feature's slices. Screenshots should already be referenced in commits or PR bodies. Safe to remove.
+1. **QA screenshots** — delete `.kb/qa-screenshots/` contents for this feature's slices. Screenshots should already be referenced in commits or PR bodies. Safe to remove.
 
-2. **Observations log** — trim `.atv/observations.jsonl` entries older than 90 days. Matches the recency decay half-life in `/learn`. Use any available local scripting runtime; if no suitable runtime is available or the file does not exist, skip with a note.
+2. **Observations log** — trim `.kb/observations.jsonl` entries older than 90 days. Matches the recency decay half-life in `/learn`. Use any available local scripting runtime; if no suitable runtime is available or the file does not exist, skip with a note.
 
 3. **Plan files** — leave manifests and slice plans in `docs/plans/`. Lightweight reference material, useful for tracing decisions.
 
@@ -441,6 +443,6 @@ Ready to ship. Run /land when you're ready to push and open a PR.
 - **Project memory:** `kb-map refresh` → `docs/context/*`, `todo.md`, handoffs
 - **Memory maintenance:** `docs/context/memory-maintenance.md` signal index
 - **Compaction:** `kb-compact` for targeted memory bloat
-- **Learning:** `/learn` → `.atv/instincts/project.yaml`
+- **Learning:** `/learn` → `docs/context/kb/instincts/project.yaml`
 - **Evolution:** `/evolve` → `.github/skills/learned-*/`
 - **Shipping:** `/land` (separate, deliberate act — not part of this skill)

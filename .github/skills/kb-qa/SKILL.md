@@ -66,11 +66,11 @@ Pick the transport based on what the slice needs, not a fixed priority list.
 
 ## Step 2: Capture Evidence
 
-1. **Screenshot** the rendered page. Save to `.atv/qa-screenshots/<slice-id>-<timestamp>.png`.
+1. **Screenshot** the rendered page. Save to `.kb/qa-screenshots/<slice-id>-<timestamp>.png`.
 2. **Capture console output** — errors, warnings, and failed network requests (4xx/5xx).
 3. **Check for render failures** — blank pages, loading spinners that never resolve, error boundaries.
 
-Create `.atv/qa-screenshots/` if it doesn't exist.
+Create `.kb/qa-screenshots/` if it doesn't exist.
 
 ## Step 3: Verify Against Slice Requirements
 
@@ -134,7 +134,7 @@ If the tier is `deep`:
 qa: PASS — <transport used>
   checks: N/N passed
   console: clean (0 errors, 0 warnings)
-  screenshots: .atv/qa-screenshots/<slice-id>-*.png
+  screenshots: .kb/qa-screenshots/<slice-id>-*.png
   tier: quick|standard|deep
 ```
 
@@ -150,7 +150,7 @@ qa: FAIL — <transport used>
   failed: "<check description>"
   expected: "<what the slice said>"
   observed: "<what the browser showed>"
-  screenshot: .atv/qa-screenshots/<slice-id>-fail-<n>.png
+  screenshot: .kb/qa-screenshots/<slice-id>-fail-<n>.png
   console_errors: [list if any]
 ```
 
@@ -234,5 +234,5 @@ Actions are transport-agnostic above. Here's the mapping:
 - **Called from:** `kb-work` (Step 3.8, all slices)
 - **Hands off to:** `kb-repair` (on any failure)
 - **Results feed into:** `kb-review` (Step 5.4) as additional context
-- **Screenshots persist:** `.atv/qa-screenshots/` (gitignored, ephemeral)
+- **Screenshots persist:** `.kb/qa-screenshots/` (gitignored, ephemeral)
 - **Logs persist:** `todo.md` notes + manifest notes

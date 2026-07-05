@@ -18,11 +18,11 @@ Transform mature instincts into full Copilot skills. When an instinct reaches hi
 
 ### Step 1: Identify Candidates
 
-Read `.atv/instincts/project.yaml` and filter for:
+Read `docs/context/kb/instincts/project.yaml` and all `docs/context/kb/instincts/scoped/<scope-path>.yaml` files. For each file, filter candidates by:
 - Confidence > 0.85
 - Observations > 5
 - `last_seen` within the last 90 days (rejects stale instincts even if confidence is high)
-- Not already evolved (check `.atv/instincts/archive/`)
+- Not already evolved (check `docs/context/kb/instincts/archive/`)
 
 If no candidates found:
 ```
@@ -65,11 +65,25 @@ If the answer is not an explicit yes:
 - Do not create or modify `.github/skills/learned-*`.
 - Do not archive the source instincts as evolved.
 - Report the candidates as ready but unapproved.
-- Leave the instincts in `.atv/instincts/project.yaml` so evidence can continue
+- Leave the instincts in their source file (`docs/context/kb/instincts/project.yaml` or the relevant scoped file) so evidence can continue
   accumulating or decay naturally.
 
 If approved, continue. Generated skills are still drafts and must be reviewed
 before commit.
+
+### Step 3.5: Measured Adoption Gate
+
+If the candidate changes agent behavior, scoring, routing, decomposition, or
+promotion rules, require a measured adoption result before generating or syncing
+shared/project/global behavior:
+
+```bash
+go run ./cmd/kbcheck learning-adoption --result-path <results.json>
+```
+
+Only `ADOPT_ELIGIBLE` candidates may auto-promote into shared/project/global
+surfaces. A rejected candidate may stay local/scoped or experimental, but it
+must not be sold as a learned improvement.
 
 ### Step 4: Generate SKILL.md
 
@@ -90,11 +104,19 @@ The skill content should:
 
 **Naming convention:** `learned-` prefix so generated skills are visually distinct from hand-written ones.
 
-**Output path:** `.github/skills/learned-<domain>/SKILL.md`
+**Output path — promotion target (scope-aware):**
+
+- **Global / project-tier instinct** (`scope: global` or `scope: project` in `project.yaml`):
+  promote to a new global skill at `.github/skills/learned-<domain>/SKILL.md`.
+- **Scoped (workflow / component-tier) instinct** (`scope: <workflow>` or `scope: <workflow/component>` in a `scoped/*.yaml` file):
+  promote into that component's **owned surface** — its existing `SKILL.md` (as an appended convention section) or its `config/calibration.yaml`/doc — NOT a new global skill.
+  A workflow-tier instinct that matured via promotion-on-recurrence evolves at that workflow's surface.
+
+**Decision rule:** global/project-tier instinct → global skill; scoped instinct → component-owned surface.
 
 ### Step 5: Archive Evolved Instincts
 
-Move evolved instincts from `project.yaml` to `.atv/instincts/archive/evolved-YYYY-MM-DD.yaml` with metadata:
+Move evolved instincts from their source file to `docs/context/kb/instincts/archive/evolved-YYYY-MM-DD.yaml` with metadata:
 ```yaml
 evolved_to: .github/skills/learned-go-error-handling/SKILL.md
 evolved_at: 2026-04-06
@@ -109,7 +131,7 @@ Generated skills:
   ✅ .github/skills/learned-go-error-handling/SKILL.md (from 2 instincts)
   ✅ .github/skills/learned-testing-conventions/SKILL.md (from 1 instinct)
 
-Archived 3 instincts to .atv/instincts/archive/
+Archived 3 instincts to docs/context/kb/instincts/archive/
 
 These skills will be auto-discovered by Copilot in the next session.
 Review the generated files and adjust as needed — they're a starting point.

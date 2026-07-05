@@ -26,6 +26,9 @@ goal contract.
 - Continue across sessions by updating the goal ledger and active handoff before
   stopping.
 - Mark complete only after terminal proof matches the goal's done criteria.
+- When the objective can be expressed as a check JSON, terminal proof should
+  include `go run ./cmd/kbcheck accept --check <check.json> --trace
+  .kb/trace.jsonl`.
 - Mark blocked only with exact blocker, attempted route, and resume condition.
 
 ## Goal Ledger

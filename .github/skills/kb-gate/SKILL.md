@@ -18,6 +18,11 @@ Hard rule: do not advance a workflow because the agent believes a phase is
 "probably done." Advance only when the relevant gate record is `passed` or, for
 out-of-scope evidence, explicitly `quarantined` with forbidden claims recorded.
 
+When a phase claims a known failure was fixed and the failure has a runnable
+sensor, prefer proof from `go run ./cmd/kbcheck accept --check <check.json>
+--trace .kb/trace.jsonl`. Latest-green evidence without a recorded prior RED is
+not proof of a repair.
+
 Before answering that a phase is complete:
 
 1. Read or create the manifest's `gate_ledger`.

@@ -92,7 +92,7 @@ Everything else — including kb-plan, kb-work, and kb-complete — proceeds wit
 - **Why no `/unslop`:** intentionally omitted. Risk of flagging parallel agent WIP as false positives. Run manually if needed.
 - **Why a separate `kb-complete`:** the finish pipeline (review, follow-up resolution, proof/demo evidence, compound, learn, evolve, memory refresh, compact, cleanup, alerts) is a separate skill. `kb-work` invokes it automatically only after all slices are done or intentionally skipped; `klfg` verifies that happened.
 - **Why no separate `/kb-review`:** kb-complete runs kb-review at Step 1 with full scope context from kb-work's gates. A second pass would be redundant.
-- **Why no separate `/learn` or `/observe`:** kb-complete feeds resolved P0/P1 findings to observations.jsonl (Step 2), runs `/learn` (Step 3), and auto-triggers `/evolve` every 5th KB completion.
+- **Why no separate `/learn` or `/observe`:** kb-complete feeds resolved P0/P1 findings to `.kb/observations.jsonl` (Step 2), runs `/learn` (Step 3), and auto-triggers `/evolve` every 5th KB completion.
 - **Why no separate `/ce-compound`:** kb-complete invokes ce-compound at Step 3 for features with novel patterns. Skips automatically for boilerplate.
 - **Why no `/land`:** committing, pushing, and opening a PR is a separate, deliberate act. Run `/land` after `klfg` finishes when you're ready to ship.
 - **Resuming after interruption:** `klfg` is idempotent across restarts because each step's GATE checks for the produced artifact. If the session is interrupted between steps, re-invoke `klfg` with the same arguments and it will pick up at the first failing GATE.

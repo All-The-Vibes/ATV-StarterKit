@@ -76,7 +76,7 @@ KB state system unless the repo already opted into `done.md`.
 1. **Read the manifest** - parse the YAML frontmatter to get the ordered slice list.
 2. **Validate DAG** - confirm no cycles in blockers, all referenced slice IDs exist, and all slice files exist.
 3. **Validate gate ledger** - read `gate_ledger`. The `plan-to-work` gate must be `passed` and its `allowed_next_action` must name this manifest. Run `kb-gate/scripts/check_gate_ledger.py <manifest-path> --gate plan-to-work --allowed-next "kb-work <manifest-path>"` before execution. If the gate is absent, pending, blocked, stale, or the checker fails, stop and route to `kb-plan`/`kb-gate` to repair it before execution. Do not execute from a manifest that lacks a passing gate.
-4. **Validate slice contracts** - each slice plan must have `expected_files`, `verification`, `blockers`, `status`, and acceptance criteria. New slice plans should also have `test_level` and `functional_risk`. If core fields are missing, stop and route to `kb-plan`; do not infer a manifest from a phase list. If only `test_level` or `functional_risk` is missing on an older plan, invoke `kb-functional-test` to classify them before execution.
+4. **Validate slice contracts** - each slice plan must have `expected_files`, `verification`, `blockers`, `status`, and acceptance criteria. New slice plans should also have `test_level`, `functional_risk`, and `model_tier`. If core fields are missing, stop and route to `kb-plan`; do not infer a manifest from a phase list. If only `test_level` or `functional_risk` is missing on an older plan, invoke `kb-functional-test` to classify them before execution.
 5. **Check status** - skip any slices already marked `done`. Resume from the first safe ready set.
 6. **Check worktree** - note dirty or untracked files before executing so unrelated user changes are not staged or reverted.
 7. **Read active landmines** — if `docs/context/landmines.md` exists, read only `Active Landmines` and carry any relevant failure modes into slice execution and verification. If a slice touches an `owner_surface`, treat that landmine as a hard guardrail until the slice proves the `verification` condition or explicitly leaves it active.
@@ -202,10 +202,27 @@ Before editing, ensure the slice has a recorded test obligation:
 
 - `test_level`: `none`, `unit`, `integration`, `functional-api`, `functional-cli`, `functional-browser`, or `full`
 - `functional_risk`: `none`, `narrow`, `broad`, or `full`
+- `model_tier`: `tiny`, `small`, `medium`, or `large`
 
-If either field is missing, stale, or contradicted by the acceptance criteria or `expected_files`, invoke `kb-functional-test` with the slice plan. Record the result in the slice frontmatter or notes before implementation.
+If `test_level` or `functional_risk` is missing, stale, or contradicted by the
+acceptance criteria or `expected_files`, invoke `kb-functional-test` with the
+slice plan. Record the result in the slice frontmatter or notes before
+implementation. If `model_tier` is missing in a manifest that opted into
+`model_tier_contract`, route back to `kb-plan` to repair the slice contract.
 
 Use small/mini model subagents for this classification when the platform supports model-tiered agents. Keep the task bounded: classify the slice, audit existing tests for mocked theater, and suggest the narrowest deterministic proof. Escalate to the main model for complex architecture/auth/security/flaky async decisions or repeated test failures.
+
+Model-tier boundaries:
+
+| Tier | May own | Escalate when |
+|---|---|---|
+| `tiny` | bounded classification, grep-backed inventories, schema/manifest fill-ins, docs/copy-only changes | code behavior, ambiguous decomposition, hidden dependencies, failing tests |
+| `small` | narrow mechanical edits and straightforward tests with clear acceptance criteria | cross-boundary behavior, UI/API workflows, security/auth/data decisions |
+| `medium` | ordinary vertical slices and focused integration work | architecture/security migrations, multi-slice replanning, unclear product intent |
+| `large` | hard decomposition, architecture, broad debugging, final synthesis/review | proof is impossible or human-only input is required |
+
+The tier does not change the proof bar. It only says what kind of agent can do
+the first pass before `kb-work` verifies the result.
 
 Do not use `unit` just because it is cheaper. Use `unit` only when unit-level proof can fail for the user-facing bug or behavior. If a unit test could pass while the workflow is broken, require integration or functional proof.
 
@@ -225,7 +242,7 @@ Backend/API/unit checks may supplement this proof, but they cannot replace it. T
 
 Before starting a new slice, invoke `kb-regression-snapshot verify` before Scope Lock and before editing implementation files.
 
-- Verify all previous snapshots under `.atv/snapshots/`.
+- Verify all previous snapshots under `.kb/snapshots/`.
 - If any previous snapshot fails, STOP before new slice execution.
 - Mark the current slice `🔒 blocked` with the failing snapshot path, target, expected vs observed result, and artifact/log path.
 - Do not continue to implementation, QA, or the next slice until the regression is resolved, parked by the human, or explicitly skipped.
@@ -420,8 +437,9 @@ After the slice completes:
    - Prefer existing scripts, lint, typecheck, tests, browser checks, builds, and CI-equivalent commands over LLM inspection.
    - If a full suite is too expensive or unavailable, run the narrowest deterministic check that proves the slice and record why.
    - Invoke `kb-functional-test` whenever `test_level` is `integration`, `functional-api`, `functional-cli`, `functional-browser`, or `full`, or when user-visible/cross-boundary changes appear despite a lower test level.
+   - If the slice fixed a known failure with a runnable sensor, record RED-before-GREEN proof with `go run ./cmd/kbcheck accept --check <check.json> --trace .kb/trace.jsonl`.
    - For UI-reachable changes, record UI proof: route/screen exercised, interaction performed, assertion made, browser transport used, and screenshot path when applicable. Do not mark the slice done with backend-only proof if a UI path exists.
-   - After Step 3.8 QA passes, invoke `kb-regression-snapshot capture <slice-id>` with a compact spec for what changed. Store `.atv/snapshots/<slice-id>.json`.
+   - After Step 3.8 QA passes, invoke `kb-regression-snapshot capture <slice-id>` with a compact spec for what changed. Store `.kb/snapshots/<slice-id>.json`.
    - Record `test-level: <value>; functional-risk: <value>; proof: <command/artifact>; snapshot: <path/result>` in the manifest notes.
 
 4. **Assess memory impact**

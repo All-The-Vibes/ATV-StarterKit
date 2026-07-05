@@ -113,6 +113,11 @@ Good mini-model tasks:
 
 Do not use a mini model as the final proof of behavior. The proof is the command, test, browser probe, screenshot, or failing/passing output. Escalate to a stronger model when classification depends on architecture, auth/security, flaky async behavior, complex UI state, or repeated failures.
 
+When a slice declares `model_tier`, this skill may recommend a lower tier only
+for bounded classification or test-audit work. It must not downgrade
+implementation ownership for slices whose public behavior needs `medium` or
+`large` judgment.
+
 ## Test Quality Audit
 
 An existing test is meaningful only if it:
@@ -144,7 +149,7 @@ If a test mostly asserts mocks were called, snapshots noise, or duplicates imple
   - one baseline/pass screenshot per tested page or major workflow state;
   - mandatory screenshot for each failure state;
   - responsive screenshots only for deep tier or layout-sensitive changes.
-- Store evidence under `.atv/qa-screenshots/` or the repo's configured QA artifact path.
+- Store evidence under `.kb/qa-screenshots/` or the repo's configured QA artifact path.
 - Keep screenshots until `kb-complete` cleanup. Do not keep unlimited traces/videos unless they explain a failure.
 
 ## Script Rule

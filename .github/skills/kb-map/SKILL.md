@@ -65,13 +65,27 @@ Check:
 Thresholds:
 
 - `PROJECT.md` over 40 KB or about 900 lines: treat the project map as too large
-  for startup and recommend/schedule a `refresh` that splits detail into child
-  architecture docs.
+  for startup. **Before recommending graphify or a split-refresh, first check
+  whether the bloat is ephemeral work-log pollution** — count dated/append-style
+  sections (e.g. `## YYYY-MM-DD ...`, "render progress checkpoint", "audio QA
+  update", per-run status entries). If most of the file is that churn, the fix is
+  EVICTION, not graphify: move the dated log entries to `todo-done.md` or
+  `docs/context/archive/<topic>-<yyyy-mm>.md` and keep only the durable route map
+  (entry points, main areas, current state, routing). Only recommend a
+  child-doc split-refresh when the DURABLE map itself is genuinely large after
+  eviction. Graphify does not shrink a log-polluted map and is the wrong remedy
+  for it.
 - repo over 200 code files with no `graphify-size-check` in the last 30 days:
   run a targeted size recheck and consider graphify-assisted refresh.
 - repo over 80 code files and the current lookup requires caller, callee,
   impact, dependency, or subsystem-boundary rediscovery: consider graphify if
   the existing docs do not answer the question.
+
+**`PROJECT.md` is a route map, never a work log.** Do not append (and instruct
+other skills not to append) render progress, checkpoints, per-chapter QA updates,
+or dated run status into `PROJECT.md`. Those belong in `todo.md` (work log) and
+`todo-done.md` (completed summaries). A project map that accumulates dated
+checkpoint sections is a bug to evict, not a size that justifies graphify.
 
 Record rechecks in `docs/context/memory-maintenance.md`:
 

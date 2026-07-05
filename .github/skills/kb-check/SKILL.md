@@ -50,6 +50,28 @@ go run ./cmd/kbcheck core
 still be individual validators until their behavior has separate Go parity
 coverage.
 
+For failure-first proof, use the local proof spine:
+
+```powershell
+go run ./cmd/kbcheck sense --check <check.json> --trace .kb/trace.jsonl
+go run ./cmd/kbcheck accept --check <check.json> --trace .kb/trace.jsonl
+go run ./cmd/kbcheck trace-verify --trace .kb/trace.jsonl
+```
+
+`accept` passes only when the same check was observed RED and then GREEN, the
+trace chain is intact, and the current sensor run is still GREEN. It rejects
+vacuous "already green" proof and tampered traces.
+
+For learning changes that claim measurable improvement, use:
+
+```powershell
+go run ./cmd/kbcheck learning-adoption --result-path <results.json>
+```
+
+The adoption gate requires at least 20 samples, no right-to-wrong regressions,
+no holdout string leakage, and either a two-case net gain or a 10 percentage
+point gain before a learning rule may be promoted beyond local/scoped use.
+
 ## Functional Checks
 
 Use `kb-functional-test` when a change touches user-visible behavior, API/CLI workflows, persistence, auth, streaming, integrations, or any bug that escaped unit tests.
