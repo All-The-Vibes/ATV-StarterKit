@@ -23,6 +23,9 @@ goal contract.
 - Route each work unit through `kb-start` unless the ledger already names a
   valid next action such as `kb-work <manifest>` or `kb-complete <manifest>`.
 - Preserve the smallest correct lane. Do not force every goal through `klfg`.
+- Require an objective `done_check` before starting a durable goal, or record an
+  explicit human-approved exception with the reason no objective check can exist
+  yet. Do not treat a vague Done Criteria list as terminal proof.
 - Continue across sessions by updating the goal ledger and active handoff before
   stopping.
 - Mark complete only after terminal proof matches the goal's done criteria.
@@ -62,6 +65,13 @@ One sentence.
 
 - <command, gate, artifact, or review condition required before completion>
 
+## Done Check
+
+- Type: command_exit|artifact_exists|gate|human_exception
+- Check: <exact command, artifact path, gate id, or exception summary>
+- Expected result: <exit code, path condition, gate status, or approval source>
+- Why sufficient: <which done criterion this proves>
+
 ## Current State
 
 - Current artifact: <manifest/epic/handoff/path or none>
@@ -100,6 +110,44 @@ ordinary one-shot goals.
 
 Keep the ledger compact. Move routine history into `todo-done.md` when the goal
 closes.
+
+## Run State
+
+For autonomous, recurring, or multi-session goals, create ephemeral run state at:
+
+```text
+.kb/runs/<goal-slug>/
+```
+
+This is not a replacement for `todo.md`, manifests, handoffs, or the goal
+ledger. It is git-ignored control-loop state for the active run only.
+
+Required files:
+
+- `goal.md` - pointer to the durable goal ledger and current objective.
+- `done-check.json` - optional `kbcheck sense/accept` check spec when the done
+  check can be expressed as JSON.
+- `backlog.json` - small queue of candidate work units with route, priority,
+  blockers, and source artifact.
+- `progress.md` - compact current state, last accepted proof, and next allowed
+  action.
+- `route-history.jsonl` - one JSON object per route decision.
+
+Each `route-history.jsonl` row should include:
+
+```json
+{"ts":"<ISO-8601>","route":"kb-work","confidence":0.82,"state_changed":true,"progress_key":"slice-003-done"}
+```
+
+Before choosing the next route for an existing run, validate the history:
+
+```powershell
+go run ./cmd/kbcheck run-state --history .kb/runs/<goal-slug>/route-history.jsonl
+```
+
+If the guard flags `route-oscillation`, `low-confidence-no-progress`, or
+`no-progress-loop`, stop the loop and re-plan or ask the smallest human question
+instead of bouncing between lanes.
 
 ## Routing
 
@@ -155,11 +203,17 @@ This prevents a loop from producing work faster than it can be reviewed.
 1. **Restore** - read `todo.md`, `docs/context/PROJECT.md`, and the goal ledger.
 2. **Check staleness** - if the next artifact is older than 72 hours, run the
    normal stale-work refresh before execution.
-3. **Choose next unit** - identify the smallest work unit that moves the goal.
-4. **Delegate** - invoke the route from the ledger or route through `kb-start`.
-5. **Verify unit** - require the delegated lane's gate evidence.
-6. **Update ledger** - record artifact, status, proof, blocker, and next action.
-7. **Decide**:
+3. **Check run state** - if `.kb/runs/<goal>/route-history.jsonl` exists, run
+   the `kbcheck run-state` guard before choosing another route.
+4. **Choose next unit** - identify the smallest work unit that moves the goal.
+5. **Delegate** - invoke the route from the ledger or route through `kb-start`.
+6. **Verify unit** - require the delegated lane's gate evidence. For manifests
+   with `objective_contract: true`, require `go run ./cmd/kbcheck
+   manifest-contract --manifest <manifest-path>` to pass before accepting a
+   unit as complete.
+7. **Update ledger/run state** - record artifact, status, proof, blocker, next
+   action, and a route-history row with confidence and progress signal.
+8. **Decide**:
    - if done criteria and terminal proof are satisfied, mark `complete`;
    - if more units remain, continue or write a handoff and resume next session;
    - if blocked, record exact resume criteria and stop honestly.
@@ -177,6 +231,8 @@ Do not stop at weaker milestones:
 Complete only when all are true:
 
 - the ledger `Done Criteria` are satisfied;
+- the ledger `Done Check` passed, or the recorded human-approved exception is
+  still valid and scoped;
 - the latest delegated route has terminal proof;
 - every active manifest is `complete`, `reviewed`, `parked`, or explicitly
   blocked with resume criteria;

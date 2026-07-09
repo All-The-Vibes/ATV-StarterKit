@@ -232,8 +232,9 @@ Before handing off to `kb-work`, write a `plan-to-work` gate in the manifest.
 Load `kb-gate/references/gate-ledger.md` if needed. The gate must include proof
 for: manifest path, every slice plan path, dependency DAG validation, acceptance
 criteria, `expected_files`, verification mode, `test_level`, `functional_risk`,
-`model_tier`, HITL classification, and any protected oracle policy. If any proof
-is missing, set `status: blocked` and do not invoke `kb-work`.
+`model_tier`, `model_route`, HITL classification, any protected oracle policy,
+and any objective-contract fields. If any proof is missing, set
+`status: blocked` and do not invoke `kb-work`.
 
 ### Model Tier Contract
 
@@ -251,6 +252,25 @@ When unsure, choose the higher tier. A lower-tier agent may draft a narrow
 classification or patch, but `kb-work` remains responsible for the gate and must
 escalate when evidence contradicts the assigned tier.
 
+### Objective Done Contract
+
+For goal-like, autonomous, long-running, or "continue until done" work, add an
+objective contract to the manifest. This makes completion an observable check,
+not an agent assertion.
+
+- Set `objective_contract: true`.
+- Add a top-level `done_check` with the command, artifact, or gate that proves
+  the whole objective is done.
+- Add `proof_check` to every slice that can be machine-checked.
+- Use `no_check_reason` only for `verification-only` or `none` slices where no
+  executable proof exists; the reason must be explicit and human-auditable.
+- Add `model_route` beside `model_tier` whenever `model_tier_contract.routes`
+  exists.
+
+If no honest objective-level check exists yet, do not fake one. Either plan a
+slice that creates the check first, or record a human-approved exception before
+`kb-work` starts.
+
 ### 4. Generate Plan Files
 
 Create a manifest and individual slice plans.
@@ -265,9 +285,20 @@ brainstorm_path: docs/brainstorms/<source-file>.md
 created: YYYY-MM-DD
 status: active
 workflow_shape: "<direct-chat|single-skill-edit|skill-bundle-change|pipeline-change|multi-stream-epic>"
+objective_contract: true
+done_check:
+  kind: command_exit
+  command: "<single command, gate, or artifact check that proves the whole KB objective is done>"
+  expect: 0
+  why: "<what completion claim this proves>"
 model_tier_contract:
   allowed: [tiny, small, medium, large]
   default: medium
+  routes:
+    tiny: ["<tiny route>"]
+    small: ["<small route>"]
+    medium: ["<medium route>"]
+    large: ["<large route>"]
 gate_ledger:
   - gate_id: brainstorm-to-plan
     owner_skill: kb-brainstorm
@@ -291,6 +322,7 @@ gate_ledger:
       - "<all slice plan paths exist>"
       - "DAG has no missing blockers or cycles"
       - "each slice has acceptance criteria, expected_files, verification, test_level, functional_risk, model_tier"
+      - "objective_contract manifests have done_check and each slice has proof_check or a justified no_check_reason"
     proof:
       - docs/plans/YYYY-MM-DD-000-kb-<name>-manifest.md
       - docs/plans/YYYY-MM-DD-001-<type>-<name>-plan.md
@@ -306,6 +338,11 @@ slices:
     test_level: unit
     functional_risk: none
     model_tier: medium
+    model_route: "<route from model_tier_contract.routes.medium>"
+    proof_check:
+      kind: command_exit
+      command: "<narrowest deterministic command or artifact check for this slice>"
+      expect: 0
     hitl: false
     status: pending
     owner: agent
@@ -328,6 +365,11 @@ slices:
     test_level: functional-browser
     functional_risk: narrow
     model_tier: large
+    model_route: "<route from model_tier_contract.routes.large>"
+    proof_check:
+      kind: command_exit
+      command: "<narrowest deterministic command or artifact check for this slice>"
+      expect: 0
     hitl: false
     status: pending
     notes: ""
@@ -364,6 +406,11 @@ verification: tdd
 test_level: unit
 functional_risk: none
 model_tier: medium
+model_route: "<route from manifest model_tier_contract.routes.medium>"
+proof_check:
+  kind: command_exit
+  command: "<narrowest deterministic command or artifact check for this slice>"
+  expect: 0
 hitl: false
 expected_files:
   - path: ""
@@ -387,6 +434,8 @@ The plan body should include:
 - Model tier and why that tier is sufficient
 - Expected files (must match `expected_files` in frontmatter as the initial forecast; actual touched files may expand during `kb-work` when justified by the acceptance criteria and recorded in the scope ledger)
 - Test scenarios specific enough for TDD or integration verification
+- Proof check: the command, artifact, browser/API/CLI assertion, or accepted
+  trace that must exist before `kb-work` marks the slice done
 - Protected oracle candidates when expected behavior is known before implementation: tests, fixtures, scorers, snapshots, or contract files that should be written or selected first, proven RED when practical, and protected from mutation with SHA before implementation continues
 - Test inputs needed to run those scenarios without asking the user to manually test later
 - Scope boundary: what this slice does not include

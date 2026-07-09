@@ -39,10 +39,11 @@ already opted into a `done.md` workflow.
 
 1. **Read the manifest** — confirm `status: completed` (all slices done/skipped). If slices are still `pending` or `in_progress`, stop: "This manifest has unfinished slices. Run `kb-work` first."
 2. **Validate gate ledger** — the manifest must contain `gate_ledger` with `work-to-complete` set to `passed`, and every completed slice must have a passing `slice-<id>-to-done` gate. Run `kb-gate/scripts/check_gate_ledger.py <manifest-path> --gate work-to-complete --allowed-next "kb-complete <manifest-path>"`. If missing, blocked, or the checker fails, stop and invoke `kb-work <manifest-path>` or `kb-gate` to repair the ledger. Do not run completion from a manifest that merely says `status: completed`.
-3. **Collect scope context** — scan each slice's `notes` field for `scope-check:` and `scope-discovery:` entries. Build the combined list of actually changed, scope-verified files across all slices. This becomes the review scope.
-4. **Collect memory impact** — scan slice notes for `memory-impact:` and `kb-map-refresh:` entries.
-5. **Identify the branch baseline** — run `git merge-base HEAD main` to establish the diff range.
-6. **Run final snapshot sweep** — invoke `kb-regression-snapshot verify` for all snapshots under `.kb/snapshots/`. If any snapshot fails, STOP before review; later work regressed earlier passing behavior.
+3. **Validate objective contract** — if the manifest has `objective_contract: true`, run `go run ./cmd/kbcheck manifest-contract --manifest <manifest-path>`. Confirm the top-level `done_check` is present and each completed slice has `proof_check` evidence or an accepted `no_check_reason` recorded in slice notes/gates. If missing, stop and return to `kb-work` for proof repair.
+4. **Collect scope context** — scan each slice's `notes` field for `scope-check:` and `scope-discovery:` entries. Build the combined list of actually changed, scope-verified files across all slices. This becomes the review scope.
+5. **Collect memory impact** — scan slice notes for `memory-impact:` and `kb-map-refresh:` entries.
+6. **Identify the branch baseline** — run `git merge-base HEAD main` to establish the diff range.
+7. **Run final snapshot sweep** — invoke `kb-regression-snapshot verify` for all snapshots under `.kb/snapshots/`. If any snapshot fails, STOP before review; later work regressed earlier passing behavior.
 
 If the manifest has no scope-check notes (older format), fall back to `git diff --name-only $(git merge-base HEAD main)..HEAD` for the file list.
 
@@ -139,8 +140,7 @@ behavior.
 4. Store proof in the manifest notes: commands run, routes/screens/workflows
    checked, artifacts created, and any skipped proof with reason.
 
-Every slice must have machine-verifiable proof recorded in the manifest before
-completion can continue.
+Every slice must have machine-verifiable proof recorded in the manifest before completion can continue.
 
 Acceptable proof formats:
 
@@ -164,9 +164,7 @@ If any slice has only prose proof, this gate fails. Return to `kb-work`,
 `kb-check`, `kb-qa`, `kb-functional-test`, or `kb-regression-snapshot` to produce
 executable evidence before proceeding.
 
-This replaces the old hard-coded `/test-browser` and `/feature-video` steps with
-a generic evidence gate that works across browser, CLI, API, desktop, and service
-projects.
+For objective-contract manifests, summarize the top-level `done_check` and each slice's `proof_check` result in the manifest notes. If the final objective check cannot run yet, record the blocker and do not declare `KB <name> complete`.
 
 ## Step 3: Compound & Learn
 
@@ -385,6 +383,8 @@ the manifest `gate_ledger`.
 Required proof:
 
 - `kb-check` final command/result;
+- objective `done_check` result, or explicit scoped human exception;
+- per-slice `proof_check` result or accepted `no_check_reason`;
 - `kb-functional-test` or explicit skip reason for every functional/API/CLI/UI slice;
 - `kb-review` mode and finding counts;
 - P0/P1 resolved or human/quarantine blocker recorded;

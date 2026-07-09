@@ -4,7 +4,7 @@ param(
   [string]$Mode = "verify",
   [string]$SliceId,
   [string]$SpecPath,
-  [string]$SnapshotDir = ".atv/snapshots",
+  [string]$SnapshotDir = ".kb/snapshots",
   [string]$BaseUrl = $env:DEV_SERVER_URL
 )
 

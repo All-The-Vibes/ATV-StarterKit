@@ -149,6 +149,8 @@ Match research depth and Q&A depth to scope. Lightweight scopes get local orient
 
 If the scope is unclear, ask **one topic-identity question** to disambiguate (e.g., "is this about the API or the UI?"), then proceed. Do not ask scope, user, success-criteria, constraint, or prioritization questions yet — those come after research in Phase 6.
 
+**Grilling mode:** activate for Deep scope, explicit "interview me" / "don't assume" / "think first" requests, or when the feature description is too vague to safely proceed. Record: `Grilling mode: ON`. This changes Phase 6 behavior — see below. Grilling mode does not change the Question Gate; it only changes how questions are surfaced.
+
 ### Phase 1: Topic Intake
 
 Restate the user's feature in your own words in 1–3 sentences and confirm:
@@ -321,6 +323,17 @@ Now run the conversation. The questions are sharper because they reference the r
 - Validate assumptions explicitly: "I'm assuming Y based on research finding Z — is that right?"
 - Resolve product decisions here; leave technical implementation choices for planning.
 - Make requirements concrete enough that planning will not need to invent behavior.
+
+**Every question must pass the Question Gate before being asked.** Classify each candidate question — if it is not `ask-now` or would not change scope, behavior, priority, acceptance criteria, risk, or verification, convert it to a `safe-assumption` or `defer-to-planning` and skip asking. Do not ask quota questions or questions whose answer you can reasonably infer.
+
+**Grilling mode (when active from Phase 0.3):**
+
+When grilling mode is ON, apply this additional discipline to every question:
+
+- **Surface your own recommendation first.** Before asking, state the answer you would choose and why: "I'd go with X because Y — does that fit, or is there a constraint I'm missing?" The user corrects or confirms rather than thinking from scratch. This keeps questions productive instead of open-ended interrogations.
+- **Walk the decision tree, don't roam it.** Each question should resolve a branch that is genuinely open. Once a branch is resolved, move to the next unresolved one — do not revisit settled decisions or ask follow-ups that the answer already answered.
+- **Stop when shared understanding is reached**, not when a question quota is filled. The signal is: no unresolved `ask-now` items remain and you could write the requirements doc without inventing behavior.
+- **Grilling does not suspend the Question Gate.** Every grilling question must still earn its place — if it would not change anything material, skip it even in grilling mode.
 
 **Exit condition:** Continue until the idea is clear OR the user explicitly wants to proceed.
 

@@ -72,9 +72,9 @@ Ask the human only when resolution requires:
 ## Phase Gates
 
 - **Brainstorm -> plan:** block on unresolved P0/P1 requirements, contradictions, missing core behavior, unsafe assumptions, missing verification inputs, unresolved `ask-now` items, unresolved `research-first` items, or unlabeled material assumptions.
-- **Plan -> work:** block on broken DAG, missing acceptance criteria, missing verification mode, missing expected files, weak functional coverage, unsafe HITL, or unresolved architecture/security risk.
-- **Work -> complete:** block on failing deterministic checks, failed functional flows, scope violations, unresolved durable memory refresh, or blocked slices not explicitly parked.
-- **Complete -> ship:** block on unresolved P0/P1 review findings, failed checks, release risk, or unrecorded human-only blockers.
+- **Plan -> work:** block on broken DAG, missing acceptance criteria, missing verification mode, missing expected files, weak functional coverage, unsafe HITL, missing objective `done_check` when `objective_contract: true`, missing per-slice `proof_check`/valid `no_check_reason`, invalid `model_route`, or unresolved architecture/security risk.
+- **Work -> complete:** block on failing deterministic checks, failed functional flows, scope violations, unresolved durable memory refresh, objective-contract validation failure, missing slice proof-check evidence, or blocked slices not explicitly parked.
+- **Complete -> ship:** block on unresolved P0/P1 review findings, failed checks, missing objective `done_check` result, missing proof/demo evidence, release risk, or unrecorded human-only blockers.
 
 P2/P3/P4 do not block by severity alone. Before moving on, fix the cheap/actionable ones that improve the artifact. Defer only when the finding is genuinely non-blocking and logging it will not cause avoidable rework.
 

@@ -21,6 +21,25 @@ On every fresh session or ambiguous work request:
 
 If `kb-map` cannot identify a valid active project root, ask the user to change into the project directory or provide the project path before routing. Drive roots such as `E:\`, home directories, and global skill/config folders are not valid project roots unless the user explicitly chose them. Do not route from global handoffs or home-directory memory when the user is working in a repo.
 
+## Run-State Guard
+
+When a durable goal or autonomous loop names `.kb/runs/<goal-slug>/`, validate
+its route history before choosing another lane:
+
+```powershell
+go run ./cmd/kbcheck run-state --history .kb/runs/<goal-slug>/route-history.jsonl
+```
+
+If the guard reports `route-oscillation`, `low-confidence-no-progress`, or
+`no-progress-loop`, do not keep routing. Stop and choose the smallest repair:
+refresh stale context, re-plan the work unit, or ask the one human question that
+would break the loop.
+
+After choosing a lane for an active run-state goal, append one route-history row
+with at least `ts`, `route`, `confidence`, and either `state_changed` or
+`progress_key`. Use confidence as a routing-confidence signal, not a completion
+claim.
+
 ## Session Hygiene Check
 
 Run this check only when `kb-start` begins a request. Do not interrupt an active brainstorm, plan, work slice, review, or test loop just to suggest a restart.

@@ -67,3 +67,8 @@ demo-video/
 
 # Local agent state (session logs, pids, scratch)
 .remember/
+
+# KB skill sync markers (deployment metadata, not skill source)
+.github/skills/.kb-sync/
+pkg/scaffold/templates/skills/.kb-sync/
+plugins/atv-everything/skills/.kb-sync/
