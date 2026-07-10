@@ -43,6 +43,17 @@ lowering the engineering bar.
   are cheaper than redoing broken or under-tested work later. The target is the
   fewest wasted tokens per finished, verified change.
 
+## Work-Time Model Selection
+
+`kb-plan` records slice difficulty, risk, tools, context, and proof without
+freezing a provider/model. `kb-work` discovers the active host's selectable
+catalog, merges optional user-local routes, and chooses a bounded worker right
+before execution. Fallback is same-tier, then higher-tier, then the current
+model only as an explicit degraded path; routing receipts never replace normal
+tests and proof. Private endpoints and credentials stay out of shared skills.
+
+![KB model selection workflow](docs/assets/kb-model-selection.png)
+
 ## Fresh Session Loop
 
 The KB workflow is meant to make every new task safe to start in a fresh
@@ -161,7 +172,13 @@ What changed:
   brainstorm notes, phase lists, and free-form feature asks route to `kb-plan`
   first. A slice's `expected_files` are a forecast, not a hard allowlist; files
   discovered during implementation are allowed when required by the slice and
-  recorded in the scope ledger.
+  recorded in the scope ledger. Material slices may also carry a context packet
+  with exact files, deterministic prefetch, constraints, proof targets, search
+  policy, and escalation triggers so bounded workers do not rediscover the repo.
+- `kb-finish` is the explicit plan-to-PR lane: it recovers missing
+  plan/work/complete phases, then `kb-ship` commits intentional files, pushes a
+  topic branch, and creates or updates a PR without merging. Ordinary
+  `kb-complete` calls remain non-shipping.
 - `kb-complete` now records memory-maintenance signals in
   `docs/context/memory-maintenance.md`: contradictions, overlaps, stale docs,
   bloat, repeated rediscovery, durable refreshes, and closed handoffs. It stores

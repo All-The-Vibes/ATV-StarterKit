@@ -115,7 +115,9 @@ if ($Mode -eq "capture") {
   exit 0
 }
 
-$files = Get-ChildItem -Path $SnapshotDir -Filter "*.json" -File -ErrorAction SilentlyContinue | Sort-Object Name
+$files = Get-ChildItem -Path $SnapshotDir -Filter "*.json" -File -ErrorAction SilentlyContinue |
+  Where-Object { $_.Name -notlike "*-spec.json" } |
+  Sort-Object Name
 $count = 0
 foreach ($file in $files) {
   $snapshot = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json

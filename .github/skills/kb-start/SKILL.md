@@ -106,20 +106,21 @@ reconcile it with a second shape or complexity table.
 | 2 | User explicitly says `kb-goal`, sets a durable goal, wants work to run for days, asks for vDone, or needs cross-session objective tracking | `kb-goal` | goal ledger plus delegated KB gates |
 | 3 | User explicitly says `kb-task`, asks for first-principles execution, or wants one bounded task carried until verified/blocked | `kb-task` | task runner owns verification |
 | 4 | Direct explanation, tradeoff discussion, or pushback with no file changes requested | answer directly; use `kb-first-principles` behavior when challenged | no work gate |
-| 5 | Existing valid manifest should be executed | `kb-work` | manifest plus slice verification |
-| 6 | All runnable slices are done and work needs review/learning/cleanup | `kb-complete` | `kb-check`, `kb-review`, learning gates |
-| 7 | Release, PR, deploy, or final readiness | `kb-ship` | release/ship gate |
-| 8 | Broken behavior needs logs, browser checks, test iteration, or self-correction | `kb-troubleshoot` | reproduce and regression proof |
-| 9 | Architecture/module-depth exploration before implementation | `kb-architecture-deepening` | source/docs evidence and tradeoff table |
-| 10 | External docs, prior art, framework behavior, or market/product research materially affects the answer | `kb-research` | cited source notes |
-| 11 | Multiple independent streams, many blockers, deletion policy, migration scale, or several brainstorms/plans needed | `kb-epic` | brainstorms and plans complete before work |
-| 12 | Scripts/evals/proof harness plus skills/docs must change together, or cross-runtime propagation is part of the change | `kb-epic` or coded pipeline manifest | eval/proof/sync gate |
-| 13 | Clear feature/refactor needs slices, or user wants execution but no valid manifest exists | `kb-plan` | vertical-slice manifest |
-| 14 | Skill-bundle change with sync/docs/eval/standard gate implications | `kb-plan` | `kb-check -All` and sync report |
-| 15 | Fuzzy idea, product direction, or high path dependency | `kb-brainstorm` | answered questions before planning |
-| 16 | Small known bug, typo, narrow cleanup, or one skill/doc edit with no sync/eval/proof-harness implications | `kb-fix` or bounded direct edit | targeted proof plus `kb-check` when relevant |
-| 17 | Memory/docs/responses are too verbose | `kb-compact` | preserve commands, paths, dates, blockers |
-| 18 | User wants one strict idea-to-done pipeline run | `klfg` | full pipeline |
+| 5 | User explicitly wants a plan/manifest taken through missing work and completion to done-done and checked in in one run | `kb-finish` | plan/work/complete gates plus pushed PR |
+| 6 | Existing valid manifest should be executed without check-in intent | `kb-work` | manifest plus slice verification |
+| 7 | All runnable slices are done and work needs review/learning/cleanup without check-in intent | `kb-complete` | `kb-check`, `kb-review`, learning gates |
+| 8 | Already reviewed work needs commit, push, and a PR | `kb-ship` | release/ship gate plus pushed PR |
+| 9 | Broken behavior needs logs, browser checks, test iteration, or self-correction | `kb-troubleshoot` | reproduce and regression proof |
+| 10 | Architecture/module-depth exploration before implementation | `kb-architecture-deepening` | source/docs evidence and tradeoff table |
+| 11 | External docs, prior art, framework behavior, or market/product research materially affects the answer | `kb-research` | cited source notes |
+| 12 | Multiple independent streams, many blockers, deletion policy, migration scale, or several brainstorms/plans needed | `kb-epic` | brainstorms and plans complete before work |
+| 13 | Scripts/evals/proof harness plus skills/docs must change together, or cross-runtime propagation is part of the change | `kb-epic` or coded pipeline manifest | eval/proof/sync gate |
+| 14 | Clear feature/refactor needs slices, or user wants execution but no valid manifest exists | `kb-plan` | vertical-slice manifest |
+| 15 | Skill-bundle change with sync/docs/eval/standard gate implications | `kb-plan` | `kb-check -All` and sync report |
+| 16 | Fuzzy idea, product direction, or high path dependency | `kb-brainstorm` | answered questions before planning |
+| 17 | Small known bug, typo, narrow cleanup, or one skill/doc edit with no sync/eval/proof-harness implications | `kb-fix` or bounded direct edit | targeted proof plus `kb-check` when relevant |
+| 18 | Memory/docs/responses are too verbose | `kb-compact` | preserve commands, paths, dates, blockers |
+| 19 | User wants one strict idea-to-done pipeline run without check-in | `klfg` | full pipeline |
 
 Pipeline-worthy changes have at least one of these signals: multiple owning
 surfaces, cross-runtime behavior, scorer/fixture/baseline changes,

@@ -23,6 +23,12 @@ goal contract.
 - Route each work unit through `kb-start` unless the ledger already names a
   valid next action such as `kb-work <manifest>` or `kb-complete <manifest>`.
 - Preserve the smallest correct lane. Do not force every goal through `klfg`.
+- When routed work is first about to run, initialize or reuse exactly one
+  ephemeral run catalog under `.kb/runs/<goal-slug>/` from live host evidence.
+  Do not ask a setup questionnaire for Small/Medium/Large/Planner models.
+- Merge only what the active orchestration surface can actually select plus any
+  user-local or project-allowed extra routes at work time. Never assume one
+  host exposes another host's catalog.
 - Require an objective `done_check` before starting a durable goal, or record an
   explicit human-approved exception with the reason no objective check can exist
   yet. Do not treat a vague Done Criteria list as terminal proof.
@@ -127,6 +133,9 @@ Required files:
 - `goal.md` - pointer to the durable goal ledger and current objective.
 - `done-check.json` - optional `kbcheck sense/accept` check spec when the done
   check can be expressed as JSON.
+- `catalog.json` - the redacted live run catalog for this goal/run only.
+- `catalog-fingerprint.txt` - the last accepted host/config fingerprint used to
+  decide whether the run catalog can be reused.
 - `backlog.json` - small queue of candidate work units with route, priority,
   blockers, and source artifact.
 - `progress.md` - compact current state, last accepted proof, and next allowed
@@ -148,6 +157,12 @@ go run ./cmd/kbcheck run-state --history .kb/runs/<goal-slug>/route-history.json
 If the guard flags `route-oscillation`, `low-confidence-no-progress`, or
 `no-progress-loop`, stop the loop and re-plan or ask the smallest human question
 instead of bouncing between lanes.
+
+The run catalog stays redacted, ephemeral, and project-local. It records only what this host
+and this run can select, plus any project-allowed aliases the user already
+configured. It is never a trust source; credentials, approvals, and trust stay
+under the OS user's private KB state. Refresh it only when the
+surface/provider/configuration or generated agent fingerprint changes.
 
 ## Routing
 

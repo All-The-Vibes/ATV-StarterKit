@@ -76,13 +76,14 @@ KB state system unless the repo already opted into `done.md`.
 1. **Read the manifest** - parse the YAML frontmatter to get the ordered slice list.
 2. **Validate DAG** - confirm no cycles in blockers, all referenced slice IDs exist, and all slice files exist.
 3. **Validate gate ledger** - read `gate_ledger`. The `plan-to-work` gate must be `passed` and its `allowed_next_action` must name this manifest. Run `kb-gate/scripts/check_gate_ledger.py <manifest-path> --gate plan-to-work --allowed-next "kb-work <manifest-path>"` before execution. If the gate is absent, pending, blocked, stale, or the checker fails, stop and route to `kb-plan`/`kb-gate` to repair it before execution. Do not execute from a manifest that lacks a passing gate.
-4. **Validate objective contract** - when the manifest opts into `objective_contract: true`, it must have a top-level `done_check`, every runnable slice must have `proof_check` or a valid `no_check_reason`, and every routed slice must use a valid `model_route` for its `model_tier`. Run `go run ./cmd/kbcheck manifest-contract --manifest <manifest-path>` before execution. If it fails, route back to `kb-plan`/`kb-gate`; do not continue from a manifest that can self-report completion without objective proof.
-5. **Validate slice contracts** - each slice plan must have `expected_files`, `verification`, `blockers`, `status`, and acceptance criteria. New slice plans should also have `test_level`, `functional_risk`, `model_tier`, `model_route`, and `proof_check` or `no_check_reason`. If core fields are missing, stop and route to `kb-plan`; do not infer a manifest from a phase list. If only `test_level` or `functional_risk` is missing on an older plan, invoke `kb-functional-test` to classify them before execution.
-6. **Check status** - skip any slices already marked `done`. Resume from the first safe ready set.
-7. **Check worktree** - note dirty or untracked files before executing so unrelated user changes are not staged or reverted.
-8. **Read active landmines** — if `docs/context/landmines.md` exists, read only `Active Landmines` and carry any relevant failure modes into slice execution and verification. If a slice touches an `owner_surface`, treat that landmine as a hard guardrail until the slice proves the `verification` condition or explicitly leaves it active.
-9. **Sync with board** — read `todo.md` and confirm its status table matches the manifest. If they diverge, the board wins — another agent may have updated it. Reconcile the manifest from the board before proceeding.
-10. **Confirm once only when needed:** If the user did not explicitly ask to run/execute/work the manifest, ask: "Ready to execute N remaining slices in order. Proceed?" If the user already asked to execute, continue without this prompt.
+4. **Validate objective contract** - when the manifest opts into `objective_contract: true`, it must have a top-level `done_check`, and every runnable slice must have `proof_check` or a valid `no_check_reason`. Do not require a durable `model_route`: new plans record only capability difficulty/risk, while route selection happens immediately before dispatch from live evidence. Legacy `model_route` values may remain readable as hints only. When `cmd/kbcheck` exists, run `go run ./cmd/kbcheck manifest-contract --manifest <manifest-path>` before execution. Otherwise verify those fields and terminal slice gates directly, record `manifest-validator: unavailable`, and block on any missing/false `proof_check`, absent `done_check`, or unproved terminal status. The portable skills do not require the Go maintainer harness. If validation fails, route back to `kb-plan`/`kb-gate`; do not continue from a manifest that can self-report completion without objective proof.
+5. **Validate slice contracts** - each slice plan must have `expected_files`, `verification`, `blockers`, `status`, and acceptance criteria. New slice plans should also have `test_level`, `functional_risk`, `model_tier`, and `proof_check` or `no_check_reason`. Treat legacy `tiny` or `model_route` fields as compatibility hints only; do not require them on new plans and do not freeze a provider/model in durable plan state. If core fields are missing, stop and route to `kb-plan`; do not infer a manifest from a phase list. If only `test_level` or `functional_risk` is missing on an older plan, invoke `kb-functional-test` to classify them before execution.
+6. **Load the context packet** - for a non-trivial slice, read its packet before broad repo search or delegation. When `cmd/kbcheck` exists, validate JSON packets with `go run ./cmd/kbcheck context-packet --packet <packet.json>`. Otherwise verify the required fields directly and record `packet-validator: unavailable`; the portable skills do not require the Go maintainer harness. If required source, constraint, proof, search-policy, or escalation data is missing, route back to `kb-plan` instead of making a cheap worker rediscover the repo. Legacy tiny/mechanical slices may use the plan itself when it records why no packet is needed.
+7. **Check status** - skip any slices already marked `done`. Resume from the first safe ready set.
+8. **Check worktree** - note dirty or untracked files before executing so unrelated user changes are not staged or reverted.
+9. **Read active landmines** — if `docs/context/landmines.md` exists, read only `Active Landmines` and carry any relevant failure modes into slice execution and verification. If a slice touches an `owner_surface`, treat that landmine as a hard guardrail until the slice proves the `verification` condition or explicitly leaves it active.
+10. **Sync with board** — read `todo.md` and confirm its status table matches the manifest. If they diverge, the board wins — another agent may have updated it. Reconcile the manifest from the board before proceeding.
+11. **Confirm once only when needed:** If the user did not explicitly ask to run/execute/work the manifest, ask: "Ready to execute N remaining slices in order. Proceed?" If the user already asked to execute, continue without this prompt.
 
 After initial execution starts, do not ask before moving from one safe ready set
 to the next.
@@ -144,6 +145,57 @@ go run ./cmd/kbcheck run-state --history .kb/runs/<goal-slug>/route-history.json
 
 If the guard fails, stop routing and repair the loop by refreshing context,
 re-planning the unit, or asking the smallest human question.
+
+## Live Route Selection
+
+Routing is a work-time decision, not a plan rewrite.
+
+For each run/ready slice, use the executable sequence:
+
+1. `kbrouter models discover --run-root <run-root> --current-model <id> --json`
+2. `kbrouter models select --run-root <run-root> --run-id <run-id> --tier <tier> --task-family <family> --tool <tool> --context-size <n> --risk <risk> [--override use|require|ignore --alias <alias>] --json`
+3. For a routed decision, call `kbrouter dispatch` with the selected primary
+   alias, optional next ordered alias, and unique direct-child packet/output/
+   receipt/handoff names containing the slice ID.
+
+If discovery/select is missing, incompatible, or returns unavailable, record
+`router-unavailable: <reason>`. Use the returned `degraded-current` decision or
+the current model only when policy permits; `require` pauses that slice instead.
+
+- Discover or reuse exactly one run-scoped catalog before the first routed
+  slice. Reuse it while the host/configuration fingerprint is unchanged;
+  refresh it only when that fingerprint changes.
+- Do not ask a setup questionnaire for worker tiers. Merge only what the active
+  host can actually select plus any user-local/private aliases or project
+  preferences already allowed at this project.
+- Treat `model_tier` as a capability floor. New worker tiers are `small`,
+  `medium`, and `large`. `planner` is an orchestration/review role, not a
+  cheaper worker tier. Legacy `tiny` maps to the `small` lane as a compatibility
+  hint only.
+- Select immediately before dispatch from live evidence in this order:
+  exact tier first, another qualified same-tier route, then a higher tier, then
+  the current model as an explicit degraded fallback when policy permits.
+  Never move downward automatically.
+- A higher or planner-grade model may execute lower-tier work when it is
+  independently eligible or explicitly requested by the user.
+- Security, auth, data-boundary, or process-boundary work must not be silently
+  down-routed or sent to a less trusted destination.
+- `use <model>` prefers that route first with safe upward fallback.
+- `require <model>` pauses only that slice if the exact route is unavailable.
+- `prefer local|hosted` is a preference inside trust and risk constraints.
+- `ignore model routing` uses the current model and ordinary proof gates only.
+- A generic or named subagent spawn without an exact selector cannot claim the
+  requested model. Record actual route/model/session only from dispatcher or
+  host evidence; otherwise provenance is `unknown` or `unavailable`.
+- Existing correct work with missing or mismatched provenance is not blocked or
+  redone for telemetry. Investigate once, record what is knowable, then let
+  independent proof govern completion.
+
+Show a compact preview only when routed slices exist. Group by selected live
+route and include the bounded fallback path, for example
+`Medium — Terra -> Sonnet -> current(degraded): 004, 007`.
+This preview is dispatch intent for the current ready set only. If nothing is
+routed, say nothing about models.
 
 ## Ready-Set Ordering
 
@@ -226,7 +278,7 @@ Before editing, ensure the slice has a recorded test obligation:
 
 - `test_level`: `none`, `unit`, `integration`, `functional-api`, `functional-cli`, `functional-browser`, or `full`
 - `functional_risk`: `none`, `narrow`, `broad`, or `full`
-- `model_tier`: `tiny`, `small`, `medium`, or `large`
+- `model_tier`: `small`, `medium`, or `large` (`tiny` remains readable only as a legacy hint that maps to `small`)
 
 If `test_level` or `functional_risk` is missing, stale, or contradicted by the
 acceptance criteria or `expected_files`, invoke `kb-functional-test` with the
@@ -234,19 +286,27 @@ slice plan. Record the result in the slice frontmatter or notes before
 implementation. If `model_tier` is missing in a manifest that opted into
 `model_tier_contract`, route back to `kb-plan` to repair the slice contract.
 
-Use small/mini model subagents for this classification when the platform supports model-tiered agents. Keep the task bounded: classify the slice, audit existing tests for mocked theater, and suggest the narrowest deterministic proof. Escalate to the main model for complex architecture/auth/security/flaky async decisions or repeated test failures.
+Use smaller worker routes for this classification only when the active host can
+actually select them. Keep the task bounded: classify the slice, audit existing
+tests for mocked theater, and suggest the narrowest deterministic proof.
+Escalate to the main model for complex architecture/auth/security/flaky async
+decisions or repeated test failures.
 
 Model-tier boundaries:
 
 | Tier | May own | Escalate when |
 |---|---|---|
-| `tiny` | bounded classification, grep-backed inventories, schema/manifest fill-ins, docs/copy-only changes | code behavior, ambiguous decomposition, hidden dependencies, failing tests |
 | `small` | narrow mechanical edits and straightforward tests with clear acceptance criteria | cross-boundary behavior, UI/API workflows, security/auth/data decisions |
 | `medium` | ordinary vertical slices and focused integration work | architecture/security migrations, multi-slice replanning, unclear product intent |
 | `large` | hard decomposition, architecture, broad debugging, final synthesis/review | proof is impossible or human-only input is required |
 
 The tier does not change the proof bar. It only says what kind of agent can do
 the first pass before `kb-work` verifies the result.
+
+Record actual runtime/model, turns, input/output/cache tokens, proof result, and
+packet sufficiency when the host exposes them. Missing host telemetry is
+`unavailable`, not zero. Raw values remain authoritative; weighted cost scores
+must be versioned and reported beside proof outcomes.
 
 Do not use `unit` just because it is cheaper. Use `unit` only when unit-level proof can fail for the user-facing bug or behavior. If a unit test could pass while the workflow is broken, require integration or functional proof.
 
@@ -308,6 +368,11 @@ This gate pairs with Step 3.6 (Diff-Scope Verification). The point is traceabili
 
 Use a fresh sub-agent when the platform supports delegated execution and the user has permitted it. Otherwise execute the slice locally while keeping the scope limited to this slice.
 
+Immediately before dispatch, choose the route for this ready slice from the
+live run catalog. Try the exact capability floor first, then another qualified
+same-tier route, then a higher tier. Use the current model only as an explicit
+degraded fallback when policy permits. Never move downward automatically.
+
 Quoting sanity rule: when shell commands, file operations, or test assertions involve nested quotes, escaped quotes, or more than one quoting context, write the content to a temp file and execute/read that file instead of constructing the command inline.
 
 - If you are escaping an escape, you are doing it wrong. Write to a file, execute the file.
@@ -315,7 +380,7 @@ Quoting sanity rule: when shell commands, file operations, or test assertions in
 - Do not build JSON strings inside shell commands inside assertion code. Write JSON to a temp file and read it.
 - Do not construct CSS selectors through mixed-quote string concatenation. Use template literals or parameterized locator helpers.
 
-Use `references/execution-prompt.md` as the per-slice execution prompt/checklist. Load it only when starting a slice.
+Use `references/execution-prompt.md` as the per-slice execution prompt/checklist. Load it only when starting a slice. When that slice runs Go inside a workspace sandbox, also load `references/go-sandbox.md`; its environment applies to Go shell invocations, never the agent launcher.
 
 ### Step 3.1: Protected Oracle Gate
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "KB Models"
+  short_description: "Discover and manage optional model routes"
+  default_prompt: "Use $kb-models to inspect or configure safe optional model routes."

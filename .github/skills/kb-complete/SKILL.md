@@ -42,14 +42,17 @@ already opted into a `done.md` workflow.
 3. **Validate objective contract** — if the manifest has `objective_contract: true`, run `go run ./cmd/kbcheck manifest-contract --manifest <manifest-path>`. Confirm the top-level `done_check` is present and each completed slice has `proof_check` evidence or an accepted `no_check_reason` recorded in slice notes/gates. If missing, stop and return to `kb-work` for proof repair.
 4. **Collect scope context** — scan each slice's `notes` field for `scope-check:` and `scope-discovery:` entries. Build the combined list of actually changed, scope-verified files across all slices. This becomes the review scope.
 5. **Collect memory impact** — scan slice notes for `memory-impact:` and `kb-map-refresh:` entries.
-6. **Identify the branch baseline** — run `git merge-base HEAD main` to establish the diff range.
-7. **Run final snapshot sweep** — invoke `kb-regression-snapshot verify` for all snapshots under `.kb/snapshots/`. If any snapshot fails, STOP before review; later work regressed earlier passing behavior.
+6. **Review routing evidence honestly** — collect any routing receipts or host evidence linked from the run state, but treat them as telemetry rather than proof of correctness. Missing, unknown, or mismatched provenance does not invalidate already-proven work.
+7. **Identify the branch baseline** — run `git merge-base HEAD main` to establish the diff range.
+8. **Run final snapshot sweep** — invoke `kb-regression-snapshot verify` for all snapshots under `.kb/snapshots/`. If any snapshot fails, STOP before review; later work regressed earlier passing behavior.
 
 If the manifest has no scope-check notes (older format), fall back to `git diff --name-only $(git merge-base HEAD main)..HEAD` for the file list.
 
 ## Step 1: Code Review
 
 Before code review, run `kb-check` against the completed manifest scope. If deterministic checks fail, route to `kb-repair` or `kb-fix` before `kb-review`. LLM review does not replace executable verification.
+
+Do not choose, rerun, or require a different model solely to improve routing telemetry. `kb-complete` reviews receipts and notes useful observations for future selection, but proof and review gates remain model-independent.
 
 If the manifest contains slices with `test_level` of `integration`, `functional-api`, `functional-cli`, `functional-browser`, or `full`, run `kb-functional-test` before `kb-review` to confirm the functional coverage is real and not mock-only. Also run it when the diff shows user-visible, API/CLI, persistence, auth, streaming, or integration changes without an adequate recorded test level.
 
@@ -104,8 +107,7 @@ Create `.kb/observations.jsonl` if it doesn't exist. Append, never overwrite.
 
 ## Step 2.5: Follow-Up Resolution Gate
 
-Mirror the useful part of the original LFG finish pattern: do not leave known,
-fixable follow-up work unresolved just because the main implementation passed.
+Mirror the useful part of the original LFG finish pattern: do not leave known, fixable follow-up work unresolved just because the main implementation passed.
 
 1. Collect unresolved review findings, TODO files, checklist items, and manifest
    notes produced by `kb-review`, `kb-gate`, `kb-work`, `kb-qa`, or
@@ -118,8 +120,7 @@ fixable follow-up work unresolved just because the main implementation passed.
    decision. Parallel resolution is allowed only when file scopes are disjoint.
 5. Record: `follow-up-resolution: resolved N, logged M, blocked K`.
 
-Blocked/human-required items stay visible in `todo.md` or the manifest with evidence
-paths. They must not disappear into chat history.
+Blocked/human-required items stay visible in `todo.md` or the manifest with evidence paths. They must not disappear into chat history.
 
 ## Step 2.6: Proof and Demo Evidence Gate
 
@@ -165,6 +166,8 @@ If any slice has only prose proof, this gate fails. Return to `kb-work`,
 executable evidence before proceeding.
 
 For objective-contract manifests, summarize the top-level `done_check` and each slice's `proof_check` result in the manifest notes. If the final objective check cannot run yet, record the blocker and do not declare `KB <name> complete`.
+
+If routing evidence is partial, record the strongest honest attribution such as `exact`, `explained-external`, `unknown`, or `unavailable`, then continue with ordinary proof. Never rerun already-correct work only to upgrade provenance.
 
 ## Step 3: Compound & Learn
 
@@ -377,8 +380,7 @@ Prune ephemeral artifacts. Heavy KB usage generates file sprawl — clean it up 
 
 ## Step 5: Done
 
-Before updating the manifest to `status: reviewed`, write `complete-to-ship` in
-the manifest `gate_ledger`.
+Before updating the manifest to `status: reviewed`, write `complete-to-ship` in the manifest `gate_ledger`.
 
 Required proof:
 
@@ -396,13 +398,9 @@ Required proof:
 - cleanup result;
 - alerts list.
 
-If any required proof is missing, set `complete-to-ship` to `blocked` and do not
-report `KB <name> complete`.
+If any required proof is missing, set `complete-to-ship` to `blocked` and do not report `KB <name> complete`.
 
-Update the manifest `status: reviewed` only after `complete-to-ship` is
-`passed` or explicitly `quarantined` for out-of-scope issues, and after
-`kb-gate/scripts/check_gate_ledger.py <manifest-path> --gate complete-to-ship --allow-quarantine`
-passes. Then report:
+Update the manifest `status: reviewed` only after `complete-to-ship` is `passed` or explicitly `quarantined` for out-of-scope issues, and after `kb-gate/scripts/check_gate_ledger.py <manifest-path> --gate complete-to-ship --allow-quarantine` passes. Then report:
 
 ```text
 KB <name> complete.
@@ -418,7 +416,8 @@ KB <name> complete.
 - Alerts: <none | concise follow-up lines with evidence paths>
 - Cleanup: done
 
-Ready to ship. Run /land when you're ready to push and open a PR.
+Ready to ship. Use `kb-finish <manifest>` to recover missing phases and check
+in, or `kb-ship <manifest>` when already reviewed.
 ```
 
 ## Failure Handling
@@ -445,4 +444,4 @@ Ready to ship. Run /land when you're ready to push and open a PR.
 - **Compaction:** `kb-compact` for targeted memory bloat
 - **Learning:** `/learn` → `docs/context/kb/instincts/project.yaml`
 - **Evolution:** `/evolve` → `.github/skills/learned-*/`
-- **Shipping:** `/land` (separate, deliberate act — not part of this skill)
+- **Shipping:** `kb-ship` (separate, explicit commit/push/PR act)
