@@ -1,6 +1,6 @@
 ---
 name: kb-goal
-description: Durable objective governor for KB workflows. Use when the user sets a goal, wants work to run for days across sessions, says continue until done, asks for vDone, or needs a long-lived objective forced through KB routing, planning, work, completion, and proof gates. Owns goal state and stop conditions; delegates execution to kb-start, kb-task, kb-epic, klfg, kb-work, and kb-complete.
+description: Durable objective governor for KB workflows. Use when the user sets a goal, wants work to run for days across sessions, says continue until done, asks for vDone, or needs a long-lived objective forced through KB routing, planning, work, finalization, delivery, and proof gates. Owns goal state and stop conditions; delegates execution to kb-start, kb-task, kb-epic, kb-work, kb-finalize, and kb-complete.
 argument-hint: "[goal objective, goal ledger path, or blank to resume active goal]"
 ---
 
@@ -18,10 +18,21 @@ goal contract.
 
 ## Contract
 
+- Before reading `todo.md`, `.kb/runs/`, a goal ledger, or chat/session history,
+  resolve and record the current working directory and `git rev-parse
+  --show-toplevel`. If the user or launcher names a repo/workspace, verify that
+  the resolved root matches that identity by path, repo name, or remote.
+- A named repo/workspace is an identity constraint, not conversational context.
+  On mismatch, do not resume any active goal. Switch to the named checkout when
+  it is unambiguous; otherwise ask only for its path.
+- Resume goal state only when `todo.md`, the goal ledger, and `.kb/runs/<goal>/`
+  are all under the verified repo root. Never carry an active goal from a prior
+  session, sibling checkout, global memory, or chat history into another repo.
 - Run `kb-map lookup <goal>` before creating, resuming, or routing a goal.
 - Store goal state in the active repo, not in global memory or chat history.
 - Route each work unit through `kb-start` unless the ledger already names a
-  valid next action such as `kb-work <manifest>` or `kb-complete <manifest>`.
+  valid next action such as `kb-work <manifest>`, `kb-finalize <manifest>`, or
+  `kb-complete <manifest>`.
 - Preserve the smallest correct lane. Do not force every goal through `klfg`.
 - When routed work is first about to run, initialize or reuse exactly one
   ephemeral run catalog under `.kb/runs/<goal-slug>/` from live host evidence.
@@ -173,13 +184,13 @@ Pick the next smallest useful unit, then delegate:
 | One bounded task can finish the goal | `kb-task` |
 | Small known bug or contained fix | `kb-fix` |
 | Broken behavior needs diagnosis | `kb-troubleshoot` |
-| Clear feature needs slices | `kb-plan` -> `kb-work` -> `kb-complete` |
-| Fuzzy objective or high path dependency | `kb-brainstorm` -> `kb-plan` -> `kb-work` -> `kb-complete` |
+| Clear feature needs slices and configured delivery | `kb-complete` |
+| Fuzzy objective or high path dependency | `kb-complete` (routes through brainstorm) |
 | Many streams, blockers, or manifests | `kb-epic`, then run each produced manifest |
-| User wants one strict idea-to-done pipeline | `klfg` |
-| Valid manifest already exists | `kb-work <manifest>` -> `kb-complete <manifest>` |
-| Work is implemented and needs terminal gates | `kb-complete <manifest>` |
-| Release or deploy is the remaining unit | `kb-ship` |
+| Legacy strict pipeline request | `kb-complete` |
+| Valid manifest already exists | `kb-complete <manifest>` |
+| Work is implemented and needs internal quality gates | `kb-finalize <manifest>` |
+| Delivery is the remaining unit | `kb-complete <manifest>` |
 
 `klfg` is one strict pipeline run. `kb-goal` may run many pipeline runs.
 
@@ -215,20 +226,23 @@ This prevents a loop from producing work faster than it can be reviewed.
 
 ## Loop
 
-1. **Restore** - read `todo.md`, `docs/context/PROJECT.md`, and the goal ledger.
-2. **Check staleness** - if the next artifact is older than 72 hours, run the
+1. **Bind repo identity** - resolve the git root, verify any user/launcher repo
+   name, and refuse cross-repo goal restoration on mismatch.
+2. **Restore** - read `todo.md`, `docs/context/PROJECT.md`, and the goal ledger
+   only from that verified root.
+3. **Check staleness** - if the next artifact is older than 72 hours, run the
    normal stale-work refresh before execution.
-3. **Check run state** - if `.kb/runs/<goal>/route-history.jsonl` exists, run
+4. **Check run state** - if `.kb/runs/<goal>/route-history.jsonl` exists, run
    the `kbcheck run-state` guard before choosing another route.
-4. **Choose next unit** - identify the smallest work unit that moves the goal.
-5. **Delegate** - invoke the route from the ledger or route through `kb-start`.
-6. **Verify unit** - require the delegated lane's gate evidence. For manifests
+5. **Choose next unit** - identify the smallest work unit that moves the goal.
+6. **Delegate** - invoke the route from the ledger or route through `kb-start`.
+7. **Verify unit** - require the delegated lane's gate evidence. For manifests
    with `objective_contract: true`, require `go run ./cmd/kbcheck
    manifest-contract --manifest <manifest-path>` to pass before accepting a
    unit as complete.
-7. **Update ledger/run state** - record artifact, status, proof, blocker, next
+8. **Update ledger/run state** - record artifact, status, proof, blocker, next
    action, and a route-history row with confidence and progress signal.
-8. **Decide**:
+9. **Decide**:
    - if done criteria and terminal proof are satisfied, mark `complete`;
    - if more units remain, continue or write a handoff and resume next session;
    - if blocked, record exact resume criteria and stop honestly.
@@ -236,7 +250,7 @@ This prevents a loop from producing work faster than it can be reviewed.
 Do not stop at weaker milestones:
 
 - one work unit passed;
-- a manifest says all slices are done but `kb-complete` has not run;
+- a manifest says all slices are done but `kb-finalize` has not run;
 - tests passed before review/follow-up proof;
 - `klfg` emitted DONE for one pipeline but the goal has remaining criteria;
 - the model believes the objective is probably satisfied.
@@ -255,7 +269,7 @@ Complete only when all are true:
 - final verification commands or artifacts are recorded;
 - memory/handoff state points to the completed goal or no longer points to it.
 
-If `kb-complete` creates follow-up work, keep the goal open and route that work
+If `kb-finalize` creates follow-up work, keep the goal open and route that work
 through the smallest valid KB lane.
 
 ## Blocked Rules

@@ -39,20 +39,20 @@ This is a task runner, not a separate implementation lane. It uses `kb-map` for 
    |---|---|
    | Narrow known bug, failing test, or obvious contained fix | `kb-fix` |
    | Broken behavior needs autonomous diagnosis from logs, browser evidence, commands, or unclear symptoms | `kb-troubleshoot` |
-   | Clear bounded task that needs slices before implementation | `kb-plan` -> `kb-work` -> `kb-complete` |
-   | Unclear product/technical behavior or high path dependency | `kb-brainstorm` -> `kb-plan` -> `kb-work` -> `kb-complete` |
+   | Clear bounded task that needs slices before implementation | `kb-complete` |
+   | Unclear product/technical behavior or high path dependency | `kb-complete` (routes through brainstorm first) |
    | Long-lived objective that should persist across sessions or run for days | `kb-goal` |
-   | User wants full feature from idea to done and Q&A is acceptable | `klfg` |
-   | Valid manifest already exists | `kb-work <manifest>` -> `kb-complete <manifest>` |
-   | Work is already implemented and needs finish gates | `kb-complete` |
+   | User wants full feature from idea to configured endpoint | `kb-complete` |
+   | Valid manifest already exists and should reach configured endpoint | `kb-complete <manifest>` |
+   | Work is implemented and needs only post-work quality gates | `kb-finalize` |
    | Large multi-subsystem initiative | `kb-epic` |
-   | Release, PR, deploy, or final readiness | `kb-ship` |
+   | Release, PR, direct integration, or final readiness | `kb-complete` |
    | External docs or current ecosystem behavior could change the answer | `kb-research`, then resume route selection |
 
 4. **Execute until done**
    - Run the selected route immediately when safe.
    - If the first route produces a required artifact, continue to the next phase without asking unless a gate blocks.
-   - Preserve phase order: brainstorm before plan, plan before work, work before complete.
+   - Preserve phase order: brainstorm before plan, plan before work, work before finalize, finalize before delivery.
    - Treat "don't ask many questions" or "go straight to work" as execution intent, not permission to skip slices. If no valid manifest exists, run `kb-plan` before `kb-work`.
    - If the route changes because evidence contradicts the initial classification, record why and switch.
 

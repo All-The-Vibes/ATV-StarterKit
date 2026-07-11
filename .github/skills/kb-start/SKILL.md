@@ -106,10 +106,10 @@ reconcile it with a second shape or complexity table.
 | 2 | User explicitly says `kb-goal`, sets a durable goal, wants work to run for days, asks for vDone, or needs cross-session objective tracking | `kb-goal` | goal ledger plus delegated KB gates |
 | 3 | User explicitly says `kb-task`, asks for first-principles execution, or wants one bounded task carried until verified/blocked | `kb-task` | task runner owns verification |
 | 4 | Direct explanation, tradeoff discussion, or pushback with no file changes requested | answer directly; use `kb-first-principles` behavior when challenged | no work gate |
-| 5 | User explicitly wants a plan/manifest taken through missing work and completion to done-done and checked in in one run | `kb-finish` | plan/work/complete gates plus pushed PR |
+| 5 | User wants a feature/plan/manifest taken from its current state through configured local, PR, or direct delivery | `kb-complete` | plan/work/finalize gates plus delivery policy |
 | 6 | Existing valid manifest should be executed without check-in intent | `kb-work` | manifest plus slice verification |
-| 7 | All runnable slices are done and work needs review/learning/cleanup without check-in intent | `kb-complete` | `kb-check`, `kb-review`, learning gates |
-| 8 | Already reviewed work needs commit, push, and a PR | `kb-ship` | release/ship gate plus pushed PR |
+| 7 | All runnable slices are done and only internal review/learning/cleanup is needed | `kb-finalize` | `kb-check`, `kb-review`, learning gates |
+| 8 | Already reviewed work needs configured delivery | `kb-complete` | delivery policy plus release/ship/land gates |
 | 9 | Broken behavior needs logs, browser checks, test iteration, or self-correction | `kb-troubleshoot` | reproduce and regression proof |
 | 10 | Architecture/module-depth exploration before implementation | `kb-architecture-deepening` | source/docs evidence and tradeoff table |
 | 11 | External docs, prior art, framework behavior, or market/product research materially affects the answer | `kb-research` | cited source notes |
@@ -120,7 +120,7 @@ reconcile it with a second shape or complexity table.
 | 16 | Fuzzy idea, product direction, or high path dependency | `kb-brainstorm` | answered questions before planning |
 | 17 | Small known bug, typo, narrow cleanup, or one skill/doc edit with no sync/eval/proof-harness implications | `kb-fix` or bounded direct edit | targeted proof plus `kb-check` when relevant |
 | 18 | Memory/docs/responses are too verbose | `kb-compact` | preserve commands, paths, dates, blockers |
-| 19 | User wants one strict idea-to-done pipeline run without check-in | `klfg` | full pipeline |
+| 19 | Legacy `klfg` or `kb-finish` invocation | compatibility alias to `kb-complete` | full state-aware pipeline |
 
 Pipeline-worthy changes have at least one of these signals: multiple owning
 surfaces, cross-runtime behavior, scorer/fixture/baseline changes,

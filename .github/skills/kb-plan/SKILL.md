@@ -200,7 +200,9 @@ Break the work into thin end-to-end slices. For each slice, determine:
 - **Verification mode** - tdd / integration / verification-only / hitl. For `tdd`, record the oracle path/command before implementation whenever practical.
 - **Test level** - none / unit / integration / functional-api / functional-cli / functional-browser / full
 - **Functional risk** - none / narrow / broad / full
-- **Model tier** - small / medium / large; Planner is a separate orchestration role
+- **Model tier** - the `small` / `medium` / `large` correction and authority
+  tier required if the first implementation attempt fails; Planner is a
+  separate orchestration role
 - **Model requirements** - capabilities, tools, context, risk, and proof shape the work-time selector must consider
 - **Escalation triggers** - observable conditions that require a higher tier
 - **Blocked by** - which other slices must complete first, or none
@@ -208,8 +210,8 @@ Break the work into thin end-to-end slices. For each slice, determine:
 - **Expected files** - best current forecast of files this slice may create or modify, with operation type. Used by `kb-work` as an orientation and review-scope seed, not as a literal allowlist.
 - **Context packet** - for non-trivial slices, the bounded execution payload:
   memory/source files already checked, deterministic prefetch, constraints,
-  acceptance/proof targets, model tier, allowed tools/search policy, and
-  escalation triggers. Tiny doc-only or mechanical slices may omit it with a
+  acceptance/proof targets, planned correction tier, allowed tools/search
+  policy, and escalation triggers. Tiny doc-only or mechanical slices may omit it with a
   one-line reason.
 
 Each entry in `expected_files` should specify:
@@ -262,19 +264,30 @@ and any objective-contract fields. If any proof is missing, set
 
 ### Model Tier Contract
 
-Use model tiers to route slice ownership, not to weaken proof. Verification
-requirements stay the same regardless of tier.
+`model_tier` records the slice's planned correction/authority tier, not a
+permanent worker assignment and not a proof level. Verification requirements
+stay the same regardless of tier. `kb-work` may make one explicit lower-tier
+attempt at run time when the plan already provides settled intent, bounded
+scope and authority, an objective proof that can reject a bad result, and exact
+escalation triggers. The plan does not record `attempt_tier` or decide that
+execution policy.
+
+The planner never chooses a native model, extra-route alias, provider, adapter,
+endpoint, or transport. The current master resolves live native routes and any
+saved project source preference immediately before work. The actual route
+belongs in the receipt. Only run-scoped `require <model>` hard-pins.
 
 | Tier | Good fit | Do not assign |
 |---|---|---|
-| `tiny` | bounded classification, grep-backed inventory, manifest/schema fill-ins, typo/copy/doc-only edits | design choices, implementation across multiple files, security/auth, flaky failures |
 | `small` | narrow mechanical code edits, straightforward tests, local docs updates with clear examples | ambiguous architecture, cross-boundary behavior, user-visible workflows without stronger review |
 | `medium` | ordinary vertical slices, focused refactors, integration wiring with clear acceptance criteria | high-risk architecture/security/data migrations, unresolved product calls |
 | `large` | decomposition, hard debugging, architecture/security decisions, broad migrations, final synthesis/review | tasks with no executable proof path |
 
-When unsure, choose the higher tier. A lower-tier agent may draft a narrow
-classification or patch, but `kb-work` remains responsible for the gate and must
-escalate when evidence contradicts the assigned tier.
+Legacy `tiny` remains readable as a `small`-lane hint only. When unsure, choose
+the higher correction tier. Subjective design direction, philosophy/policy
+judgment, unresolved architecture, weak proof, and security/auth/data-boundary
+decisions start at the planned tier or require HITL. Straightforward code is
+not enough by itself to justify a lower-tier attempt.
 
 ### Objective Done Contract
 
@@ -288,9 +301,13 @@ not an agent assertion.
 - Add `proof_check` to every slice that can be machine-checked.
 - Use `no_check_reason` only for `verification-only` or `none` slices where no
   executable proof exists; the reason must be explicit and human-auditable.
-- Keep manifests model-neutral. `kb-plan` records `model_tier`; `kb-work`
-  chooses any route at dispatch time and records that choice in the run
-  receipt. Legacy `model_route` values may remain readable as hints only.
+- Keep manifests route-neutral. `kb-plan` records `model_tier`; `kb-work`
+  resolves and chooses the actual route at dispatch time and records it in the
+  run receipt. Legacy `model_route` values may remain readable as hints only.
+
+In the manifest template, `automatic_downgrade: false` forbids a selector from
+inventing a lower tier. It does not forbid `kb-work` from explicitly requesting
+one work-time `attempt_tier` after the bounded eligibility gate passes.
 
 If no honest objective-level check exists yet, do not fake one. Either plan a
 slice that creates the check first, or record a human-approved exception before
@@ -453,7 +470,8 @@ The plan body should include:
 
 - What to build, expressed as end-to-end behavior
 - Acceptance criteria
-- Model tier and why that tier is sufficient
+- Planned correction/authority tier and why it is sufficient if proof rejects
+  an initial attempt
 - Expected files (must match `expected_files` in frontmatter as the initial forecast; actual touched files may expand during `kb-work` when justified by the acceptance criteria and recorded in the scope ledger)
 - Test scenarios specific enough for TDD or integration verification
 - Proof check: the command, artifact, browser/API/CLI assertion, or accepted

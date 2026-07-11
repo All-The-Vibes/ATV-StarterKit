@@ -20,7 +20,7 @@ Do not call this "Dreams" in user-facing output.
 - Fresh sessions keep rediscovering the same facts.
 - Project memory feels noisy, contradictory, bloated, or stale.
 
-Do not run automatically from `kb-start`, `kb-work`, or `kb-complete`. Those skills may recommend it; this skill runs only when explicitly invoked or accepted by the user.
+Do not run automatically from `kb-start`, `kb-work`, `kb-finalize`, or `kb-complete`. Those skills may recommend it; this skill runs only when explicitly invoked or accepted by the user.
 
 ## Core Rule
 

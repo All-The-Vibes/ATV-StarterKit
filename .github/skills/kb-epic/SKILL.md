@@ -135,12 +135,12 @@ HITL-first rule:
 
 ```text
 Planning is complete. Do you want me to continue until all planned work is
-completed and tested? If yes, I will run kb-work, then kb-complete, across the
+completed and tested? If yes, I will run kb-work, then kb-finalize, across the
 runnable manifests from this epic.
 ```
 
 If the user says yes, execute runnable manifests serially unless the epic has
-declared safe parallel ownership. After each manifest, run `kb-complete` or an
+declared safe parallel ownership. After each manifest, run `kb-finalize` or an
 equivalent milestone completion gate before moving on. Do not execute blocked,
 parked, or human-required manifests.
 
@@ -234,8 +234,8 @@ to `todo-done.md`.
 11. Continue until every workstream is planned, queued, blocked, parked, or done.
 12. Ask whether to continue into execution for all runnable manifests.
 13. If yes, use `kb-work` for runnable manifests.
-14. Use `kb-complete` after each manifest or at epic milestones.
+14. Use `kb-finalize` after each manifest or at epic milestones.
 15. Use `kb-map refresh` after durable architecture changes.
-16. Use `kb-ship` when release readiness matters.
+16. Use `kb-complete` once at the intended epic delivery boundary.
 
 Refresh cold epic work older than 72 hours before execution.

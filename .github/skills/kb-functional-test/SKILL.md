@@ -10,7 +10,7 @@ Functional tests prove the real workflow works. Unit tests prove parts. Both mat
 
 ## Ownership
 
-This skill owns the test-level decision for KB work. `kb-plan` records the initial decision, `kb-work` re-checks it before marking a slice done, and `kb-complete` uses it for manifest-level smoke coverage.
+This skill owns the test-level decision for KB work. `kb-plan` records the initial decision, `kb-work` re-checks it before marking a slice done, and `kb-finalize` uses it for manifest-level smoke coverage.
 
 This is a lazy helper lane. Do not load it for every slice. Load it when the
 test level is unclear, UI/API/CLI behavior could be faked by low-level tests, or
@@ -100,9 +100,14 @@ If the changed behavior has a runnable UI path, the functional proof must go thr
 
 Skip or defer functional tests only when the change is dead-code removal, local refactor with existing coverage and no user-visible path, or a generated/config-only change covered by build/lint. Pure copy/style still needs rendered UI evidence when it changes what a user sees.
 
-## Model Delegation
+## Proof Classification Only
 
-This decision is eligible for small/mini models when the platform supports model-tiered subagents.
+This skill classifies the proof required. It does not lower a slice's planned
+correction tier, select an implementation attempt, or decide whether a worker's
+result passes.
+
+The classification task itself is eligible for small/mini models when the
+platform supports model-tiered subagents.
 
 Good mini-model tasks:
 
@@ -113,10 +118,12 @@ Good mini-model tasks:
 
 Do not use a mini model as the final proof of behavior. The proof is the command, test, browser probe, screenshot, or failing/passing output. Escalate to a stronger model when classification depends on architecture, auth/security, flaky async behavior, complex UI state, or repeated failures.
 
-When a slice declares `model_tier`, this skill may recommend a lower tier only
-for bounded classification or test-audit work. It must not downgrade
-implementation ownership for slices whose public behavior needs `medium` or
-`large` judgment.
+When a slice declares `model_tier`, preserve it as the planned
+correction/authority tier. `kb-work` alone decides whether the already-bounded
+slice and this objective proof make one lower-tier implementation attempt safe.
+“This is code” is not evidence. Subjective UX/design, philosophy/policy,
+unresolved architecture, security/auth/data boundaries, and proof that cannot
+reject a bad implementation remain ineligible for a lower-tier attempt.
 
 ## Test Quality Audit
 
@@ -150,7 +157,7 @@ If a test mostly asserts mocks were called, snapshots noise, or duplicates imple
   - mandatory screenshot for each failure state;
   - responsive screenshots only for deep tier or layout-sensitive changes.
 - Store evidence under `.kb/qa-screenshots/` or the repo's configured QA artifact path.
-- Keep screenshots until `kb-complete` cleanup. Do not keep unlimited traces/videos unless they explain a failure.
+- Keep screenshots until `kb-finalize` cleanup. Do not keep unlimited traces/videos unless they explain a failure.
 
 ## Script Rule
 

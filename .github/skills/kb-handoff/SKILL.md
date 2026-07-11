@@ -71,7 +71,7 @@ When updating an existing handoff, read it before writing and merge current trut
 Keep the handoff under 1200 words unless the user explicitly asks for more.
 
 1. **Purpose** — what the next session should do.
-2. **Suggested route** — `kb-start`, `kb-map`, `kb-fix`, `kb-brainstorm`, `kb-plan`, `kb-work`, `kb-complete`, `kb-ship`, or another exact skill.
+2. **Suggested route** — `kb-start`, `kb-map`, `kb-fix`, `kb-brainstorm`, `kb-plan`, `kb-work`, `kb-finalize`, `kb-complete`, or another exact skill.
 3. **Suggested skills** — skills the next session should invoke and why.
 4. **Current state** — branch, repo root, relevant manifest/plan/todo status.
 5. **Files to read first** — exact repo-local paths or temp artifact path.

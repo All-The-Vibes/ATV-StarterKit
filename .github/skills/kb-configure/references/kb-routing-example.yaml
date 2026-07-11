@@ -1,0 +1,10 @@
+schema_version: 1
+
+amr:
+  mode: automatic
+  lower_tier_attempts: disabled
+
+delivery:
+  mode: pr
+  merge: manual
+  post_merge_sync: false

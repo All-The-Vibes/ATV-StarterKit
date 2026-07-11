@@ -112,6 +112,26 @@ row shape, and evidence rules.
 
 Default to `lookup`.
 
+### Optional Model Routes During Explicit Setup
+
+Only when the user explicitly asks to set up the project—not when lookup
+silently bootstraps missing memory—offer one optional question after memory
+setup succeeds: `Configure local/private model routes now?`
+
+Normal `preflight`, `lookup`, `refresh`, and bootstrap triggered by missing or
+stale memory ask no model or routing questions. Host-native discovery and model
+selection remain automatic.
+
+- If no, finish setup without creating model state.
+- If yes, invoke `kb-models configure`; do not collect endpoints, credentials,
+  transports, or model IDs inside `kb-map`.
+- `kb-models` owns supported connection types, actual route details, and the
+  optional user-local project source preference: `automatic`,
+  `self-hosted-first`, or `native-first`.
+- Do not imply that every transport is supported. Host-native and built-in
+  OpenAI-compatible/LiteLLM routes may be configured today; generic MCP model
+  dispatch requires a versioned adapter before it is offered as executable.
+
 ## Standard Layout
 
 ```text

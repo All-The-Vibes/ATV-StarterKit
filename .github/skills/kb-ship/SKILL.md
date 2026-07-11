@@ -1,13 +1,13 @@
 ---
 name: kb-ship
-description: "Explicit checked-in PR delivery for reviewed KB work. Validates complete-to-ship, audits final scope, commits intentional files, pushes a non-default topic branch, and creates or updates a correctly based PR without merging. Use for 'check it in', 'push and open a PR', reviewed PR delivery, or as the final stage of kb-finish."
+description: "Internal checked-in PR delivery for reviewed KB work. Validates complete-to-ship, audits final scope, commits intentional files, pushes a non-default topic branch, and creates or updates a correctly based PR without merging. Normally invoked by kb-complete."
 argument-hint: "[reviewed manifest path]"
 ---
 
 # KB Ship
 
 Deliver reviewed KB work as a pushed topic branch and PR. Explicit invocation,
-including delegation from `kb-finish`, authorizes commit, push, and PR creation.
+including delegation from `kb-complete`, authorizes commit, push, and PR creation.
 It never authorizes merge, force-push, hook bypass, or default-branch delivery.
 
 ## Preconditions
@@ -34,11 +34,11 @@ It never authorizes merge, force-push, hook bypass, or default-branch delivery.
 
 ## Final Shipping Scope
 
-`kb-complete` may add manifest, todo, solution, instinct, memory, and cleanup
+`kb-finalize` may add manifest, todo, solution, instinct, memory, and cleanup
 artifacts after `kb-work` first recorded scope.
 
 1. Reconcile `scope-verified-files` with the actual final diff.
-2. Classify every additional completion artifact against `kb-complete` output.
+2. Classify every additional completion artifact against `kb-finalize` output.
 3. Record the final audited shipping scope in the manifest.
 4. Block on unexplained files, secrets, credentials, large binaries, generated
    bulk output, or unrelated edits.
