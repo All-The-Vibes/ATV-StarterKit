@@ -51,52 +51,59 @@ GHCP_FILE=".github/skills/ghcp-review-resolve/SKILL.md"
 
 FAILURES=0
 
-# _behavioral_step8_check <file-label> <guard-block>
-# Runs the extracted Step 8 push-verification block against the four real git
-# states and asserts the exact exit code for each. Returns 0 if all four match,
-# 1 (with a fail message) otherwise. Executing the snippet makes the check
-# immune to markup tricks that fool grep/awk (decoy fences, `if true; then
-# exit 1`, indented top-level exits, single-branch exits).
+# _behavioral_step8_check <file-label> <fence-code>
+# Runs the ENTIRE extracted Step 8 bash fence against the four real git states
+# and asserts the exact exit code for each. Executing the whole fence (not a
+# sliced-out sub-block) means top-level mutations before/after the guard —
+# `exit 0`, `if true; then exit 1`, stray commands — are actually run and
+# therefore caught. Returns 0 iff all four states produce the required rc.
 _behavioral_step8_check() {
-  local label="$1" block="$2"
-  local root; root="$(mktemp -d "${TMPDIR:-/tmp}/step8-behav.XXXXXX")"
+  local label="$1" fence="$2"
+  local root
+  root="$(mktemp -d "${TMPDIR:-/tmp}/step8-behav.XXXXXX")" || {
+    fail "$label: could not create scratch dir for behavioral Step 8 check (mktemp failed)"
+    return 1
+  }
+  # Fail-fast if the scratch dir is not a real, non-empty path we can enter.
+  if [ -z "$root" ] || [ ! -d "$root" ]; then
+    fail "$label: scratch dir invalid for behavioral Step 8 check"
+    rm -rf "$root" 2>/dev/null
+    return 1
+  fi
   # shellcheck disable=SC2064
   trap "rm -rf '$root'" RETURN
-  ( # subshell so cd/traps don't leak
+
+  local rc
+  (
     set +e
-    cd "$root" || exit 99
-    git init -q --bare origin.git
-    git init -q work && cd work
+    cd "$root" || exit 99          # never proceed in the real repo
+    [ "$PWD" = "$root" ] || exit 99
+    git init -q --bare origin.git || exit 99
+    git init -q work || exit 99
+    cd work || exit 99
     git config user.email t@t; git config user.name t
-    git remote add origin "$root/origin.git"
-    echo seed > a && git add a && git -c commit.gpgsign=false commit -q -m seed
+    git remote add origin "$root/origin.git" || exit 99
+    echo seed > a && git add a && git -c commit.gpgsign=false commit -q -m seed || exit 99
 
-    run() { bash -c "$block" >/dev/null 2>&1; echo $?; }
+    # Run the whole fence. `git status` etc. in the fence are harmless here.
+    run() { ( bash -c "$fence" ) >/dev/null 2>&1; echo $?; }
 
-    # State 1: detached HEAD -> rc 0 (non-fatal skip)
     git checkout -q --detach
-    local r_detached; r_detached=$(run)
+    local rd; rd=$(run)                       # detached -> 0
     git checkout -q -b feature 2>/dev/null
-
-    # State 2: branch, no upstream -> rc 1
-    local r_noupstream; r_noupstream=$(run)
-
-    # State 3: branch, upstream exists, unpushed commit -> rc 1
+    local rn; rn=$(run)                        # no upstream -> 1
     git push -q -u origin feature
     echo more >> a && git -c commit.gpgsign=false commit -q -am more
-    local r_unpushed; r_unpushed=$(run)
-
-    # State 4: fully pushed -> rc 0
+    local ru; ru=$(run)                        # unpushed -> 1
     git push -q origin feature
-    local r_pushed; r_pushed=$(run)
+    local rp; rp=$(run)                        # pushed -> 0
 
-    [ "$r_detached" = 0 ] && [ "$r_noupstream" = 1 ] && \
-      [ "$r_unpushed" = 1 ] && [ "$r_pushed" = 0 ]
+    [ "$rd" = 0 ] && [ "$rn" = 1 ] && [ "$ru" = 1 ] && [ "$rp" = 0 ]
     exit $?
   )
-  local rc=$?
+  rc=$?
   if [ "$rc" -ne 0 ]; then
-    fail "$label: Step 8 guard does not enforce the 4 states behaviorally (detached=0,no-upstream=1,unpushed=1,pushed=0)"
+    fail "$label: Step 8 fence does not enforce the 4 states behaviorally (detached=0,no-upstream=1,unpushed=1,pushed=0)"
     return 1
   fi
   return 0
@@ -120,13 +127,26 @@ check_land_step8_guard() {
       continue
     fi
 
-    # (b) Positive + BEHAVIORAL: extract the first executable ```bash fence in
-    # Step 8 and actually RUN it against the four real git states, asserting the
-    # exact exit code for each. Grep/awk structural checks can be fooled by
-    # markup tricks (comments, decoy fences, `if true; then exit 1`, indented
-    # top-level exits); executing the snippet cannot. This is the same
-    # behavioral approach as detached_head_smoke.sh, folded into the invariant
-    # so every mirror is proven, not just pattern-matched.
+    # (b) Positive + BEHAVIORAL: extract the Step 8 ```bash fence and RUN THE
+    # WHOLE FENCE against the four real git states, asserting the exact exit code
+    # for each. Executing the entire fence (not a sliced-out sub-block) means
+    # any top-level mutation before/after the guard — a stray `exit 0`, an
+    # `if true; then exit 1`, an extra command — is actually executed and thus
+    # caught. Grep/awk structural checks cannot achieve this; execution can.
+    # Also assert there is exactly ONE Step 8 bash fence, so a decoy second
+    # fence cannot hide behavior.
+    local fence_count
+    fence_count=$(awk '
+      /^### Step 8/ { in8=1 }
+      /^### Step 9/ { in8=0 }
+      in8 && /^```bash/ { n++ }
+      END { print n+0 }
+    ' "$f")
+    if [ "$fence_count" != 1 ]; then
+      fail "$f: Step 8 must contain exactly one \`\`\`bash fence (found $fence_count)"
+      hit=1
+      continue
+    fi
     local step8fence
     step8fence=$(awk '
       /^### Step 8/ { in8=1 }
@@ -140,28 +160,14 @@ check_land_step8_guard() {
       hit=1
       continue
     fi
-    # Keep only the push-verification `if branch=...; then ... fi` block from the
-    # fence (drop `git status` and any surrounding prose lines). The block starts
-    # at the `if branch=` line and ends at its matching top-level `fi`.
-    local guard_block
-    guard_block=$(printf '%s\n' "$step8fence" | awk '
-      /^if branch="\$\(git branch --show-current\)"/ { grab=1 }
-      grab { print }
-      grab && /^fi[[:space:]]*$/ { exit }
-    ')
-    if [ -z "$guard_block" ]; then
-      fail "$f: Step 8 has no top-level 'if branch=...; then ... fi' push-verification block"
+
+    # Behavioral harness: run the WHOLE Step 8 fence in a scratch repo, 4 states.
+    if ! _behavioral_step8_check "$f" "$step8fence"; then
       hit=1
       continue
     fi
 
-    # Behavioral harness: run guard_block in a scratch repo across 4 states.
-    if ! _behavioral_step8_check "$f" "$guard_block"; then
-      hit=1
-      continue
-    fi
-
-    ok "$f: Step 8 guard behaves correctly (detached=0, no-upstream=1, unpushed=1, pushed=0)"
+    ok "$f: Step 8 fence behaves correctly (detached=0, no-upstream=1, unpushed=1, pushed=0)"
   done
   return "$hit"
 }
@@ -206,8 +212,8 @@ check_takeoff_backlog_guard() {
       continue
     fi
     local cmd_line guard_line
-    cmd_line=$(printf '%s' "$step2backlogfence" | grep -nF 'backlog sequence list --plain' | head -1 | cut -d: -f1)
-    guard_line=$(printf '%s' "$step2backlogfence" | grep -nE 'command -v backlog' | head -1 | cut -d: -f1)
+    cmd_line=$(printf '%s' "$step2backlogfence" | grep -nF 'backlog sequence list --plain' | head -1 | cut -d: -f1 || true)
+    guard_line=$(printf '%s' "$step2backlogfence" | grep -nE 'command -v backlog' | head -1 | cut -d: -f1 || true)
     if [ -z "$guard_line" ]; then
       fail "$f: Step 2 'backlog sequence list --plain' is not guarded by 'command -v backlog'"
       hit=1
@@ -218,30 +224,22 @@ check_takeoff_backlog_guard() {
       continue
     fi
 
-    # BEHAVIORAL: run the Step 2 backlog fence with `backlog` ABSENT from PATH.
-    # A correctly guarded fence takes the else branch and exits 0 (or at least
-    # does NOT hit 127 command-not-found). This proves the guard actually
-    # protects the call rather than merely appearing before it — markup that
-    # looks ordered but leaves the call reachable will surface here.
-    local backlog_rc
-    backlog_rc=$(
-      # Minimal PATH with just the shell utilities awk/grep/etc. resolve to,
-      # but WITHOUT any real `backlog`. Use a scratch dir as the only PATH entry
-      # plus /usr/bin:/bin for coreutils; ensure no `backlog` shim exists.
-      _bp="$(mktemp -d "${TMPDIR:-/tmp}/nobacklog.XXXXXX")"
-      PATH="/usr/bin:/bin" bash -c "command -v backlog >/dev/null 2>&1 && exit 42; $step2backlogfence" >/dev/null 2>&1
-      echo $?
-      rm -rf "$_bp"
-    )
-    if [ "$backlog_rc" = 42 ]; then
-      # A real `backlog` exists on this runner's /usr/bin:/bin — skip the
-      # absence assertion (can't simulate absence), the static guard above stands.
-      ok "$f: Step 2 backlog invocation guarded (static; live backlog present, absence not simulated)"
-    elif [ "$backlog_rc" = 127 ]; then
-      fail "$f: Step 2 fence hits command-not-found (127) when backlog is absent — the guard does not protect the call"
+    # BEHAVIORAL + HERMETIC: run the Step 2 fence with a controlled PATH that
+    # contains NO `backlog` (coreutils only) and capture STDERR. A correctly
+    # guarded fence takes the else branch and never attempts the call, so stderr
+    # is silent about backlog. If the call is ungated (e.g. `... || true` after
+    # the guard's `fi`), the shell still tries to exec `backlog` and emits
+    # "backlog: command not found" on stderr — even though `|| true` masks the
+    # exit code. Matching that message is what closes the `|| true` bypass, and
+    # it is deterministic regardless of whether the runner has a real backlog.
+    local err
+    # PATH deliberately excludes any real backlog (no ~/.bun, etc.).
+    err="$( PATH="/usr/bin:/bin" bash -c "$step2backlogfence" 2>&1 1>/dev/null || true )"
+    if printf '%s' "$err" | grep -qiE 'backlog.*(command not found|not found)'; then
+      fail "$f: Step 2 backlog call is reached when backlog is absent (stderr: command not found) — the guard does not protect the invocation"
       hit=1
     else
-      ok "$f: Step 2 backlog invocation guarded — runs cleanly (rc $backlog_rc) with backlog absent"
+      ok "$f: Step 2 backlog invocation guarded (behaviorally: not attempted when backlog absent)"
     fi
   done
   return "$hit"
