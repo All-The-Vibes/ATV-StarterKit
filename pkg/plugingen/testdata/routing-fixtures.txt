@@ -1,0 +1,80 @@
+# /atv routing fixtures — Layer 2 (live-model smoke) test data.
+#
+# NOT shipped to users. Lives in testdata so it never enters the plugin tree.
+# Each line: <prompt> | <expected-target>
+#
+# expected-target is one of:
+#   skill name (must exist in the catalog) | emit:lfg | emit:slfg |
+#   no-match | control:off|on|suggest | force:<skill>
+#
+# Layer 1 (deterministic, TestRoutingFixtures_* in Go): assert every skill
+# target exists in the generated catalog, required edge cases are present, and
+# no fixture points at a dangling skill.
+# Layer 2 (live smoke, manual — see docs/atv-router.md): feed each prompt to a
+# live /atv router and check its single chosen route against the expected
+# target. Nondeterminism expected; judge the stable/dominant choice across a few
+# runs, not one. Not in CI.
+
+# build intents (emit-and-stop; /lfg /slfg keep disable-model-invocation)
+build me a login form with validation | emit:lfg
+implement the whole feature end to end, just do it | emit:lfg
+build this fast with a swarm of parallel agents | emit:slfg
+ship the entire thing in parallel | emit:slfg
+
+# planning / ideation
+is this idea worth building | ce-brainstorm
+help me think through the approach before coding | ce-brainstorm
+what should I improve in this project | ce-ideate
+turn these requirements into a technical plan | ce-plan
+plan this feature | ce-plan
+deepen my existing plan with more detail | deepen-plan
+review this plan document for gaps | document-review
+
+# implementation / review
+do the implementation work on the existing plan | ce-work
+review my code changes before I open a PR | ce-review
+look at my diff | ce-review
+strip the AI slop out of this code | unslop
+
+# research / experiment loop (measurable metric — genuine autoresearch)
+optimize this function's runtime in an experiment loop | autoresearch
+run an autonomous experiment to hill-climb the metric | autoresearch
+
+# bugs (systematic root-cause debugging → /investigate)
+the test suite fails with a clear stack trace, why | investigate
+why is this broken | investigate
+this page doesn't work and I can't tell why | investigate
+wtf is happening with this stack trace | investigate
+this used to work and now it 500s | investigate
+
+# browser / QA (special-cased first)
+does this page actually work in the browser | test-browser
+take a screenshot of the deployed site | test-browser
+check the deploy visually | test-browser
+
+# security
+is this code secure | atv-security
+run an owasp scan on the app | atv-security
+
+# lifecycle / misc
+what should I work on next | takeoff
+land the plane | land
+record a demo video of this feature for the PR | feature-video
+make a meme for the changelog | meme-iq
+check my atv install health | atv-doctor
+
+# learning
+capture what we just learned as a reusable pattern | ce-compound
+
+# control commands
+off | control:off
+on | control:on
+suggest | control:suggest
+@ce-plan build a spec for auth | force:ce-plan
+
+# no-match floor (below confidence: answer directly, show menu)
+what's the weather today | no-match
+tell me a joke about goats | no-match
+
+# collision case (ambiguous "review" — must not crash)
+the review looks off | ce-review

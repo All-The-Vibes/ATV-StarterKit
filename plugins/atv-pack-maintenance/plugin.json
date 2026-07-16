@@ -1,7 +1,7 @@
 {
   "name": "atv-pack-maintenance",
   "description": "Maintenance & health pack — atv-doctor (diagnose ATV install health) and atv-update (update marketplace plugins; advisory for project scaffold). Keep your ATV install healthy and current.",
-  "version": "2.6.3",
+  "version": "2.7.0",
   "author": {
     "name": "All The Vibes",
     "url": "https://github.com/All-The-Vibes"

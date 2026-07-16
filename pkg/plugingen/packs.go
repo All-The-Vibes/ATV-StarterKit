@@ -53,9 +53,10 @@ func Packs() []Pack {
 		{
 			Name:        "atv-pack-shipping",
 			Category:    "shipping",
-			Description: "Shipping & deploy pack — Takeoff, CE Work, Land, LFG/SLFG orchestrators, and CE Compound for executing and delivering work.",
-			Keywords:    []string{"atv", "shipping", "deploy", "compound-engineering", "orchestrator"},
+			Description: "Shipping & deploy pack — the /atv router, Takeoff, CE Work, Land, LFG/SLFG orchestrators, and CE Compound for executing and delivering work.",
+			Keywords:    []string{"atv", "shipping", "deploy", "compound-engineering", "orchestrator", "router"},
 			SkillNames: []string{
+				"atv",
 				"ce-compound",
 				"ce-compound-refresh",
 				"ce-work",
@@ -75,9 +76,9 @@ func Packs() []Pack {
 		{
 			Name:        "atv-pack-quality",
 			Category:    "quality",
-			Description: "Quality pack — Unslop and Ralph Loop for tightening up code and iterating on solutions.",
-			Keywords:    []string{"atv", "quality", "ralph-loop"},
-			SkillNames:  []string{"ralph-loop", "unslop"},
+			Description: "Quality pack — Investigate (systematic root-cause debugging), Unslop, and Ralph Loop for tightening up code and iterating on solutions.",
+			Keywords:    []string{"atv", "quality", "debug", "investigate", "ralph-loop"},
+			SkillNames:  []string{"investigate", "ralph-loop", "unslop"},
 		},
 		{
 			Name:        "atv-pack-guidelines",

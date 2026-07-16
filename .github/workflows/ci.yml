@@ -17,11 +17,19 @@ jobs:
         with:
           go-version: "1.26.1"
 
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "20"
+
       - name: Build
         run: go build -v ./...
 
       - name: Test
         run: go test -v ./...
+
+      - name: Hook script + skill contract tests (Node)
+        run: node --test .github/hooks/scripts/tests/*.test.js
 
       - name: Plugin marketplace drift check
         run: go run ./cmd/plugingen -check
