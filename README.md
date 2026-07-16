@@ -289,6 +289,15 @@ plan → deepen → work → review → unslop → resolve → test → video �
   ✓       ✓       ✓
 ```
 
+**Auto mode (opt-in).** `/lfg auto <feature>` (or `/lfg <feature> --auto`) runs the
+pipeline gate-to-gate without stopping to ask. Intermediate plan/design/impl choices
+are auto-decided via 6 Decision Principles and classified (Mechanical → silent,
+Taste → decided + logged, User-Challenge → still stops). Destructive actions (PR
+push, `/land`, deploy) **always** stop for confirmation, even in auto mode, and a
+decision log is surfaced at the end so autonomy stays auditable. Bare `/lfg
+<feature>` keeps the default per-gate behavior. The mode is persisted per run, so a
+resumed `/lfg` continues in the mode it started.
+
 ### `/slfg` — parallel swarm variant
 
 Same steps. Planning is sequential; review + test + unslop run in parallel.
