@@ -11,7 +11,7 @@ PASS: no-upstream blocks (rc 1)
 
 === State 3: branch with UNPUSHED commit -> BLOCKED (rc 1) ===
 BLOCKED: unpushed commits on feature -- push before landing.
-da86a2a unpushed work
+<sha> unpushed work
 PASS: unpushed commit blocks (rc 1)
 
 === State 4: branch fully pushed -> OK (rc 0) ===

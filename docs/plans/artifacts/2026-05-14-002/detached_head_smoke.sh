@@ -21,7 +21,9 @@ run_guard() {
     if git rev-parse --verify --quiet "refs/remotes/origin/$branch" >/dev/null; then
       if [ -n "$(git log "origin/$branch..HEAD" --oneline)" ]; then
         echo "BLOCKED: unpushed commits on $branch -- push before landing." >&2
-        git log "origin/$branch..HEAD" --oneline
+        # Normalize the leading short-SHA to <sha> so captured output is
+        # byte-reproducible (the commit hash is nondeterministic).
+        git log "origin/$branch..HEAD" --oneline | sed -E 's/^[0-9a-f]{7,} /<sha> /'
         return 1
       fi
       echo "OK: all commits pushed to origin/$branch."

@@ -69,34 +69,33 @@ check_land_step8_guard() {
       continue
     fi
 
-    # (b) Positive: the REPLACEMENT guard must be present in the executable
-    # ```bash fence INSIDE Step 8 — not merely somewhere in the file, and not in
-    # prose/comments. Extract the first ```bash ... ``` fence that falls between
-    # the "### Step 8" and "### Step 9" headings, then require all structural
-    # markers of the push-verification guard within that fenced snippet:
-    #   - the branch capture guard,
-    #   - the upstream existence check,
-    #   - a BLOCKED failure that stops the routine (exit 1) on unpushed/no-upstream.
-    # Scoping to the fenced block means a stray marker in prose, a comment, or a
-    # different step cannot mask a deleted guard.
+    # (b) Positive: the REPLACEMENT guard must be present as EXECUTABLE code in
+    # the FIRST ```bash fence inside Step 8 — not in prose, not in a `#` comment,
+    # and not in a second decorative fence. Extract only the first Step 8 fence,
+    # then strip comment-only and blank lines before matching so a marker that
+    # exists solely in a comment cannot satisfy the check.
     local step8fence
     step8fence=$(awk '
       /^### Step 8/ { in8=1 }
       /^### Step 9/ { in8=0 }
-      in8 && /^```bash/ { infence=1; next }
-      in8 && infence && /^```/ { infence=0 }
-      in8 && infence { print }
+      in8 && !seen && /^```bash/ { infence=1; seen=1; next }
+      infence && /^```/ { infence=0 }
+      infence { print }
     ' "$f")
     if [ -z "$step8fence" ]; then
       fail "$f: Step 8 has no executable \`\`\`bash guard block (heading or fence removed?)"
       hit=1
       continue
     fi
+    # Executable lines only: drop blank lines and lines whose first non-space
+    # character is `#` (a shell comment).
+    local step8code
+    step8code=$(printf '%s\n' "$step8fence" | grep -vE '^[[:space:]]*(#|$)')
     local missing=""
-    printf '%s\n' "$step8fence" | grep -qF 'branch="$(git branch --show-current)"' || missing="$missing branch-guard"
-    printf '%s\n' "$step8fence" | grep -qF 'git rev-parse --verify --quiet "refs/remotes/origin/$branch"' || missing="$missing upstream-check"
-    printf '%s\n' "$step8fence" | grep -qE 'BLOCKED:.*(push before landing|push the branch before landing)' || missing="$missing blocked-notice"
-    printf '%s\n' "$step8fence" | grep -qE '^[[:space:]]*exit 1' || missing="$missing hard-exit"
+    printf '%s\n' "$step8code" | grep -qF 'branch="$(git branch --show-current)"' || missing="$missing branch-guard"
+    printf '%s\n' "$step8code" | grep -qF 'git rev-parse --verify --quiet "refs/remotes/origin/$branch"' || missing="$missing upstream-check"
+    printf '%s\n' "$step8code" | grep -qE 'BLOCKED:.*(push before landing|push the branch before landing)' || missing="$missing blocked-notice"
+    printf '%s\n' "$step8code" | grep -qE '^[[:space:]]*exit 1' || missing="$missing hard-exit"
     if [ -n "$missing" ]; then
       fail "$f: Step 8 push-verification guard missing marker(s):$missing (guard removed, not just old string absent)"
       hit=1
@@ -118,19 +117,17 @@ check_takeoff_backlog_guard() {
       hit=1; continue
     fi
     # Positive: the guarded `backlog sequence list --plain` invocation must be
-    # present inside an executable ```bash fence, guarded by `command -v backlog`
-    # in the SAME fence. Absence is a FAIL (deleting the snippet must not pass),
-    # and a match in prose or an unrelated `command -v backlog` elsewhere cannot
-    # satisfy the guard.
-    if ! grep -qF 'backlog sequence list --plain' "$f"; then
-      fail "$f: guarded 'backlog sequence list --plain' invocation missing (guard removed, not just old string absent)"
-      hit=1
-      continue
-    fi
-    # Extract each ```bash ... ``` fence and check whether ANY fence contains
-    # both the invocation and its command -v backlog guard together.
-    local guarded
-    guarded=$(awk '
+    # present as EXECUTABLE code inside a ```bash fence, guarded by `command -v
+    # backlog` in the SAME fence. Comment lines are stripped before evaluation so
+    # a commented-out invocation counts as neither present nor guarded. A match in
+    # prose, a comment, or an unrelated `command -v backlog` cannot satisfy it.
+    #
+    # awk walks each fence, drops `#`-comment and blank lines, and classifies the
+    # fence as GUARDED (has both the command and its guard), UNGUARDED (command
+    # but no guard), or nothing. Fail on any UNGUARDED; require at least one
+    # GUARDED; fail if the executable command appears in no fence at all.
+    local verdict
+    verdict=$(awk '
       /^```bash/ { infence=1; buf=""; next }
       infence && /^```/ {
         infence=0
@@ -139,15 +136,20 @@ check_takeoff_backlog_guard() {
         buf=""
         next
       }
-      infence { buf = buf "\n" $0 }
+      infence {
+        line=$0
+        sub(/^[[:space:]]+/, "", line)        # leading ws
+        if (line ~ /^#/ || line == "") next   # skip comment/blank lines
+        buf = buf "\n" $0
+      }
     ' "$f")
-    if printf '%s\n' "$guarded" | grep -q 'UNGUARDED'; then
-      fail "$f: 'backlog sequence list --plain' appears in a \`\`\`bash fence without a command -v backlog guard in the same fence"
+    if printf '%s\n' "$verdict" | grep -q 'UNGUARDED'; then
+      fail "$f: 'backlog sequence list --plain' in a \`\`\`bash fence without a command -v backlog guard in the same fence"
       hit=1
-    elif printf '%s\n' "$guarded" | grep -q 'GUARDED'; then
-      ok "$f: backlog invocation guarded by command -v backlog (same fence)"
+    elif printf '%s\n' "$verdict" | grep -q 'GUARDED'; then
+      ok "$f: backlog invocation guarded by command -v backlog (same fence, executable)"
     else
-      fail "$f: 'backlog sequence list --plain' not found inside an executable \`\`\`bash fence"
+      fail "$f: no executable (non-comment) 'backlog sequence list --plain' invocation found in any \`\`\`bash fence (guard removed?)"
       hit=1
     fi
   done
@@ -230,8 +232,11 @@ check_takeoff_ce_command_form() {
 }
 
 # ---------- main ----------
+# NOTE: intentionally no absolute-path banner here. Printing $REPO_ROOT (or even
+# its basename, which varies by worktree/checkout name) leaked a local path into
+# committed screenshot artifacts and made those artifacts non-reproducible.
+# Paths in check output are always repo-relative.
 printf "%sMirror-aware SKILL.md invariant harness%s\n" "$C_BOLD" "$C_RESET"
-printf "Repo: %s\n" "$(basename "$REPO_ROOT")"
 note "Each check loops over all mirror copies and returns non-zero on first defect"
 
 if ! check_land_step8_guard; then FAILURES=$((FAILURES+1)); fi
