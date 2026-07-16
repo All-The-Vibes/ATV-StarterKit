@@ -5,6 +5,12 @@ topic: atv-starter-kit
 
 # ATV Starter Kit
 
+> **Historical note (2026-07):** This brainstorm predates the binary rename in
+> PR #58. The shipped binary file is now `atv-inst-tool` (renamed from
+> `atv-installer` to avoid a Windows UAC installer-detection heuristic). The
+> `atv-installer` "wizard name" recorded below is retained as the original
+> record; it also survives as an npm `bin` alias.
+
 ## What We're Building
 
 **ATV** = **A**gentic **T**ool & **W**orkflow
