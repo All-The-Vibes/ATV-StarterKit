@@ -49,7 +49,7 @@ func TestRoutingCatalog_IncludesKeyTargets(t *testing.T) {
 	for _, e := range cat {
 		have[e.Name] = true
 	}
-	for _, want := range []string{"atv", "lfg", "slfg", "ce-plan", "ce-review", "test-browser", "atv-security"} {
+	for _, want := range []string{"atv", "lfg", "slfg", "ce-plan", "ce-review", "test-browser", "atv-security", "investigate"} {
 		if !have[want] {
 			t.Errorf("routing catalog missing key target %q", want)
 		}

@@ -76,9 +76,9 @@ func Packs() []Pack {
 		{
 			Name:        "atv-pack-quality",
 			Category:    "quality",
-			Description: "Quality pack — Unslop and Ralph Loop for tightening up code and iterating on solutions.",
-			Keywords:    []string{"atv", "quality", "ralph-loop"},
-			SkillNames:  []string{"ralph-loop", "unslop"},
+			Description: "Quality pack — Investigate (systematic root-cause debugging), Unslop, and Ralph Loop for tightening up code and iterating on solutions.",
+			Keywords:    []string{"atv", "quality", "debug", "investigate", "ralph-loop"},
+			SkillNames:  []string{"investigate", "ralph-loop", "unslop"},
 		},
 		{
 			Name:        "atv-pack-guidelines",

@@ -102,11 +102,13 @@
     {
       "name": "atv-pack-quality",
       "source": "atv-pack-quality",
-      "description": "Quality pack — Unslop and Ralph Loop for tightening up code and iterating on solutions.",
+      "description": "Quality pack — Investigate (systematic root-cause debugging), Unslop, and Ralph Loop for tightening up code and iterating on solutions.",
       "version": "2.7.0",
       "keywords": [
         "atv",
         "quality",
+        "debug",
+        "investigate",
         "ralph-loop"
       ],
       "category": "quality"
@@ -364,6 +366,18 @@
         "atv",
         "skill",
         "instincts"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-investigate",
+      "source": "atv-skill-investigate",
+      "description": "ATV `investigate` skill — single-skill plugin (granular install). Some ATV skills dispatch agents bundled separately in `atv-agents`, so single-skill and category-pack installs may need `atv-agents` alongside them. For the full standalone kit, install `atv-everything`. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.7.0",
+      "keywords": [
+        "atv",
+        "skill",
+        "investigate"
       ],
       "category": "skill"
     },

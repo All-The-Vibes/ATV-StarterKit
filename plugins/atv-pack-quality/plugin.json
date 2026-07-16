@@ -1,6 +1,6 @@
 {
   "name": "atv-pack-quality",
-  "description": "Quality pack — Unslop and Ralph Loop for tightening up code and iterating on solutions.",
+  "description": "Quality pack — Investigate (systematic root-cause debugging), Unslop, and Ralph Loop for tightening up code and iterating on solutions.",
   "version": "2.7.0",
   "author": {
     "name": "All The Vibes",
@@ -11,6 +11,8 @@
   "keywords": [
     "atv",
     "quality",
+    "debug",
+    "investigate",
     "ralph-loop"
   ],
   "category": "quality",

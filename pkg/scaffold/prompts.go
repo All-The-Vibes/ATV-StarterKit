@@ -34,6 +34,7 @@ var promptShimSkillDirectories = []string{
 	"evolve",
 	"observe",
 	// ATV Quality
+	"investigate",
 	"unslop",
 	// Experimentation
 	"autoresearch",

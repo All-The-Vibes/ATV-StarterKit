@@ -194,6 +194,7 @@ var coreSkillDirectories = []string{
 	"evolve",
 	"observe",
 	// ATV Quality
+	"investigate",
 	"unslop",
 	// Behavioral Guidelines
 	"karpathy-guidelines",

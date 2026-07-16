@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- **`/investigate` — systematic root-cause debugging skill.** A new thin, methodology-only skill (`pkg/scaffold/templates/skills/investigate/`, mirrored to `.github/skills/investigate/`) ported from gstack's `/investigate`: enforces an **Iron Law** (no fix before the root cause is named and a reproduction is confirmed) across five phases — root-cause investigation, pattern analysis, hypothesis testing (3-strike rule), minimal-diff implementation with a regression test, and fresh verification with a structured DEBUG REPORT. Ships in `atv-pack-quality` (with `/unslop` and `/ralph-loop`) and `atv-everything`. The `/atv` router's bug route now flips from the provisional `/ce-work` handoff to `/investigate` — bug intents ("why is this broken", "the test suite fails", "wtf is happening") route to a skill that actually diagnoses before fixing. Bug routing fixtures updated (`ce-work` → `investigate`); the router's "provisional debug skill coming" note is removed. TDD: Go content guards for the methodology markers and the router route-flip (both template + dogfood copies), catalog freshness, pack membership, and fixture resolution; no new generator code (the catalog builder, pack registry, and parity nets already existed). Plan: `docs/plans/2026-07-16-002-feat-atv-investigate-debug-skill-plan.md`.
+
 ## [2.7.0] — 2026-07-16
 
 ### Added

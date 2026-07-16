@@ -194,6 +194,7 @@ Each phase has skills for it; the table shows where each lives. Slash commands r
                      <strong>🔨 Build</strong><br />
                      <sub>Execute with momentum</sub><br /><br />
                      <code>/ce-work</code><br />
+                     <code>/investigate</code> <sub>— systematic root-cause debugging</sub><br />
                      <code>/lfg</code><br />
                      <code>/slfg</code><br />
                      <code>/autoresearch</code> <sub>— autonomous metric loop</sub>
@@ -249,6 +250,7 @@ hands off, so you never have to memorize the ~30-skill catalog.
 /atv review my auth changes before I push     →  routes to /ce-review
 /atv is this idea worth building              →  routes to /ce-brainstorm
 /atv does the checkout page work              →  routes to /test-browser
+/atv why is the login test failing            →  routes to /investigate
 /atv build a rate limiter, just do it         →  emits “Run /lfg …” (you fire it)
 /atv                                          →  prints the full skill menu
 ```

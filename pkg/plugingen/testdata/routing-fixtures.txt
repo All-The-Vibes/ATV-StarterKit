@@ -38,10 +38,12 @@ strip the AI slop out of this code | unslop
 optimize this function's runtime in an experiment loop | autoresearch
 run an autonomous experiment to hill-climb the metric | autoresearch
 
-# bugs (provisional — all bugs route to /ce-work until a dedicated debug skill exists)
-the test suite fails with a clear stack trace, why | ce-work
-why is this broken | ce-work
-this page doesn't work and I can't tell why | ce-work
+# bugs (systematic root-cause debugging → /investigate)
+the test suite fails with a clear stack trace, why | investigate
+why is this broken | investigate
+this page doesn't work and I can't tell why | investigate
+wtf is happening with this stack trace | investigate
+this used to work and now it 500s | investigate
 
 # browser / QA (special-cased first)
 does this page actually work in the browser | test-browser
