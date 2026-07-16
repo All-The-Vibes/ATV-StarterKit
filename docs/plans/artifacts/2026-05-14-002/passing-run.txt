@@ -2,18 +2,18 @@ Mirror-aware SKILL.md invariant harness
 ...  Each check loops over all mirror copies and returns non-zero on first defect
 
 [R1] land Step 8 - detached-HEAD guard
-OK   .github/skills/land/SKILL.md: Step 8 guard present (branch guard + upstream check + BLOCKED hard-exit)
-OK   pkg/scaffold/templates/skills/land/SKILL.md: Step 8 guard present (branch guard + upstream check + BLOCKED hard-exit)
-OK   plugins/atv-skill-land/skills/land/SKILL.md: Step 8 guard present (branch guard + upstream check + BLOCKED hard-exit)
-OK   plugins/atv-pack-shipping/skills/land/SKILL.md: Step 8 guard present (branch guard + upstream check + BLOCKED hard-exit)
-OK   plugins/atv-everything/skills/land/SKILL.md: Step 8 guard present (branch guard + upstream check + BLOCKED hard-exit)
+OK   .github/skills/land/SKILL.md: Step 8 guard present (branch-guarded conditional, no unconditional exit)
+OK   pkg/scaffold/templates/skills/land/SKILL.md: Step 8 guard present (branch-guarded conditional, no unconditional exit)
+OK   plugins/atv-skill-land/skills/land/SKILL.md: Step 8 guard present (branch-guarded conditional, no unconditional exit)
+OK   plugins/atv-pack-shipping/skills/land/SKILL.md: Step 8 guard present (branch-guarded conditional, no unconditional exit)
+OK   plugins/atv-everything/skills/land/SKILL.md: Step 8 guard present (branch-guarded conditional, no unconditional exit)
 
 [R2] takeoff Step 2 - command -v backlog guard
-OK   .github/skills/takeoff/SKILL.md: backlog invocation guarded by command -v backlog (same fence, executable)
-OK   pkg/scaffold/templates/skills/takeoff/SKILL.md: backlog invocation guarded by command -v backlog (same fence, executable)
-OK   plugins/atv-skill-takeoff/skills/takeoff/SKILL.md: backlog invocation guarded by command -v backlog (same fence, executable)
-OK   plugins/atv-pack-shipping/skills/takeoff/SKILL.md: backlog invocation guarded by command -v backlog (same fence, executable)
-OK   plugins/atv-everything/skills/takeoff/SKILL.md: backlog invocation guarded by command -v backlog (same fence, executable)
+OK   .github/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded by a preceding command -v backlog
+OK   pkg/scaffold/templates/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded by a preceding command -v backlog
+OK   plugins/atv-skill-takeoff/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded by a preceding command -v backlog
+OK   plugins/atv-pack-shipping/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded by a preceding command -v backlog
+OK   plugins/atv-everything/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded by a preceding command -v backlog
 
 [R3] ghcp-review-resolve 0c - state field + CLOSED|MERGED guard
 OK   .github/skills/ghcp-review-resolve/SKILL.md:53: state present in section 0c --json field list

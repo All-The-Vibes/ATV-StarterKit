@@ -102,7 +102,31 @@ check_land_step8_guard() {
       continue
     fi
 
-    ok "$f: Step 8 guard present (branch guard + upstream check + BLOCKED hard-exit)"
+    # Structural check: guard against a semantically-wrong fence that always
+    # blocks. No `exit 1` may sit at top level (column 0) — a bare unconditional
+    # `exit 1` would block even a fully-pushed branch. And the branch-capture
+    # `if` must appear BEFORE the first `exit 1`, so the exits are reached only
+    # through the branch/upstream conditional.
+    if printf '%s\n' "$step8code" | grep -qE '^exit 1[[:space:]]*$'; then
+      fail "$f: Step 8 has an unconditional top-level 'exit 1' (would block even a pushed branch)"
+      hit=1
+      continue
+    fi
+    local branch_if_line first_exit_line
+    branch_if_line=$(printf '%s\n' "$step8code" | grep -nE '^if branch="\$\(git branch --show-current\)"' | head -1 | cut -d: -f1)
+    first_exit_line=$(printf '%s\n' "$step8code" | grep -nE '^[[:space:]]*exit 1' | head -1 | cut -d: -f1)
+    if [ -z "$branch_if_line" ]; then
+      fail "$f: Step 8 has no top-level 'if branch=...' guard opening the conditional"
+      hit=1
+      continue
+    fi
+    if [ -n "$first_exit_line" ] && [ "$branch_if_line" -ge "$first_exit_line" ]; then
+      fail "$f: Step 8 'exit 1' precedes the 'if branch=...' guard (exits not gated by it)"
+      hit=1
+      continue
+    fi
+
+    ok "$f: Step 8 guard present (branch-guarded conditional, no unconditional exit)"
   done
   return "$hit"
 }
@@ -116,41 +140,47 @@ check_takeoff_backlog_guard() {
       fail "$f: missing mirror"
       hit=1; continue
     fi
-    # Positive: the guarded `backlog sequence list --plain` invocation must be
-    # present as EXECUTABLE code inside a ```bash fence, guarded by `command -v
-    # backlog` in the SAME fence. Comment lines are stripped before evaluation so
-    # a commented-out invocation counts as neither present nor guarded. A match in
-    # prose, a comment, or an unrelated `command -v backlog` cannot satisfy it.
-    #
-    # awk walks each fence, drops `#`-comment and blank lines, and classifies the
-    # fence as GUARDED (has both the command and its guard), UNGUARDED (command
-    # but no guard), or nothing. Fail on any UNGUARDED; require at least one
-    # GUARDED; fail if the executable command appears in no fence at all.
-    local verdict
-    verdict=$(awk '
-      /^```bash/ { infence=1; buf=""; next }
+    # Positive, section-anchored and order-aware. Mirrors R1's rigor:
+    #   1. Scope to the "### Step 2" section (up to the next "### " heading), so a
+    #      guarded fence elsewhere in the file cannot satisfy the check.
+    #   2. Within Step 2, find the bash fence that CONTAINS the backlog call
+    #      (Step 2 may have more than one fence), stripping #-comment and blank
+    #      lines so a commented-out invocation counts as absent.
+    #   3. Require the executable `backlog sequence list --plain` line AND the
+    #      `command -v backlog` guard to PRECEDE it in that fence.
+    local step2backlogfence
+    step2backlogfence=$(awk '
+      /^### Step 2/ { in2=1; next }
+      in2 && /^### / { in2=0 }
+      in2 && /^```bash/ { infence=1; buf=""; next }
       infence && /^```/ {
         infence=0
-        if (buf ~ /backlog sequence list --plain/ && buf ~ /command -v backlog/) { print "GUARDED" }
-        else if (buf ~ /backlog sequence list --plain/) { print "UNGUARDED" }
+        if (buf ~ /backlog sequence list --plain/) { printf "%s", buf }
         buf=""
         next
       }
       infence {
-        line=$0
-        sub(/^[[:space:]]+/, "", line)        # leading ws
-        if (line ~ /^#/ || line == "") next   # skip comment/blank lines
-        buf = buf "\n" $0
+        line=$0; sub(/^[[:space:]]+/, "", line)
+        if (line ~ /^#/ || line == "") next   # drop comment/blank lines
+        buf = buf $0 "\n"
       }
     ' "$f")
-    if printf '%s\n' "$verdict" | grep -q 'UNGUARDED'; then
-      fail "$f: 'backlog sequence list --plain' in a \`\`\`bash fence without a command -v backlog guard in the same fence"
+    if [ -z "$step2backlogfence" ]; then
+      fail "$f: no executable 'backlog sequence list --plain' in a Step 2 bash fence (guard removed?)"
       hit=1
-    elif printf '%s\n' "$verdict" | grep -q 'GUARDED'; then
-      ok "$f: backlog invocation guarded by command -v backlog (same fence, executable)"
+      continue
+    fi
+    local cmd_line guard_line
+    cmd_line=$(printf '%s' "$step2backlogfence" | grep -nF 'backlog sequence list --plain' | head -1 | cut -d: -f1)
+    guard_line=$(printf '%s' "$step2backlogfence" | grep -nE 'command -v backlog' | head -1 | cut -d: -f1)
+    if [ -z "$guard_line" ]; then
+      fail "$f: Step 2 'backlog sequence list --plain' is not guarded by 'command -v backlog'"
+      hit=1
+    elif [ "$guard_line" -ge "$cmd_line" ]; then
+      fail "$f: Step 2 'command -v backlog' guard does not precede the backlog invocation (guard line $guard_line, call line $cmd_line)"
+      hit=1
     else
-      fail "$f: no executable (non-comment) 'backlog sequence list --plain' invocation found in any \`\`\`bash fence (guard removed?)"
-      hit=1
+      ok "$f: Step 2 backlog invocation guarded by a preceding command -v backlog"
     fi
   done
   return "$hit"

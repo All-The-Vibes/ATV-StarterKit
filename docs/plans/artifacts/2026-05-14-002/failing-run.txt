@@ -9,11 +9,11 @@ FAIL plugins/atv-pack-shipping/skills/land/SKILL.md: unguarded git branch --show
 FAIL plugins/atv-everything/skills/land/SKILL.md: unguarded git branch --show-current inside git-log argument (breaks on detached HEAD)
 
 [R2] takeoff Step 2 - command -v backlog guard
-FAIL .github/skills/takeoff/SKILL.md: 'backlog sequence list --plain' in a ```bash fence without a command -v backlog guard in the same fence
-FAIL pkg/scaffold/templates/skills/takeoff/SKILL.md: 'backlog sequence list --plain' in a ```bash fence without a command -v backlog guard in the same fence
-FAIL plugins/atv-skill-takeoff/skills/takeoff/SKILL.md: 'backlog sequence list --plain' in a ```bash fence without a command -v backlog guard in the same fence
-FAIL plugins/atv-pack-shipping/skills/takeoff/SKILL.md: 'backlog sequence list --plain' in a ```bash fence without a command -v backlog guard in the same fence
-FAIL plugins/atv-everything/skills/takeoff/SKILL.md: 'backlog sequence list --plain' in a ```bash fence without a command -v backlog guard in the same fence
+FAIL .github/skills/takeoff/SKILL.md: Step 2 'backlog sequence list --plain' is not guarded by 'command -v backlog'
+FAIL pkg/scaffold/templates/skills/takeoff/SKILL.md: Step 2 'backlog sequence list --plain' is not guarded by 'command -v backlog'
+FAIL plugins/atv-skill-takeoff/skills/takeoff/SKILL.md: Step 2 'backlog sequence list --plain' is not guarded by 'command -v backlog'
+FAIL plugins/atv-pack-shipping/skills/takeoff/SKILL.md: Step 2 'backlog sequence list --plain' is not guarded by 'command -v backlog'
+FAIL plugins/atv-everything/skills/takeoff/SKILL.md: Step 2 'backlog sequence list --plain' is not guarded by 'command -v backlog'
 
 [R3] ghcp-review-resolve 0c - state field + CLOSED|MERGED guard
 OK   .github/skills/ghcp-review-resolve/SKILL.md:53: state present in section 0c --json field list
