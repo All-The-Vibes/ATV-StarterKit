@@ -1,6 +1,6 @@
 # Plan: T8 — `/lfg auto` mode (autoplan 6 Decision Principles)
 
-- **Status:** Ready to implement (TDD)
+- **Status:** ✅ IMPLEMENTED & VERIFIED (commit `b079522`) — all T8.1–T8.7 done, TDD RED-first, full Go suite + Node 73/73 + `plugingen -check` green.
 - **Type:** feat
 - **Date:** 2026-07-16
 - **Branch:** fresh `feat/lfg-auto-mode` (independent of T7)

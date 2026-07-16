@@ -1,6 +1,6 @@
 # Plan: T7 — `/investigate` debug skill (systematic root-cause, repro-first)
 
-- **Status:** Ready to implement (TDD)
+- **Status:** ✅ IMPLEMENTED & VERIFIED (commit `3902258`) — all T7.1–T7.7 done, TDD RED-first, full Go suite + Node 62/62 + `plugingen -check` green.
 - **Type:** feat
 - **Date:** 2026-07-16
 - **Branch:** `feat/atv-router` (or a fresh `feat/atv-investigate` — see Scope note)
