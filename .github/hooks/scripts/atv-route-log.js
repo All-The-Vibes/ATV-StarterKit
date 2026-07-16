@@ -3,11 +3,12 @@
 // decision to ~/.atv/analytics/routes.jsonl.
 //
 // Fixed schema by design (plan D1): the CLI accepts ONLY --intent, --routed-to,
-// and --outcome. There is no free-form field, so the user's raw request text is
-// never recorded. The two classifier tokens are caller-supplied, so they are
-// additionally newline-stripped and capped at 64 chars as defense in depth
-// (a short label, not a request sentence). Best-effort: never throws, never
-// blocks a route.
+// and --outcome. There is no free-form field, so the full raw request sentence
+// has nowhere to land. The two classifier tokens are caller-supplied, so they
+// are newline-stripped and capped at 64 chars as defense in depth — a bound (a
+// <64-char string still passes), not full prevention; the caller must pass a
+// short label, not the request text. Best-effort: never throws, never blocks a
+// route.
 //
 // Mirrors the atv-config.js / observe.js hook-helper conventions: zero deps,
 // pure exported functions + require.main CLI guard, ATV_CONFIG_HOME test

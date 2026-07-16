@@ -10,8 +10,9 @@
 //          template copy (no stale catalog missing /investigate).
 //   Fix4 — the skill documents graceful degradation when the hook scripts are
 //          absent (marketplace plugins that ship no hooks).
-//   Fix5 — no copy claims raw request text is "structurally impossible to
-//          log"; the honest, bounded framing is used instead.
+//   Fix5 — no copy makes an absolute "raw text can never be logged" claim; the
+//          honest, bounded framing (no free-form field + caller-supplied 64-char
+//          cap) is used instead.
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -42,8 +43,12 @@ const PII_CLAIM_COPIES = [
   'CHANGELOG.md',
   '.github/skills/atv/SKILL.md',
   'pkg/scaffold/templates/skills/atv/SKILL.md',
+  'plugins/atv-everything/skills/atv/SKILL.md',
+  'plugins/atv-pack-shipping/skills/atv/SKILL.md',
+  'plugins/atv-skill-atv/skills/atv/SKILL.md',
   '.github/hooks/scripts/atv-route-log.js',
   'pkg/scaffold/templates/hooks/scripts/atv-route-log.js',
+  'docs/atv-router.md',
   'docs/plans/2026-07-16-001-feat-atv-route-telemetry-plan.md',
 ];
 
@@ -195,21 +200,34 @@ for (const rel of TOP2_SCAN) {
 }
 
 // ---------------------------------------------------------------------------
-// Fix5: no "structurally impossible to log/pass" overclaim anywhere.
-// The bounded, honest framing is required instead.
+// Fix5: no absolute privacy overclaim anywhere. The bounded, honest framing is
+// required instead. This bans the literal prior phrase AND its semantic
+// equivalents (an absolute "cannot / can never" privacy guarantee), since the
+// writer only bounds token length — it does not prevent a <64-char caller
+// string from being recorded.
 // ---------------------------------------------------------------------------
 
+// Banned: absolute impossibility claims about logging/recording raw text.
+const OVERCLAIM_PATTERNS = [
+  /structurally impossible/i,
+  /impossible to (log|pass|record)/i,
+  /can never enter/i,
+  /can'?t smuggle/i,
+  /never be (logged|recorded)/i,
+];
 for (const rel of PII_CLAIM_COPIES) {
-  test(`Fix5: no "structurally impossible" PII overclaim: ${rel}`, () => {
+  test(`Fix5: no absolute PII overclaim: ${rel}`, () => {
     if (!exists(rel)) return; // plan doc may be absent in some checkouts
     const src = read(rel);
-    assert.doesNotMatch(
-      src,
-      /structurally impossible/i,
-      `${rel} still claims raw text is "structurally impossible" to log/pass. ` +
-        `Use bounded framing: no free-form field + 64-char cap, so raw request ` +
-        `text is not recorded, but --intent/--routed-to are length-bounded tokens.`,
-    );
+    for (const pat of OVERCLAIM_PATTERNS) {
+      assert.doesNotMatch(
+        src,
+        pat,
+        `${rel} contains an absolute privacy overclaim (${pat}). The writer only ` +
+          `bounds token length; a <64-char caller string can still be recorded. ` +
+          `Use bounded framing (no free-form field + caller-supplied 64-char cap).`,
+      );
+    }
   });
 }
 

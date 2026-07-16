@@ -146,11 +146,12 @@ node .github/hooks/scripts/atv-route-log.js \
   `control` (default `invoked` if omitted).
 
 The writer enforces the privacy posture in code: it accepts only these three
-fields (**no free-form text field**, so the user's raw request sentence is never
-recorded), newline-strips and caps each token at 64 chars, and writes one
-OTel-shaped line to `~/.atv/analytics/routes.jsonl`. Because `--intent` and
-`--routed-to` are caller-supplied, keep them to short classifier labels — that is
-the contract the bound relies on. It never throws, so a telemetry failure can
+fields (**no free-form text field**, so the full raw request sentence has nowhere
+to land), newline-strips and caps each token at 64 chars, and writes one
+OTel-shaped line to `~/.atv/analytics/routes.jsonl`. The 64-char cap is a bound,
+not full prevention — a <64-char caller string still passes — so because
+`--intent` and `--routed-to` are caller-supplied, keep them to short classifier
+labels; that is the contract the bound relies on. It never throws, so a telemetry failure can
 never block a route. Do not hand-write the JSONL yourself — always call the writer.
 
 ## If the hook scripts are absent (graceful degradation)
