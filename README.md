@@ -48,8 +48,6 @@ Together they cover the full software lifecycle — from "what should I build?" 
 Install for your project (see the OS-specific sections below for the exact commands), then open **Copilot Chat** (⌃⌘I / Ctrl+Shift+I) and run:
 
 ```text
-/atv <request>   →  Router — describe what you want, it picks the right skill
-
 /ce-brainstorm   →  Explore the problem, produce a design doc
 /ce-plan         →  Generate an implementation plan with acceptance criteria
 /ce-work         →  Build against the plan with incremental commits
@@ -60,10 +58,6 @@ Install for your project (see the OS-specific sections below for the exact comma
 /lfg             →  Run the full pipeline in one shot
 /autoresearch    →  Hill-climb autonomously against a measurable metric
 ```
-
-New to the kit? Just type **`/atv` and describe what you want** — it routes to the
-right skill so you don't have to memorize the catalog. `/atv` with no arguments
-prints the full menu. See [The `/atv` router](#the-atv-router--one-command-front-door) below.
 
 ---
 
@@ -194,7 +188,6 @@ Each phase has skills for it; the table shows where each lives. Slash commands r
                      <strong>🔨 Build</strong><br />
                      <sub>Execute with momentum</sub><br /><br />
                      <code>/ce-work</code><br />
-                     <code>/investigate</code> <sub>— systematic root-cause debugging</sub><br />
                      <code>/lfg</code><br />
                      <code>/slfg</code><br />
                      <code>/autoresearch</code> <sub>— autonomous metric loop</sub>
@@ -240,49 +233,6 @@ Each phase has skills for it; the table shows where each lives. Slash commands r
        </tr>
 </table>
 
-### The `/atv` router — one-command front door
-
-`/atv` is a **router**: describe what you want in plain language and it dispatches
-to the right skill. It does not build anything itself — it classifies intent and
-hands off, so you never have to memorize the ~30-skill catalog.
-
-```text
-/atv review my auth changes before I push     →  routes to /ce-review
-/atv is this idea worth building              →  routes to /ce-brainstorm
-/atv does the checkout page work              →  routes to /test-browser
-/atv why is the login test failing            →  routes to /investigate
-/atv build a rate limiter, just do it         →  emits “Run /lfg …” (you fire it)
-/atv                                          →  prints the full skill menu
-```
-
-**How it decides:** the router reads `llms.txt` (a generated one-line-per-skill
-catalog built from each skill's own description) and matches your request against
-it. When nothing fits confidently, it says so and shows the menu rather than
-forcing a wrong route.
-
-**Safety and control:**
-
-- **Announce-as-it-routes** — every route prints one line (`Routing to /X — say
-  "no, I meant …" to redirect`) so a mis-route costs zero round-trips to fix.
-- **Confirm gate for irreversible targets** — `/lfg`, `/slfg`, `/land` and
-  ship-like actions ask before running.
-- **Build handoff is emit-and-stop** — `/lfg` and `/slfg` carry a guard
-  (`disable-model-invocation`) so the full pipeline never auto-fires; the router
-  emits the command for you to run.
-- **Force a skill** — `/atv @ce-plan <args>` bypasses classification.
-- **Turn it off** — `/atv off` (suggest-only), `/atv on`, `/atv suggest`. The
-  preference persists in `~/.atv/config.json` (via the `atv-config` shim).
-- **Private telemetry** — each route is logged by a deterministic writer
-  (`atv-route-log.js`, fixed schema) as one OTel-shaped line to
-  `~/.atv/analytics/routes.jsonl`. There is no free-form field, so the full raw
-  request sentence has nowhere to land; the router logs a short intent category +
-  target skill. Those two tokens are caller-supplied, so they are
-  newline-stripped and capped at 64 chars — a bound (a <64-char string still
-  passes), not a blanket guarantee that nothing sensitive is representable.
-
-`/atv` ships in the full install (`atv-everything`) and the shipping pack, so the
-router is always present alongside the skills it routes to.
-
 ### `/lfg` — full pipeline, one command
 
 Each step must produce output before the next starts (plan file exists, plan was deepened, code was changed). Retries on failure.
@@ -291,15 +241,6 @@ Each step must produce output before the next starts (plan file exists, plan was
 plan → deepen → work → review → unslop → resolve → test → video → compound
   ✓       ✓       ✓
 ```
-
-**Auto mode (opt-in).** `/lfg auto <feature>` (or `/lfg <feature> --auto`) runs the
-pipeline gate-to-gate without stopping to ask. Intermediate plan/design/impl choices
-are auto-decided via 6 Decision Principles and classified (Mechanical → silent,
-Taste → decided + logged, User-Challenge → still stops). Destructive actions (PR
-push, `/land`, deploy) **always** stop for confirmation, even in auto mode, and a
-decision log is surfaced at the end so autonomy stays auditable. Bare `/lfg
-<feature>` keeps the default per-gate behavior. The mode is persisted per run, so a
-resumed `/lfg` continues in the mode it started.
 
 ### `/slfg` — parallel swarm variant
 

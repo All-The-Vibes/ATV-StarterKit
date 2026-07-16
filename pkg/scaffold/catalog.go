@@ -172,8 +172,6 @@ func documentationDirectories() []Component {
 }
 
 var coreSkillDirectories = []string{
-	// Router — the one-command entry point that dispatches to every skill.
-	"atv",
 	"brainstorming",
 	"ce-brainstorm",
 	"ce-compound",
@@ -194,7 +192,6 @@ var coreSkillDirectories = []string{
 	"evolve",
 	"observe",
 	// ATV Quality
-	"investigate",
 	"unslop",
 	// Behavioral Guidelines
 	"karpathy-guidelines",

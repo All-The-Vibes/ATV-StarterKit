@@ -8,8 +8,6 @@ argument-hint: "[optional: filter by tag, assignee, or count e.g. '--top 5' or '
 
 The session kickoff counterpart to "land the plane". Where `land the plane` closes out work (commit, push, PR, handoff), `/takeoff` *starts* work by giving a crisp, prioritized picture of the backlog so the user knows what to pick up.
 
-> **New to ATV?** Once you've picked a task, you don't have to name the right skill — type `/atv <what you want>` and the router dispatches to the best one (`/atv` alone prints the full menu).
-
 ## Trigger
 
 Any variation of:

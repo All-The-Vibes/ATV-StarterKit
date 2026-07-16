@@ -1,7 +1,7 @@
 {
   "name": "atv-agents",
   "description": "All 51 ATV reviewer and specialist agents — universal reviewers (security, performance, architecture, simplicity), stack-specific reviewers (Rails, Python, TypeScript, .NET, etc.), and Compound Engineering specialists. Install alongside any atv-skill-* or atv-pack-* plugin that dispatches agents.",
-  "version": "2.7.0",
+  "version": "2.6.3",
   "author": {
     "name": "All The Vibes",
     "url": "https://github.com/All-The-Vibes"

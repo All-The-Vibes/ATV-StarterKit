@@ -106,7 +106,7 @@ function atomicWriteJson(filePath, obj) {
   }
 }
 
-function init(runsDir, { runId, skill, feature, plan, auto }) {
+function init(runsDir, { runId, skill, feature, plan }) {
   fs.mkdirSync(phasesDir(runsDir, runId), { recursive: true });
   const metaPath = path.join(runDir(runsDir, runId), "meta.json");
   if (fs.existsSync(metaPath)) {
@@ -117,7 +117,6 @@ function init(runsDir, { runId, skill, feature, plan, auto }) {
     skill: skill || null,
     feature: feature || null,
     plan_path: plan || null,
-    mode: auto ? "auto" : "gated",
     created_at: new Date().toISOString(),
   };
   atomicWriteJson(metaPath, meta);
@@ -212,7 +211,6 @@ function main(argv) {
         skill: flags.skill,
         feature: flags.feature,
         plan: flags.plan,
-        auto: flags.auto === "true" || flags.auto === true,
       });
       break;
     }
@@ -237,7 +235,7 @@ function main(argv) {
       break;
     default:
       process.stderr.write(
-        "usage: lfg-state.js <init|bind-plan|done|is-done|status|run-id-from-plan> [--run-id id] [--plan path] [--skill s] [--feature f] [--repo r] [--branch b] [--artifact path] [--auto]\n"
+        "usage: lfg-state.js <init|bind-plan|done|is-done|status|run-id-from-plan> [--run-id id] [--plan path] [--skill s] [--feature f] [--repo r] [--branch b] [--artifact path]\n"
       );
       process.exit(2);
   }
