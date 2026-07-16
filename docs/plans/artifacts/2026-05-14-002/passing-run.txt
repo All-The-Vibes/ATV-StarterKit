@@ -9,11 +9,11 @@ OK   plugins/atv-pack-shipping/skills/land/SKILL.md: Step 8 fence behaves correc
 OK   plugins/atv-everything/skills/land/SKILL.md: Step 8 fence behaves correctly (detached=0, no-upstream=1, unpushed=1, pushed=0)
 
 [R2] takeoff Step 2 - command -v backlog guard
-OK   .github/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded (behaviorally: not attempted when backlog absent)
-OK   pkg/scaffold/templates/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded (behaviorally: not attempted when backlog absent)
-OK   plugins/atv-skill-takeoff/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded (behaviorally: not attempted when backlog absent)
-OK   plugins/atv-pack-shipping/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded (behaviorally: not attempted when backlog absent)
-OK   plugins/atv-everything/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded (behaviorally: not attempted when backlog absent)
+OK   .github/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded (behaviorally: not reached when absent, executed once when present)
+OK   pkg/scaffold/templates/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded (behaviorally: not reached when absent, executed once when present)
+OK   plugins/atv-skill-takeoff/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded (behaviorally: not reached when absent, executed once when present)
+OK   plugins/atv-pack-shipping/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded (behaviorally: not reached when absent, executed once when present)
+OK   plugins/atv-everything/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded (behaviorally: not reached when absent, executed once when present)
 
 [R3] ghcp-review-resolve 0c - state field + CLOSED|MERGED guard
 OK   .github/skills/ghcp-review-resolve/SKILL.md:53: state present in section 0c --json field list

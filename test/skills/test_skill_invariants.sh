@@ -224,22 +224,59 @@ check_takeoff_backlog_guard() {
       continue
     fi
 
-    # BEHAVIORAL + HERMETIC: run the Step 2 fence with a controlled PATH that
-    # contains NO `backlog` (coreutils only) and capture STDERR. A correctly
-    # guarded fence takes the else branch and never attempts the call, so stderr
-    # is silent about backlog. If the call is ungated (e.g. `... || true` after
-    # the guard's `fi`), the shell still tries to exec `backlog` and emits
-    # "backlog: command not found" on stderr — even though `|| true` masks the
-    # exit code. Matching that message is what closes the `|| true` bypass, and
-    # it is deterministic regardless of whether the runner has a real backlog.
-    local err
-    # PATH deliberately excludes any real backlog (no ~/.bun, etc.).
-    err="$( PATH="/usr/bin:/bin" bash -c "$step2backlogfence" 2>&1 1>/dev/null || true )"
-    if printf '%s' "$err" | grep -qiE 'backlog.*(command not found|not found)'; then
-      fail "$f: Step 2 backlog call is reached when backlog is absent (stderr: command not found) — the guard does not protect the invocation"
-      hit=1
-    else
-      ok "$f: Step 2 backlog invocation guarded (behaviorally: not attempted when backlog absent)"
+    # BEHAVIORAL + HERMETIC, two-sided, redirection-proof.
+    #
+    # (i) ABSENCE case — prove the call is NOT reached when backlog is missing.
+    #     Instead of grepping stderr (which redirection, backgrounding, traps, or
+    #     a shadowing function can defeat, and which is locale-dependent), install
+    #     a `command_not_found_handle`: bash invokes it at exec-resolution time
+    #     for ANY unresolved command, BEFORE stderr is written and regardless of
+    #     how the caller redirects or backgrounds. The handle writes a sentinel
+    #     file when `backlog` is the unresolved command. If the sentinel appears,
+    #     the guard did not protect the call.
+    #
+    # (ii) PRESENCE case — prove the call IS actually executed when backlog
+    #     exists (so a heredoc/printf/eval literal that merely CONTAINS the text
+    #     but never runs it cannot pass). A stub `backlog` on PATH records each
+    #     invocation; the else-branch fallback must run it exactly once.
+    local probe pass=1
+    probe="$(mktemp -d "${TMPDIR:-/tmp}/r2-probe.XXXXXX")" || {
+      fail "$f: could not create probe dir for behavioral R2 check (mktemp failed)"
+      hit=1; continue
+    }
+    if [ -z "$probe" ] || [ ! -d "$probe" ]; then
+      fail "$f: probe dir invalid for behavioral R2 check"
+      rm -rf "$probe" 2>/dev/null; hit=1; continue
+    fi
+
+    # (i) absence: backlog unresolved -> handle records it if reached.
+    PATH="/usr/bin:/bin" bash -c '
+      command_not_found_handle() {
+        if [ "$1" = backlog ]; then : > "'"$probe"'/reached"; fi
+        return 127
+      }
+      '"$step2backlogfence"'
+    ' >/dev/null 2>&1 || true
+    if [ -f "$probe/reached" ]; then
+      fail "$f: Step 2 backlog call is reached when backlog is absent (command_not_found fired) — the guard does not protect the invocation"
+      hit=1; pass=0
+    fi
+
+    # (ii) presence: stub backlog that logs each call; the guarded fallback must
+    # invoke it exactly once (proves the literal is a real, reached command).
+    printf '#!/usr/bin/env bash\necho call >> "%s/calls"\nexit 0\n' "$probe" > "$probe/backlog"
+    chmod +x "$probe/backlog"
+    PATH="$probe:/usr/bin:/bin" bash -c "$step2backlogfence" >/dev/null 2>&1 || true
+    local calls=0
+    [ -f "$probe/calls" ] && calls=$(wc -l < "$probe/calls")
+    if [ "$calls" -lt 1 ]; then
+      fail "$f: Step 2 'backlog sequence list --plain' text is present but never actually executed (heredoc/printf/eval literal?) — no real invocation"
+      hit=1; pass=0
+    fi
+
+    rm -rf "$probe"
+    if [ "$pass" = 1 ]; then
+      ok "$f: Step 2 backlog invocation guarded (behaviorally: not reached when absent, executed once when present)"
     fi
   done
   return "$hit"
