@@ -71,7 +71,7 @@ For each file, extract YAML frontmatter (the block between the first two `---` l
 
 If the MCP tool `mcp__backlog__task_list` is available **and** is known to honor every prefix (not the CLI behavior), it can supplement — but the filesystem scan is the source of truth.
 
-If `backlog` is installed, also pull sequence info to detect cross-task dependencies (this command does not filter by prefix). When `backlog` is absent, fall back silently — the filesystem scan above is the authoritative source:
+If `backlog` is installed, also pull sequence info to detect cross-task dependencies (this command does not filter by prefix). When `backlog` is absent, fall back to the filesystem scan above — it is the authoritative source — and print a one-line notice so the fallback is visible:
 
 ```bash
 if command -v backlog >/dev/null 2>&1; then

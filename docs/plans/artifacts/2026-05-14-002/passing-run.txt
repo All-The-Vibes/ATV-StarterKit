@@ -1,5 +1,5 @@
 Mirror-aware SKILL.md invariant harness
-Repo: /home/sschofield/repos/ATV-starterkit
+Repo: ATV-starterkit
 ...  Each check loops over all mirror copies and returns non-zero on first defect
 
 [R1] land Step 8 - detached-HEAD guard

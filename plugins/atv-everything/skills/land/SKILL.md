@@ -166,20 +166,30 @@ Confirm a clean state:
 ```bash
 git status                                # working tree clean (or only untracked)
 
-# Verify nothing is unpushed. Guarded so detached HEAD / missing upstream
-# do not error — those states yield an informative notice and skip the check.
+# Verify nothing is unpushed. Detached HEAD is a genuinely different state where
+# this check does not apply (non-fatal skip). But a normal branch with no
+# upstream means the work was never pushed — that MUST fail the gate, not pass
+# with a soft notice.
 if branch="$(git branch --show-current)" && [ -n "$branch" ]; then
   if git rev-parse --verify --quiet "refs/remotes/origin/$branch" >/dev/null; then
-    git log "origin/$branch..HEAD"        # must be empty — all pushed
+    if [ -n "$(git log "origin/$branch..HEAD" --oneline)" ]; then
+      echo "BLOCKED: unpushed commits on $branch — push before landing." >&2
+      git log "origin/$branch..HEAD" --oneline
+      exit 1
+    fi
+    echo "OK: all commits pushed to origin/$branch."
   else
-    echo "(no origin/$branch yet — push the branch before landing)"
+    echo "BLOCKED: $branch has no origin/$branch upstream — push the branch before landing." >&2
+    exit 1
   fi
 else
-  echo "(detached HEAD — skipping unpushed-commits check)"
+  echo "(detached HEAD — not on a branch; unpushed-commits check skipped)"
 fi
 ```
 
-If either check fails, loop back and fix. Do not hand off a dirty or unpushed tree.
+If the check reports BLOCKED (non-zero exit), loop back and push. Do not hand off
+a dirty or unpushed tree. Detached HEAD is the one state that legitimately skips
+the check — every branch state must be fully pushed before landing.
 
 ### Step 9: Capture session state
 

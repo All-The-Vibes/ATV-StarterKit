@@ -60,32 +60,43 @@ check_land_step8_guard() {
       fail "$f: missing mirror"
       hit=1; continue
     fi
-    local match
-    match=$(grep -nF 'git log "origin/$(git branch --show-current)..HEAD"' "$f" || true)
-    if [ -z "$match" ]; then
-      ok "$f: no unguarded git-log substitution"
+
+    # (a) Negative: the old unguarded substitution must NOT appear. This is the
+    # exact shape that broke on detached HEAD (`origin/..HEAD`).
+    if grep -qF 'git log "origin/$(git branch --show-current)..HEAD"' "$f"; then
+      fail "$f: unguarded git branch --show-current inside git-log argument (breaks on detached HEAD)"
+      hit=1
       continue
     fi
-    local lineno
-    lineno=$(echo "$match" | head -1 | cut -d: -f1)
-    # Walk upward until we hit a blank line or a section boundary, then check
-    # whether an `if ...` appears inside that block. Avoids hard-coding the
-    # wrapper size; the guard can grow to N lines without false-failing.
-    local upper
-    upper=$(awk -v n="$lineno" '
-      NR < n { buf[NR]=$0 }
-      NR == n {
-        for (i = NR-1; i >= 1; i--) {
-          if (buf[i] ~ /^[[:space:]]*$/) { print i+1; exit }
-        }
-        print 1; exit
-      }' "$f")
-    if sed -n "${upper},$((lineno-1))p" "$f" | grep -qE '^[[:space:]]*if '; then
-      ok "$f:$lineno: substitution present but appears guarded by an if above"
-    else
-      fail "$f:$lineno: unguarded git branch --show-current inside git-log argument (breaks on detached HEAD)"
+
+    # (b) Positive: the REPLACEMENT guard must be present IN STEP 8, or the check
+    # has been silently deleted rather than fixed. Extract the Step 8 section
+    # (from the "### Step 8" heading to the next "### Step" heading) and require
+    # all structural markers of the push-verification guard within it:
+    #   - the branch capture guard,
+    #   - the upstream existence check,
+    #   - a BLOCKED failure that stops the routine (exit 1) on unpushed/no-upstream.
+    # Scoping to Step 8 means an `exit 1` or branch reference elsewhere in the
+    # file cannot mask a deleted guard.
+    local step8
+    step8=$(awk '/^### Step 8/{grab=1} /^### Step 9/{grab=0} grab' "$f")
+    if [ -z "$step8" ]; then
+      fail "$f: Step 8 section not found (heading removed?)"
       hit=1
+      continue
     fi
+    local missing=""
+    printf '%s\n' "$step8" | grep -qF 'branch="$(git branch --show-current)"' || missing="$missing branch-guard"
+    printf '%s\n' "$step8" | grep -qF 'git rev-parse --verify --quiet "refs/remotes/origin/$branch"' || missing="$missing upstream-check"
+    printf '%s\n' "$step8" | grep -qE 'BLOCKED:.*(push before landing|push the branch before landing)' || missing="$missing blocked-notice"
+    printf '%s\n' "$step8" | grep -qE '^[[:space:]]*exit 1' || missing="$missing hard-exit"
+    if [ -n "$missing" ]; then
+      fail "$f: Step 8 push-verification guard missing marker(s):$missing (guard removed, not just old string absent)"
+      hit=1
+      continue
+    fi
+
+    ok "$f: Step 8 guard present (branch guard + upstream check + BLOCKED hard-exit)"
   done
   return "$hit"
 }
@@ -99,22 +110,26 @@ check_takeoff_backlog_guard() {
       fail "$f: missing mirror"
       hit=1; continue
     fi
-    if grep -qF 'backlog sequence list --plain' "$f"; then
-      local lineno
-      lineno=$(grep -nF 'backlog sequence list --plain' "$f" | head -1 | cut -d: -f1)
-      # Scope the guard search to a ±6-line window around the matched line so
-      # an unrelated `command -v backlog` elsewhere in the file cannot mask a
-      # nearby unguarded invocation.
-      local win_lower=$((lineno - 6)); [ "$win_lower" -lt 1 ] && win_lower=1
-      local win_upper=$((lineno + 6))
-      if sed -n "${win_lower},${win_upper}p" "$f" | grep -qF 'command -v backlog'; then
-        ok "$f:$lineno: backlog invocation guarded by command -v backlog"
-      else
-        fail "$f:$lineno: backlog sequence list --plain invoked without command -v backlog guard"
-        hit=1
-      fi
+    # Positive: the guarded `backlog sequence list --plain` invocation must be
+    # present. Absence is a FAIL, not a pass — otherwise deleting the whole
+    # snippet (rather than guarding it) would silently satisfy the check.
+    if ! grep -qF 'backlog sequence list --plain' "$f"; then
+      fail "$f: guarded 'backlog sequence list --plain' invocation missing (guard removed, not just old string absent)"
+      hit=1
+      continue
+    fi
+    local lineno
+    lineno=$(grep -nF 'backlog sequence list --plain' "$f" | head -1 | cut -d: -f1)
+    # Scope the guard search to a ±6-line window around the matched line so
+    # an unrelated `command -v backlog` elsewhere in the file cannot mask a
+    # nearby unguarded invocation.
+    local win_lower=$((lineno - 6)); [ "$win_lower" -lt 1 ] && win_lower=1
+    local win_upper=$((lineno + 6))
+    if sed -n "${win_lower},${win_upper}p" "$f" | grep -qF 'command -v backlog'; then
+      ok "$f:$lineno: backlog invocation guarded by command -v backlog"
     else
-      ok "$f: backlog invocation either absent or guarded"
+      fail "$f:$lineno: backlog sequence list --plain invoked without command -v backlog guard"
+      hit=1
     fi
   done
   return "$hit"
@@ -197,7 +212,7 @@ check_takeoff_ce_command_form() {
 
 # ---------- main ----------
 printf "%sMirror-aware SKILL.md invariant harness%s\n" "$C_BOLD" "$C_RESET"
-printf "Repo: %s\n" "$REPO_ROOT"
+printf "Repo: %s\n" "$(basename "$REPO_ROOT")"
 note "Each check loops over all mirror copies and returns non-zero on first defect"
 
 if ! check_land_step8_guard; then FAILURES=$((FAILURES+1)); fi

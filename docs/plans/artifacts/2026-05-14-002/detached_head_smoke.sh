@@ -4,9 +4,8 @@
 # on detached HEAD, while the unguarded original errors out.
 
 set -e
-SMOKE_DIR="/tmp/detached-smoke"
-rm -rf "$SMOKE_DIR"
-mkdir -p "$SMOKE_DIR"
+SMOKE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/detached-smoke.XXXXXX")"
+trap 'rm -rf "$SMOKE_DIR"' EXIT
 cd "$SMOKE_DIR"
 
 git init -q
