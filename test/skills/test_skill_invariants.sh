@@ -51,6 +51,11 @@ GHCP_FILE=".github/skills/ghcp-review-resolve/SKILL.md"
 
 FAILURES=0
 
+# Cleanup helper referenced by the R1 RETURN trap. Reads the dir from a global
+# so the trap body never embeds a raw (possibly quote-containing) path.
+_R1_CLEANUP_DIR=""
+_r1_cleanup() { [ -n "$_R1_CLEANUP_DIR" ] && rm -rf "$_R1_CLEANUP_DIR"; _R1_CLEANUP_DIR=""; }
+
 # _behavioral_step8_check <file-label> <fence-code>
 # Runs the ENTIRE extracted Step 8 bash fence against the four real git states
 # and asserts the exact exit code for each. Executing the whole fence (not a
@@ -70,8 +75,11 @@ _behavioral_step8_check() {
     rm -rf "$root" 2>/dev/null
     return 1
   fi
-  # shellcheck disable=SC2064
-  trap "rm -rf '$root'" RETURN
+  # Clean up on any return path. Use a variable-referencing trap body (not the
+  # raw path embedded in the string) so a scratch path containing a single quote
+  # or other shell metachar can never break the trap syntax.
+  _R1_CLEANUP_DIR="$root"
+  trap '_r1_cleanup' RETURN
 
   local rc
   (
@@ -249,28 +257,41 @@ check_takeoff_backlog_guard() {
       rm -rf "$probe" 2>/dev/null; hit=1; continue
     fi
 
-    # (i) absence: backlog unresolved -> handle records it if reached.
-    PATH="/usr/bin:/bin" bash -c '
-      command_not_found_handle() {
-        if [ "$1" = backlog ]; then : > "'"$probe"'/reached"; fi
-        return 127
-      }
+    # (i) absence: prove the documented guard does NOT reach the call when
+    # `command -v backlog` reports absent. A RECORDING STUB named `backlog` sits
+    # on PATH (so it is reachable by any exec path — direct, `env backlog`,
+    # `sh -c`, `bash -c`, a wrapper), but the shell's `command` builtin is
+    # shadowed to report `backlog` as absent. A correct guard consults
+    # `command -v backlog`, sees "absent", and takes the else branch — never
+    # touching the stub. Any wrapper that reaches `backlog` regardless of the
+    # guard trips the stub, which writes a sentinel. Run under `env -i` +
+    # --noprofile --norc so no inherited function/alias/PATH perturbs it.
+    printf '#!/usr/bin/env bash\n: > "%s/reached"\nexit 0\n' "$probe" > "$probe/backlog"
+    chmod +x "$probe/backlog"
+    env -i PATH="$probe:/usr/bin:/bin" bash --noprofile --norc -c '
+      command() { if [ "$1" = -v ] && [ "$2" = backlog ]; then return 1; fi; builtin command "$@"; }
       '"$step2backlogfence"'
     ' >/dev/null 2>&1 || true
     if [ -f "$probe/reached" ]; then
-      fail "$f: Step 2 backlog call is reached when backlog is absent (command_not_found fired) — the guard does not protect the invocation"
+      fail "$f: Step 2 reaches backlog even though 'command -v backlog' reports absent — the invocation is not actually guarded (wrapper/direct exec bypass)"
       hit=1; pass=0
     fi
+    rm -f "$probe/reached" "$probe/calls"
 
-    # (ii) presence: stub backlog that logs each call; the guarded fallback must
-    # invoke it exactly once (proves the literal is a real, reached command).
+    # (ii) presence: with `command -v backlog` truthful and a logging stub on
+    # PATH, the guarded fallback must invoke it EXACTLY once — proving the
+    # `backlog sequence list --plain` text is a real, reached command (a
+    # heredoc/printf/eval/variable literal that never executes fails here).
     printf '#!/usr/bin/env bash\necho call >> "%s/calls"\nexit 0\n' "$probe" > "$probe/backlog"
     chmod +x "$probe/backlog"
-    PATH="$probe:/usr/bin:/bin" bash -c "$step2backlogfence" >/dev/null 2>&1 || true
+    env -i PATH="$probe:/usr/bin:/bin" bash --noprofile --norc -c "$step2backlogfence" >/dev/null 2>&1 || true
     local calls=0
     [ -f "$probe/calls" ] && calls=$(wc -l < "$probe/calls")
     if [ "$calls" -lt 1 ]; then
       fail "$f: Step 2 'backlog sequence list --plain' text is present but never actually executed (heredoc/printf/eval literal?) — no real invocation"
+      hit=1; pass=0
+    elif [ "$calls" -gt 1 ]; then
+      fail "$f: Step 2 fence invokes backlog $calls times (expected exactly once via the guarded fallback)"
       hit=1; pass=0
     fi
 
