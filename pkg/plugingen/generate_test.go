@@ -82,24 +82,6 @@ func TestPluginNameForSkill_KebabCaseOnly(t *testing.T) {
 	}
 }
 
-// TestPacks_InvestigateInQualityPack asserts the /investigate debug skill is a
-// member of atv-pack-quality (T7). Declared here so a missing pack registration
-// fails before the more expensive generation tests.
-func TestPacks_InvestigateInQualityPack(t *testing.T) {
-	for _, p := range Packs() {
-		if p.Name != "atv-pack-quality" {
-			continue
-		}
-		for _, sn := range p.SkillNames {
-			if sn == "investigate" {
-				return
-			}
-		}
-		t.Fatalf("atv-pack-quality missing skill %q; has %v", "investigate", p.SkillNames)
-	}
-	t.Fatal("atv-pack-quality not found in Packs()")
-}
-
 func TestGenerate_PacksContainExpectedSkills(t *testing.T) {
 	tmp := regenerateInto(t)
 	for _, p := range Packs() {

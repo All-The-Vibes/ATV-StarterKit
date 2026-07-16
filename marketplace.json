@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Curated VS Code source-install catalog for ATV Starter Kit.",
-    "version": "2.7.0"
+    "version": "2.6.3"
   },
   "plugins": [
     {

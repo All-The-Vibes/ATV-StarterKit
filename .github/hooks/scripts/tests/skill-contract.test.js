@@ -64,31 +64,6 @@ for (const rel of LFG_COPIES) {
   test(`LFG marks phases done by reference: ${rel}`, () => {
     assert.match(read(rel), /done .*--artifact|--artifact/);
   });
-
-  // T8 — auto-mode contract: both copies must carry the opt-in mode selector,
-  // the 6 decision principles, the 3-way classification, the destructive-action
-  // STOP guard, and the surfaced decision log. A content-thin copy would give
-  // users a mode keyword that doesn't actually change behavior.
-  test(`LFG documents opt-in auto mode with a gated default: ${rel}`, () => {
-    const src = read(rel);
-    assert.match(src, /AUTO mode/);
-    assert.match(src, /--auto/);
-    assert.match(src, /gated/i);
-  });
-
-  test(`LFG carries the 6 decision principles and 3-way classification: ${rel}`, () => {
-    const src = read(rel);
-    assert.match(src, /6 Decision Principles/);
-    assert.match(src, /Mechanical/);
-    assert.match(src, /Taste/);
-    assert.match(src, /User-Challenge/);
-  });
-
-  test(`LFG never auto-passes a destructive action, and logs its decisions: ${rel}`, () => {
-    const src = read(rel);
-    assert.match(src, /STOP and ask, even in auto mode/);
-    assert.match(src, /AUTO DECISION LOG/);
-  });
 }
 
 // ---------------------------------------------------------------------------

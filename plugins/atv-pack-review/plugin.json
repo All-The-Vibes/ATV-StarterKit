@@ -1,7 +1,7 @@
 {
   "name": "atv-pack-review",
   "description": "Code review pack — multi-agent CE Review and document review skills for catching issues early.",
-  "version": "2.7.0",
+  "version": "2.6.3",
   "author": {
     "name": "All The Vibes",
     "url": "https://github.com/All-The-Vibes"

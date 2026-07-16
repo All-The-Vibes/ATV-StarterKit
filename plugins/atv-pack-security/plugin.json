@@ -1,7 +1,7 @@
 {
   "name": "atv-pack-security",
   "description": "Security pack — unified ATV Security skill that audits both agentic configuration and application source code (OWASP Top 10 + STRIDE).",
-  "version": "2.7.0",
+  "version": "2.6.3",
   "author": {
     "name": "All The Vibes",
     "url": "https://github.com/All-The-Vibes"

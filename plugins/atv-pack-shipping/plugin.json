@@ -1,7 +1,7 @@
 {
   "name": "atv-pack-shipping",
-  "description": "Shipping & deploy pack — the /atv router, Takeoff, CE Work, Land, LFG/SLFG orchestrators, and CE Compound for executing and delivering work.",
-  "version": "2.7.0",
+  "description": "Shipping & deploy pack — Takeoff, CE Work, Land, LFG/SLFG orchestrators, and CE Compound for executing and delivering work.",
+  "version": "2.6.3",
   "author": {
     "name": "All The Vibes",
     "url": "https://github.com/All-The-Vibes"
@@ -13,8 +13,7 @@
     "shipping",
     "deploy",
     "compound-engineering",
-    "orchestrator",
-    "router"
+    "orchestrator"
   ],
   "category": "shipping",
   "skills": [

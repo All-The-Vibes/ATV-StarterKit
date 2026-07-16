@@ -91,45 +91,6 @@ test('init is idempotent — re-init does not overwrite meta (resume safety)', (
 });
 
 // ---------------------------------------------------------------------------
-// mode (auto | gated) — T8 auto-mode persistence
-// ---------------------------------------------------------------------------
-
-test('init defaults mode to gated when --auto is absent', () => {
-  const runs = tmpRuns();
-  const meta = S.init(runs, { runId: 'r1', skill: 'lfg', feature: 'demo' });
-  assert.equal(meta.mode, 'gated');
-});
-
-test('init records mode auto when auto:true is passed', () => {
-  const runs = tmpRuns();
-  const meta = S.init(runs, { runId: 'r1', skill: 'lfg', feature: 'demo', auto: true });
-  assert.equal(meta.mode, 'auto');
-});
-
-test('status surfaces the persisted mode so a resume continues in it', () => {
-  const runs = tmpRuns();
-  S.init(runs, { runId: 'r1', skill: 'lfg', feature: 'demo', auto: true });
-  const st = S.status(runs, 'r1');
-  assert.equal(st.meta.mode, 'auto');
-});
-
-test('mode is not overwritten on re-init (resume keeps its mode)', () => {
-  const runs = tmpRuns();
-  S.init(runs, { runId: 'r1', skill: 'lfg', feature: 'demo', auto: true });
-  const second = S.init(runs, { runId: 'r1', skill: 'lfg', feature: 'demo' });
-  assert.equal(second.mode, 'auto', 'auto mode must survive a gated re-init on resume');
-});
-
-test('auto flag does not disturb the other init fields', () => {
-  const runs = tmpRuns();
-  const meta = S.init(runs, { runId: 'r1', skill: 'lfg', feature: 'demo', plan: 'p.md', auto: true });
-  assert.equal(meta.skill, 'lfg');
-  assert.equal(meta.feature, 'demo');
-  assert.equal(meta.plan_path, 'p.md');
-  assert.equal(meta.mode, 'auto');
-});
-
-// ---------------------------------------------------------------------------
 // bindPlan — two-stage identity (parent-only single writer)
 // ---------------------------------------------------------------------------
 
