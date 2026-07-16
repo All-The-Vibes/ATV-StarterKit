@@ -56,6 +56,36 @@ func TestRoutingCatalog_IncludesKeyTargets(t *testing.T) {
 	}
 }
 
+// TestRoutingCatalog_DogfoodLLMsTxtIsFresh guards the dogfood copy at
+// .github/skills/atv/llms.txt against drift from the generated catalog. The
+// template copy is covered by TestRoutingCatalog_CommittedLLMsTxtIsFresh, but
+// the dogfood copy had no guard and silently drifted (it was missing the
+// /investigate route while the template had it). Both copies must reflect the
+// same generated catalog so the router's menu is identical wherever it ships.
+func TestRoutingCatalog_DogfoodLLMsTxtIsFresh(t *testing.T) {
+	root := repoRoot(t)
+	skillsRoot := filepath.Join(root, "pkg", "scaffold", "templates", "skills")
+
+	cat, err := BuildRoutingCatalog(skillsRoot)
+	if err != nil {
+		t.Fatalf("BuildRoutingCatalog: %v", err)
+	}
+	want := RenderRoutingCatalog(cat)
+
+	dogfoodPath := filepath.Join(root, ".github", "skills", "atv", "llms.txt")
+	gotBytes, err := os.ReadFile(dogfoodPath)
+	if err != nil {
+		t.Fatalf("read dogfood llms.txt: %v", err)
+	}
+	got := normalizeLineEndings(string(gotBytes))
+
+	if got != want {
+		t.Errorf(".github/skills/atv/llms.txt is stale — regenerate it to match "+
+			"the catalog (e.g. copy from pkg/scaffold/templates/skills/atv/llms.txt).\n"+
+			"dogfood %d bytes, want %d bytes", len(got), len(want))
+	}
+}
+
 // TestRoutingCatalog_ShipsInEveryPluginCopy verifies the generator copies
 // llms.txt (a SKILL.md sidecar) into every generated plugin that includes the
 // atv skill, so the router's menu is present wherever the skill is installed

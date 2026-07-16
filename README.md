@@ -275,7 +275,8 @@ forcing a wrong route.
 - **Private telemetry** — each route is logged by a deterministic writer
   (`atv-route-log.js`, fixed schema) as one OTel-shaped line to
   `~/.atv/analytics/routes.jsonl`. It records the intent category + target skill
-  only — the raw request text is structurally impossible to log.
+  only — there is no free-form field, so the raw request text is never recorded
+  (the two classifier tokens are newline-stripped and capped at 64 chars).
 
 `/atv` ships in the full install (`atv-everything`) and the shipping pack, so the
 router is always present alongside the skills it routes to.

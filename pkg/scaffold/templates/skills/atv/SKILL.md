@@ -21,8 +21,8 @@ Parse `$ARGUMENTS`. If it is one of these, act and STOP (do not route):
 
 - **`off`** → `node .github/hooks/scripts/atv-config.js set proactive false`, then say:
   "ATV auto-routing off. I'll suggest skills but not invoke them. Turn back on with `/atv on`." STOP.
-- **`on`** → `atv-config.js set proactive true`, then say: "ATV auto-routing on." STOP.
-- **`suggest`** → `atv-config.js set proactive suggest`, then say:
+- **`on`** → `node .github/hooks/scripts/atv-config.js set proactive true`, then say: "ATV auto-routing on." STOP.
+- **`suggest`** → `node .github/hooks/scripts/atv-config.js set proactive suggest`, then say:
   "ATV will suggest a skill and ask before invoking." STOP.
 - **empty (bare `/atv`)** → print the catalog menu (read `llms.txt`, show it as a
   readable list grouped sensibly) and one line: "Type your request after `/atv`,
@@ -134,11 +134,25 @@ node .github/hooks/scripts/atv-route-log.js \
 - `--outcome` — one of `invoked` | `emitted` | `suggested` | `no-match` |
   `control` (default `invoked` if omitted).
 
-The writer enforces the PII guarantee in code: it accepts only these three
-fields (no free-form text), caps each token at 64 chars, and writes one
-OTel-shaped line to `~/.atv/analytics/routes.jsonl`. It never throws, so a
-telemetry failure can never block a route. Do not hand-write the JSONL yourself —
-always call the writer.
+The writer enforces the privacy posture in code: it accepts only these three
+fields (**no free-form text field**, so the user's raw request sentence is never
+recorded), newline-strips and caps each token at 64 chars, and writes one
+OTel-shaped line to `~/.atv/analytics/routes.jsonl`. Because `--intent` and
+`--routed-to` are caller-supplied, keep them to short classifier labels — that is
+the contract the bound relies on. It never throws, so a telemetry failure can
+never block a route. Do not hand-write the JSONL yourself — always call the writer.
+
+## If the hook scripts are absent (graceful degradation)
+
+Some install surfaces ship the `/atv` skill **without** the `hooks/scripts/`
+tree (the `atv-everything` and `atv-pack-shipping` plugins, and `atv-skill-atv`).
+There, `atv-config.js` and `atv-route-log.js` do not exist. Both are best-effort:
+
+- **Config shim missing** → use the default (`proactive = true`); routing works
+  normally, the `off|on|suggest` toggle simply has nowhere to persist.
+- **Telemetry writer missing** → skip logging silently; never block the route.
+
+A missing hook script must never error or stop a route.
 
 ## Not a router job
 

@@ -32,8 +32,9 @@ zero-dependency Node writer with a **fixed schema**, called by the skill.
 
 - **D1 — Fixed schema, no free-form field.** `atv-route-log.js` accepts ONLY
   named fields (`--intent`, `--routed-to`, `--outcome`). There is no `attributes`
-  passthrough, so raw request text is *structurally impossible* to pass. This is
-  the reason the shim beats LLM-driven logging.
+  passthrough and no free-form field, so the user's raw request sentence is never
+  recorded (the caller-supplied tokens are newline-stripped and 64-char capped).
+  This is the reason the shim beats LLM-driven logging.
 - **D2 — Skill calls the shim.** Router `SKILL.md` runs
   `node .github/hooks/scripts/atv-route-log.js --intent <cat> --routed-to <skill>
   [--outcome <o>]` after routing. The LLM only supplies two short classifier
