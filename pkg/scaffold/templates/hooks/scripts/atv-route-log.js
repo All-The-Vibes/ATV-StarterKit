@@ -26,10 +26,12 @@ const DEFAULT_OUTCOME = "invoked";
 
 // --- pure helpers ----------------------------------------------------------
 
-// Coerce to string, trim, strip newlines, cap length. This is the structural
-// PII defense: a classifier token is short; a request sentence is not, so a cap
-// + newline strip prevents raw text from being recorded intact or breaking the
-// one-record-per-line invariant.
+// Coerce to string, trim, strip newlines, cap length. Defense in depth: the
+// newline strip keeps the one-record-per-line invariant, and the 64-char cap
+// bounds how much caller text can land in a token. The cap does NOT by itself
+// prevent short raw text (a request under 64 chars survives) — the real
+// privacy boundary is the fixed schema (no free-form field) plus the caller
+// contract to pass a short classifier label, not the user's request text.
 function sanitizeToken(value) {
   if (value === undefined || value === null) return "";
   let s = String(value).replace(/[\r\n]+/g, "").trim();

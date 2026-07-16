@@ -11,7 +11,9 @@
 # target exists in the generated catalog, required edge cases are present, and
 # no fixture points at a dangling skill.
 # Layer 2 (live smoke, manual — see docs/atv-router.md): feed each prompt to a
-# live /atv router, accept a top-2 match. Nondeterminism expected; not in CI.
+# live /atv router and check its single chosen route against the expected
+# target. Nondeterminism expected; judge the stable/dominant choice across a few
+# runs, not one. Not in CI.
 
 # build intents (emit-and-stop; /lfg /slfg keep disable-model-invocation)
 build me a login form with validation | emit:lfg

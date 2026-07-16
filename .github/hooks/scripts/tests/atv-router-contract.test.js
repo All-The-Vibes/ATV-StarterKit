@@ -128,22 +128,26 @@ for (const rel of ATV_SKILL_COPIES) {
 
   test(`Fix4: hook-script invocations are conditional at point of use: ${rel}`, () => {
     const src = read(rel);
-    // The degradation must be wired into the executable steps, not only a
-    // trailing note: near the config/telemetry invocations the skill must
-    // instruct an existence check / skip-if-absent, so a hookless install does
-    // not blindly execute a missing script.
-    // Step 0/1 config guard:
-    assert.match(
-      src,
-      /if (the config shim|`?\.github\/hooks\/scripts\/atv-config\.js`? )?is (not present|absent)|if present, run|is \*\*absent\*\*/i,
-      `${rel} must guard the atv-config.js invocation with an existence/skip check at point of use`,
-    );
-    // Telemetry guard:
-    assert.match(
-      src,
-      /check the writer exists|if `?\.github\/hooks\/scripts\/atv-route-log\.js`? is absent|skip logging/i,
-      `${rel} must guard the atv-route-log.js invocation with an existence/skip check at point of use`,
-    );
+    const lines = src.split('\n');
+    // For each executable invocation of a hook script, require guard language
+    // (exist/absent/present/skip/if) within a small window around the call —
+    // so a guard relocated to a distant trailing note does NOT satisfy this.
+    const WINDOW = 8;
+    const guard = /absent|not present|if present|exists?|missing|skip/i;
+    const invocationRe = /node\s+\S*hooks\/scripts\/atv-(config|route-log)\.js/;
+    lines.forEach((line, i) => {
+      if (!invocationRe.test(line)) return;
+      const lo = Math.max(0, i - WINDOW);
+      const hi = Math.min(lines.length, i + WINDOW + 1);
+      const window = lines.slice(lo, hi).join('\n');
+      assert.match(
+        window,
+        guard,
+        `${rel}:${i + 1} invokes a hook script with no existence/skip guard ` +
+          `within ${WINDOW} lines — a hookless install would execute a missing ` +
+          `script. Guard it at the point of use.\n  ${line.trim()}`,
+      );
+    });
   });
 }
 
@@ -169,6 +173,26 @@ test('Fix3: docs/atv-router.md documents the Layer-2 live smoke procedure', () =
   assert.match(src, /routing-fixtures\.txt/,
     'docs/atv-router.md should point at the fixtures file');
 });
+
+// Fix3 (consistency): the router routes to ONE best skill — no ranked "top-2"
+// acceptance rule may survive anywhere (doc, fixtures header, or plan), or the
+// smoke procedure contradicts real behavior.
+const TOP2_SCAN = [
+  'docs/atv-router.md',
+  'pkg/plugingen/testdata/routing-fixtures.txt',
+  'docs/research/gstack-router-atv-plan.md',
+];
+for (const rel of TOP2_SCAN) {
+  test(`Fix3: no stale "top-2" acceptance rule: ${rel}`, () => {
+    if (!exists(rel)) return;
+    assert.doesNotMatch(
+      read(rel),
+      /top-2|top 2 |first or second choice/i,
+      `${rel} still describes a "top-2" match, but the router exposes one best ` +
+        `route (no ranked list). Use single-route stable-choice adjudication.`,
+    );
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Fix5: no "structurally impossible to log/pass" overclaim anywhere.

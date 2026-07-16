@@ -92,8 +92,9 @@ is already a baseline hook dependency).
 
 `intent_category` and `routed_to` are each:
 - coerced to string, trimmed;
-- **length-capped at 64 chars** (a classifier token is short; a request sentence
-  is not — the cap is the structural defense against text smuggling);
+- **length-capped at 64 chars** (bounds how much caller text lands in a token;
+  the cap alone does not stop a short raw request — the fixed schema + the
+  caller contract to pass a short label is the real defense);
 - newline-stripped (one record = one line, always parseable).
 
 `outcome` is validated against the fixed enum; anything else falls back to
