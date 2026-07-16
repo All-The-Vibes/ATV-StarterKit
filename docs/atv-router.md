@@ -86,13 +86,16 @@ where `<expected-target>` is one of: a skill name (must exist in the catalog),
 
 1. Install the kit (or work in this repo's dogfood `.github/skills/atv/`).
 2. For each non-comment line, split on `|` into `prompt` and `expected`.
-3. Send `prompt` to the `/atv` router.
-4. **Accept a top-2 match:** the routing decision passes if `expected` is the
-   router's first or second choice. Live classification is nondeterministic, so a
-   strict top-1 match is not required.
-5. Record misses. A systematic miss (the same fixture failing across runs) means
-   either the target skill's frontmatter description needs sharper trigger
-   phrases, or the fixture's `expected` target is wrong.
+3. Send `prompt` to the `/atv` router and observe the single route it chooses
+   (the router routes to one best skill; it does not expose a ranked list).
+4. **Adjudicate manually.** The decision passes if the router's chosen route
+   equals `expected`. Because live classification is nondeterministic, a single
+   run is only a sample — for a fixture you care about, run it a few times and
+   judge whether `expected` is the router's stable, dominant choice rather than
+   requiring every run to match.
+5. Record systematic misses. A fixture that stably routes somewhere other than
+   `expected` means either the target skill's frontmatter description needs
+   sharper trigger phrases, or the fixture's `expected` target is wrong.
 
 Because Layer 2 is nondeterministic and model-dependent, treat it as a
 qualitative signal for tuning skill descriptions — not a pass/fail CI gate.

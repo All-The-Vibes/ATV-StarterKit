@@ -112,17 +112,37 @@ test('Fix2: llms.txt catalog includes /investigate', () => {
 for (const rel of ATV_SKILL_COPIES) {
   test(`Fix4: documents behavior when hook scripts are absent: ${rel}`, () => {
     const src = read(rel);
-    // A degradation note must (a) acknowledge the hook scripts can be absent,
-    // and (b) state the route still proceeds (best-effort / never blocks).
+    // (a) acknowledge the hook scripts can be absent, and (b) state the route
+    // still proceeds (best-effort / never blocks).
     assert.match(
       src,
-      /hook scripts are absent|do not exist|not exist|missing|absent/i,
+      /hook scripts are absent|do not exist|not present|missing/i,
       `${rel} should acknowledge the hook scripts may be absent`,
     );
     assert.match(
       src,
-      /never (block|error|stop) a route|best-effort|routing works normally|skip logging/i,
+      /never (block|error|stop)|best-effort|skip (logging|the command)|default to `?true`?/i,
       `${rel} should state that /atv still routes when the hook scripts are absent`,
+    );
+  });
+
+  test(`Fix4: hook-script invocations are conditional at point of use: ${rel}`, () => {
+    const src = read(rel);
+    // The degradation must be wired into the executable steps, not only a
+    // trailing note: near the config/telemetry invocations the skill must
+    // instruct an existence check / skip-if-absent, so a hookless install does
+    // not blindly execute a missing script.
+    // Step 0/1 config guard:
+    assert.match(
+      src,
+      /if (the config shim|`?\.github\/hooks\/scripts\/atv-config\.js`? )?is (not present|absent)|if present, run|is \*\*absent\*\*/i,
+      `${rel} must guard the atv-config.js invocation with an existence/skip check at point of use`,
+    );
+    // Telemetry guard:
+    assert.match(
+      src,
+      /check the writer exists|if `?\.github\/hooks\/scripts\/atv-route-log\.js`? is absent|skip logging/i,
+      `${rel} must guard the atv-route-log.js invocation with an existence/skip check at point of use`,
     );
   });
 }
@@ -168,3 +188,39 @@ for (const rel of PII_CLAIM_COPIES) {
     );
   });
 }
+
+// Fix5 (positive): the user-facing privacy copy must carry the honest bound —
+// naming that the logged tokens are caller-supplied and only length-capped, not
+// merely that raw text is "never recorded". Guards against a partial fix that
+// deletes the old phrase but leaves an unqualified guarantee.
+const FIX5_BOUND_COPIES = [
+  'README.md',
+  'CHANGELOG.md',
+  '.github/skills/atv/SKILL.md',
+];
+for (const rel of FIX5_BOUND_COPIES) {
+  test(`Fix5: privacy copy states the caller-supplied / bounded caveat: ${rel}`, () => {
+    const src = read(rel);
+    assert.match(
+      src,
+      /caller-supplied|a bound, not|not a blanket|contract the bound relies on/i,
+      `${rel} must qualify the privacy claim (caller-supplied, length-bounded tokens), ` +
+        `not just assert raw text is "never recorded"`,
+    );
+  });
+}
+
+// The two atv-route-log.js copies and all five SKILL.md copies must stay
+// byte-identical — a partial fix that touches one mirror is a defect.
+test('mirror byte-identity: all 5 atv/SKILL.md copies match', () => {
+  const canonical = read(ATV_SKILL_COPIES[0]);
+  for (const rel of ATV_SKILL_COPIES.slice(1)) {
+    assert.equal(read(rel), canonical, `${rel} has drifted from ${ATV_SKILL_COPIES[0]}`);
+  }
+});
+
+test('mirror byte-identity: both atv-route-log.js copies match', () => {
+  const a = read('.github/hooks/scripts/atv-route-log.js');
+  const b = read('pkg/scaffold/templates/hooks/scripts/atv-route-log.js');
+  assert.equal(a, b, 'atv-route-log.js dogfood and template copies have drifted');
+});

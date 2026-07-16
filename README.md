@@ -274,9 +274,11 @@ forcing a wrong route.
   preference persists in `~/.atv/config.json` (via the `atv-config` shim).
 - **Private telemetry** — each route is logged by a deterministic writer
   (`atv-route-log.js`, fixed schema) as one OTel-shaped line to
-  `~/.atv/analytics/routes.jsonl`. It records the intent category + target skill
-  only — there is no free-form field, so the raw request text is never recorded
-  (the two classifier tokens are newline-stripped and capped at 64 chars).
+  `~/.atv/analytics/routes.jsonl`. There is no free-form field, so the raw
+  request sentence is never recorded; the router logs a short intent category +
+  target skill. Those two tokens are caller-supplied, so they are
+  newline-stripped and capped at 64 chars — a bound, not a blanket guarantee that
+  nothing sensitive is representable.
 
 `/atv` ships in the full install (`atv-everything`) and the shipping pack, so the
 router is always present alongside the skills it routes to.

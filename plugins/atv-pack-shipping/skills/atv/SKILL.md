@@ -19,10 +19,17 @@ against it.
 
 Parse `$ARGUMENTS`. If it is one of these, act and STOP (do not route):
 
-- **`off`** → `node .github/hooks/scripts/atv-config.js set proactive false`, then say:
+> **Before running any `atv-config.js` command below:** the config shim is
+> best-effort. If `.github/hooks/scripts/atv-config.js` is not present (some
+> marketplace plugins ship the skill without the `hooks/scripts/` tree — see
+> [graceful degradation](#if-the-hook-scripts-are-absent-graceful-degradation)),
+> skip the command and tell the user the toggle can't persist in this install;
+> do not error. Never let a missing script stop you from answering.
+
+- **`off`** → if present, run `node .github/hooks/scripts/atv-config.js set proactive false`, then say:
   "ATV auto-routing off. I'll suggest skills but not invoke them. Turn back on with `/atv on`." STOP.
-- **`on`** → `node .github/hooks/scripts/atv-config.js set proactive true`, then say: "ATV auto-routing on." STOP.
-- **`suggest`** → `node .github/hooks/scripts/atv-config.js set proactive suggest`, then say:
+- **`on`** → if present, run `node .github/hooks/scripts/atv-config.js set proactive true`, then say: "ATV auto-routing on." STOP.
+- **`suggest`** → if present, run `node .github/hooks/scripts/atv-config.js set proactive suggest`, then say:
   "ATV will suggest a skill and ask before invoking." STOP.
 - **empty (bare `/atv`)** → print the catalog menu (read `llms.txt`, show it as a
   readable list grouped sensibly) and one line: "Type your request after `/atv`,
@@ -34,8 +41,10 @@ Parse `$ARGUMENTS`. If it is one of these, act and STOP (do not route):
 
 ## Step 1 — Read the proactivity setting
 
-`node .github/hooks/scripts/atv-config.js get proactive` (default `true` when
-unset or the config is absent/corrupt — the shim falls back safely).
+If `.github/hooks/scripts/atv-config.js` is present, run
+`node .github/hooks/scripts/atv-config.js get proactive`. If the script is
+**absent** (hookless install) or the config is unset/corrupt, default to `true`
+— the shim falls back safely and a missing script must never block routing.
 
 - `true` → **invoke** the matched skill via the Skill tool (with the gates below).
 - `false` → do NOT invoke. At most say: "I think `/<skill>` fits — want me to run it?"
@@ -119,7 +128,9 @@ a reproduction before writing any fix.
 ## Telemetry (route logging)
 
 After every routing decision, record it with the telemetry writer — best-effort,
-never block on it:
+never block on it. **First check the writer exists**; if
+`.github/hooks/scripts/atv-route-log.js` is absent (hookless install), skip
+logging entirely and continue — never error on a missing writer:
 
 ```
 node .github/hooks/scripts/atv-route-log.js \
