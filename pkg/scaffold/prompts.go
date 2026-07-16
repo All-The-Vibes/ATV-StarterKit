@@ -16,6 +16,8 @@ import (
 // must cover every entry in coreSkillDirectories ∪ orchestratorSkillDirectories
 // ∪ easterEggSkillDirectories (enforced by parity tests).
 var promptShimSkillDirectories = []string{
+	// Router — one-command entry point
+	"atv",
 	// Compound Engineering core workflow
 	"ce-brainstorm",
 	"ce-plan",

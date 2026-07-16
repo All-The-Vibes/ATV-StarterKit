@@ -81,6 +81,19 @@ func Generate(cfg Config) error {
 		}
 		skillBody[name] = normalizeLineEndings(string(body))
 	}
+	// Load non-SKILL.md sidecar files (e.g. the /atv router's llms.txt
+	// catalog) so they ship inside every generated plugin copy, not just
+	// the template. Keyed by skill name → map[filename]contents.
+	skillSidecars := make(map[string]map[string]string, len(skillNames))
+	for _, name := range skillNames {
+		sidecars, err := loadSkillSidecars(filepath.Join(skillsDir, name))
+		if err != nil {
+			return fmt.Errorf("load sidecars for skill %s: %w", name, err)
+		}
+		if len(sidecars) > 0 {
+			skillSidecars[name] = sidecars
+		}
+	}
 	agentBody := make(map[string]string, len(agentFiles))
 	for _, file := range agentFiles {
 		body, err := os.ReadFile(filepath.Join(agentsDir, file))
@@ -151,6 +164,9 @@ func Generate(cfg Config) error {
 		if err := writeSkillFile(dir, name, skillBody[name]); err != nil {
 			return err
 		}
+		if err := writeSkillSidecars(dir, name, skillSidecars[name]); err != nil {
+			return err
+		}
 		manifest := PluginManifest{
 			Name:        pluginName,
 			Description: skillPluginDescription(name),
@@ -174,6 +190,9 @@ func Generate(cfg Config) error {
 		dir := filepath.Join(pluginsDir, p.Name)
 		for _, sn := range p.SkillNames {
 			if err := writeSkillFile(dir, sn, skillBody[sn]); err != nil {
+				return err
+			}
+			if err := writeSkillSidecars(dir, sn, skillSidecars[sn]); err != nil {
 				return err
 			}
 		}
@@ -224,6 +243,9 @@ func Generate(cfg Config) error {
 	everythingDir := filepath.Join(pluginsDir, "atv-everything")
 	for _, name := range skillNames {
 		if err := writeSkillFile(everythingDir, name, skillBody[name]); err != nil {
+			return err
+		}
+		if err := writeSkillSidecars(everythingDir, name, skillSidecars[name]); err != nil {
 			return err
 		}
 	}
@@ -360,6 +382,54 @@ func writeSkillFile(pluginDir, skillName, body string) error {
 		return err
 	}
 	return os.WriteFile(dest, []byte(body), 0o644)
+}
+
+// loadSkillSidecars reads every regular file in a template skill dir
+// except SKILL.md, returning filename→normalized-contents. These are
+// auxiliary artifacts (like the /atv router's llms.txt catalog) that must
+// ship inside each generated plugin copy alongside SKILL.md. Nested
+// directories are ignored (skills are flat today).
+func loadSkillSidecars(skillDir string) (map[string]string, error) {
+	entries, err := os.ReadDir(skillDir)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[string]string)
+	for _, e := range entries {
+		if e.IsDir() || e.Name() == "SKILL.md" {
+			continue
+		}
+		body, err := os.ReadFile(filepath.Join(skillDir, e.Name()))
+		if err != nil {
+			return nil, err
+		}
+		out[e.Name()] = normalizeLineEndings(string(body))
+	}
+	return out, nil
+}
+
+// writeSkillSidecars writes previously-loaded sidecar files next to a
+// skill's SKILL.md inside a generated plugin. Deterministic: filenames are
+// sorted so output byte order is stable across runs.
+func writeSkillSidecars(pluginDir, skillName string, sidecars map[string]string) error {
+	if len(sidecars) == 0 {
+		return nil
+	}
+	names := make([]string, 0, len(sidecars))
+	for n := range sidecars {
+		names = append(names, n)
+	}
+	sort.Strings(names)
+	base := filepath.Join(pluginDir, "skills", skillName)
+	if err := os.MkdirAll(base, 0o755); err != nil {
+		return err
+	}
+	for _, n := range names {
+		if err := os.WriteFile(filepath.Join(base, n), []byte(sidecars[n]), 0o644); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func writeAgentFile(pluginDir, agentFile, body string) error {

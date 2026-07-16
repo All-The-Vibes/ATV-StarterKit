@@ -61,6 +61,19 @@ func unquoteYAMLScalar(val string) string {
 	return val
 }
 
+// BuildRoutingCatalog is the exported entrypoint: scans a templates/skills
+// root and returns the deduped, name-sorted routing catalog. Used by the
+// catalog sync test and any CLI that regenerates the /atv router menu.
+func BuildRoutingCatalog(skillsRoot string) ([]RoutingEntry, error) {
+	return buildRoutingCatalog(skillsRoot)
+}
+
+// RenderRoutingCatalog renders a catalog to the committed llms.txt artifact
+// body (one line per skill). Exported for the sync test and CLI regen.
+func RenderRoutingCatalog(cat []RoutingEntry) string {
+	return renderRoutingCatalog(cat) + "\n"
+}
+
 // buildRoutingCatalog scans a templates/skills root, reads each skill's
 // SKILL.md frontmatter description, and returns entries sorted by name.
 // Skills with missing or malformed frontmatter are skipped (never abort):

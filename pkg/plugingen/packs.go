@@ -53,9 +53,10 @@ func Packs() []Pack {
 		{
 			Name:        "atv-pack-shipping",
 			Category:    "shipping",
-			Description: "Shipping & deploy pack — Takeoff, CE Work, Land, LFG/SLFG orchestrators, and CE Compound for executing and delivering work.",
-			Keywords:    []string{"atv", "shipping", "deploy", "compound-engineering", "orchestrator"},
+			Description: "Shipping & deploy pack — the /atv router, Takeoff, CE Work, Land, LFG/SLFG orchestrators, and CE Compound for executing and delivering work.",
+			Keywords:    []string{"atv", "shipping", "deploy", "compound-engineering", "orchestrator", "router"},
 			SkillNames: []string{
+				"atv",
 				"ce-compound",
 				"ce-compound-refresh",
 				"ce-work",
