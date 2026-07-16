@@ -51,6 +51,57 @@ GHCP_FILE=".github/skills/ghcp-review-resolve/SKILL.md"
 
 FAILURES=0
 
+# _behavioral_step8_check <file-label> <guard-block>
+# Runs the extracted Step 8 push-verification block against the four real git
+# states and asserts the exact exit code for each. Returns 0 if all four match,
+# 1 (with a fail message) otherwise. Executing the snippet makes the check
+# immune to markup tricks that fool grep/awk (decoy fences, `if true; then
+# exit 1`, indented top-level exits, single-branch exits).
+_behavioral_step8_check() {
+  local label="$1" block="$2"
+  local root; root="$(mktemp -d "${TMPDIR:-/tmp}/step8-behav.XXXXXX")"
+  # shellcheck disable=SC2064
+  trap "rm -rf '$root'" RETURN
+  ( # subshell so cd/traps don't leak
+    set +e
+    cd "$root" || exit 99
+    git init -q --bare origin.git
+    git init -q work && cd work
+    git config user.email t@t; git config user.name t
+    git remote add origin "$root/origin.git"
+    echo seed > a && git add a && git -c commit.gpgsign=false commit -q -m seed
+
+    run() { bash -c "$block" >/dev/null 2>&1; echo $?; }
+
+    # State 1: detached HEAD -> rc 0 (non-fatal skip)
+    git checkout -q --detach
+    local r_detached; r_detached=$(run)
+    git checkout -q -b feature 2>/dev/null
+
+    # State 2: branch, no upstream -> rc 1
+    local r_noupstream; r_noupstream=$(run)
+
+    # State 3: branch, upstream exists, unpushed commit -> rc 1
+    git push -q -u origin feature
+    echo more >> a && git -c commit.gpgsign=false commit -q -am more
+    local r_unpushed; r_unpushed=$(run)
+
+    # State 4: fully pushed -> rc 0
+    git push -q origin feature
+    local r_pushed; r_pushed=$(run)
+
+    [ "$r_detached" = 0 ] && [ "$r_noupstream" = 1 ] && \
+      [ "$r_unpushed" = 1 ] && [ "$r_pushed" = 0 ]
+    exit $?
+  )
+  local rc=$?
+  if [ "$rc" -ne 0 ]; then
+    fail "$label: Step 8 guard does not enforce the 4 states behaviorally (detached=0,no-upstream=1,unpushed=1,pushed=0)"
+    return 1
+  fi
+  return 0
+}
+
 # ---------- R1: detached-HEAD guard on land Step 8 ----------
 check_land_step8_guard() {
   printf "\n%s[R1] land Step 8 - detached-HEAD guard%s\n" "$C_BOLD" "$C_RESET"
@@ -69,11 +120,13 @@ check_land_step8_guard() {
       continue
     fi
 
-    # (b) Positive: the REPLACEMENT guard must be present as EXECUTABLE code in
-    # the FIRST ```bash fence inside Step 8 — not in prose, not in a `#` comment,
-    # and not in a second decorative fence. Extract only the first Step 8 fence,
-    # then strip comment-only and blank lines before matching so a marker that
-    # exists solely in a comment cannot satisfy the check.
+    # (b) Positive + BEHAVIORAL: extract the first executable ```bash fence in
+    # Step 8 and actually RUN it against the four real git states, asserting the
+    # exact exit code for each. Grep/awk structural checks can be fooled by
+    # markup tricks (comments, decoy fences, `if true; then exit 1`, indented
+    # top-level exits); executing the snippet cannot. This is the same
+    # behavioral approach as detached_head_smoke.sh, folded into the invariant
+    # so every mirror is proven, not just pattern-matched.
     local step8fence
     step8fence=$(awk '
       /^### Step 8/ { in8=1 }
@@ -87,46 +140,28 @@ check_land_step8_guard() {
       hit=1
       continue
     fi
-    # Executable lines only: drop blank lines and lines whose first non-space
-    # character is `#` (a shell comment).
-    local step8code
-    step8code=$(printf '%s\n' "$step8fence" | grep -vE '^[[:space:]]*(#|$)')
-    local missing=""
-    printf '%s\n' "$step8code" | grep -qF 'branch="$(git branch --show-current)"' || missing="$missing branch-guard"
-    printf '%s\n' "$step8code" | grep -qF 'git rev-parse --verify --quiet "refs/remotes/origin/$branch"' || missing="$missing upstream-check"
-    printf '%s\n' "$step8code" | grep -qE 'BLOCKED:.*(push before landing|push the branch before landing)' || missing="$missing blocked-notice"
-    printf '%s\n' "$step8code" | grep -qE '^[[:space:]]*exit 1' || missing="$missing hard-exit"
-    if [ -n "$missing" ]; then
-      fail "$f: Step 8 push-verification guard missing marker(s):$missing (guard removed, not just old string absent)"
+    # Keep only the push-verification `if branch=...; then ... fi` block from the
+    # fence (drop `git status` and any surrounding prose lines). The block starts
+    # at the `if branch=` line and ends at its matching top-level `fi`.
+    local guard_block
+    guard_block=$(printf '%s\n' "$step8fence" | awk '
+      /^if branch="\$\(git branch --show-current\)"/ { grab=1 }
+      grab { print }
+      grab && /^fi[[:space:]]*$/ { exit }
+    ')
+    if [ -z "$guard_block" ]; then
+      fail "$f: Step 8 has no top-level 'if branch=...; then ... fi' push-verification block"
       hit=1
       continue
     fi
 
-    # Structural check: guard against a semantically-wrong fence that always
-    # blocks. No `exit 1` may sit at top level (column 0) — a bare unconditional
-    # `exit 1` would block even a fully-pushed branch. And the branch-capture
-    # `if` must appear BEFORE the first `exit 1`, so the exits are reached only
-    # through the branch/upstream conditional.
-    if printf '%s\n' "$step8code" | grep -qE '^exit 1[[:space:]]*$'; then
-      fail "$f: Step 8 has an unconditional top-level 'exit 1' (would block even a pushed branch)"
-      hit=1
-      continue
-    fi
-    local branch_if_line first_exit_line
-    branch_if_line=$(printf '%s\n' "$step8code" | grep -nE '^if branch="\$\(git branch --show-current\)"' | head -1 | cut -d: -f1)
-    first_exit_line=$(printf '%s\n' "$step8code" | grep -nE '^[[:space:]]*exit 1' | head -1 | cut -d: -f1)
-    if [ -z "$branch_if_line" ]; then
-      fail "$f: Step 8 has no top-level 'if branch=...' guard opening the conditional"
-      hit=1
-      continue
-    fi
-    if [ -n "$first_exit_line" ] && [ "$branch_if_line" -ge "$first_exit_line" ]; then
-      fail "$f: Step 8 'exit 1' precedes the 'if branch=...' guard (exits not gated by it)"
+    # Behavioral harness: run guard_block in a scratch repo across 4 states.
+    if ! _behavioral_step8_check "$f" "$guard_block"; then
       hit=1
       continue
     fi
 
-    ok "$f: Step 8 guard present (branch-guarded conditional, no unconditional exit)"
+    ok "$f: Step 8 guard behaves correctly (detached=0, no-upstream=1, unpushed=1, pushed=0)"
   done
   return "$hit"
 }
@@ -176,11 +211,37 @@ check_takeoff_backlog_guard() {
     if [ -z "$guard_line" ]; then
       fail "$f: Step 2 'backlog sequence list --plain' is not guarded by 'command -v backlog'"
       hit=1
+      continue
     elif [ "$guard_line" -ge "$cmd_line" ]; then
       fail "$f: Step 2 'command -v backlog' guard does not precede the backlog invocation (guard line $guard_line, call line $cmd_line)"
       hit=1
+      continue
+    fi
+
+    # BEHAVIORAL: run the Step 2 backlog fence with `backlog` ABSENT from PATH.
+    # A correctly guarded fence takes the else branch and exits 0 (or at least
+    # does NOT hit 127 command-not-found). This proves the guard actually
+    # protects the call rather than merely appearing before it — markup that
+    # looks ordered but leaves the call reachable will surface here.
+    local backlog_rc
+    backlog_rc=$(
+      # Minimal PATH with just the shell utilities awk/grep/etc. resolve to,
+      # but WITHOUT any real `backlog`. Use a scratch dir as the only PATH entry
+      # plus /usr/bin:/bin for coreutils; ensure no `backlog` shim exists.
+      _bp="$(mktemp -d "${TMPDIR:-/tmp}/nobacklog.XXXXXX")"
+      PATH="/usr/bin:/bin" bash -c "command -v backlog >/dev/null 2>&1 && exit 42; $step2backlogfence" >/dev/null 2>&1
+      echo $?
+      rm -rf "$_bp"
+    )
+    if [ "$backlog_rc" = 42 ]; then
+      # A real `backlog` exists on this runner's /usr/bin:/bin — skip the
+      # absence assertion (can't simulate absence), the static guard above stands.
+      ok "$f: Step 2 backlog invocation guarded (static; live backlog present, absence not simulated)"
+    elif [ "$backlog_rc" = 127 ]; then
+      fail "$f: Step 2 fence hits command-not-found (127) when backlog is absent — the guard does not protect the call"
+      hit=1
     else
-      ok "$f: Step 2 backlog invocation guarded by a preceding command -v backlog"
+      ok "$f: Step 2 backlog invocation guarded — runs cleanly (rc $backlog_rc) with backlog absent"
     fi
   done
   return "$hit"

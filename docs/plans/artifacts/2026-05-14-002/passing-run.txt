@@ -2,18 +2,18 @@ Mirror-aware SKILL.md invariant harness
 ...  Each check loops over all mirror copies and returns non-zero on first defect
 
 [R1] land Step 8 - detached-HEAD guard
-OK   .github/skills/land/SKILL.md: Step 8 guard present (branch-guarded conditional, no unconditional exit)
-OK   pkg/scaffold/templates/skills/land/SKILL.md: Step 8 guard present (branch-guarded conditional, no unconditional exit)
-OK   plugins/atv-skill-land/skills/land/SKILL.md: Step 8 guard present (branch-guarded conditional, no unconditional exit)
-OK   plugins/atv-pack-shipping/skills/land/SKILL.md: Step 8 guard present (branch-guarded conditional, no unconditional exit)
-OK   plugins/atv-everything/skills/land/SKILL.md: Step 8 guard present (branch-guarded conditional, no unconditional exit)
+OK   .github/skills/land/SKILL.md: Step 8 guard behaves correctly (detached=0, no-upstream=1, unpushed=1, pushed=0)
+OK   pkg/scaffold/templates/skills/land/SKILL.md: Step 8 guard behaves correctly (detached=0, no-upstream=1, unpushed=1, pushed=0)
+OK   plugins/atv-skill-land/skills/land/SKILL.md: Step 8 guard behaves correctly (detached=0, no-upstream=1, unpushed=1, pushed=0)
+OK   plugins/atv-pack-shipping/skills/land/SKILL.md: Step 8 guard behaves correctly (detached=0, no-upstream=1, unpushed=1, pushed=0)
+OK   plugins/atv-everything/skills/land/SKILL.md: Step 8 guard behaves correctly (detached=0, no-upstream=1, unpushed=1, pushed=0)
 
 [R2] takeoff Step 2 - command -v backlog guard
-OK   .github/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded by a preceding command -v backlog
-OK   pkg/scaffold/templates/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded by a preceding command -v backlog
-OK   plugins/atv-skill-takeoff/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded by a preceding command -v backlog
-OK   plugins/atv-pack-shipping/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded by a preceding command -v backlog
-OK   plugins/atv-everything/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded by a preceding command -v backlog
+OK   .github/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded — runs cleanly (rc 0) with backlog absent
+OK   pkg/scaffold/templates/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded — runs cleanly (rc 0) with backlog absent
+OK   plugins/atv-skill-takeoff/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded — runs cleanly (rc 0) with backlog absent
+OK   plugins/atv-pack-shipping/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded — runs cleanly (rc 0) with backlog absent
+OK   plugins/atv-everything/skills/takeoff/SKILL.md: Step 2 backlog invocation guarded — runs cleanly (rc 0) with backlog absent
 
 [R3] ghcp-review-resolve 0c - state field + CLOSED|MERGED guard
 OK   .github/skills/ghcp-review-resolve/SKILL.md:53: state present in section 0c --json field list
