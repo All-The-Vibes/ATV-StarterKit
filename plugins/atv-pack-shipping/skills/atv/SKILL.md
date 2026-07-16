@@ -101,8 +101,7 @@ Match against `llms.txt` for the authoritative, always-current list. Common inte
 | do implementation work on an existing plan | `/ce-work` |
 | review code / "look at my diff" | `/ce-review` |
 | strip AI slop | `/unslop` |
-| bug / "why is this broken" (measurable/repro) | `/autoresearch` *(provisional — dedicated debug skill coming)* |
-| bug / "this feels broken" (vague/no-repro) | `/ce-work` *(provisional — dedicated debug skill coming)* |
+| bug / "why is this broken" / "this doesn't work" | `/ce-work` *(provisional — dedicated debug skill coming)* |
 | browser QA / "does this page work" | `/test-browser` |
 | research / experiment loop | `/autoresearch` |
 | security / "is this secure" | `/atv-security` |
@@ -113,9 +112,9 @@ Match against `llms.txt` for the authoritative, always-current list. Common inte
 | meme | `/meme-iq` |
 | health / install check | `/atv-doctor` |
 
-Bug routing is **provisional** — when routing a bug to `/autoresearch` or
-`/ce-work`, add one line: "Debugging routing is provisional; a dedicated
-`/investigate`-style skill is coming." (Plan D4.)
+Bug routing is **provisional** — when routing a bug to `/ce-work`, add one line:
+"Debugging routing is provisional; a dedicated `/investigate`-style skill is
+coming." (Plan D4.)
 
 ## Telemetry (route logging)
 

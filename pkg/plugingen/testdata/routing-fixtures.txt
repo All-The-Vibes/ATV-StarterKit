@@ -34,10 +34,14 @@ review my code changes before I open a PR | ce-review
 look at my diff | ce-review
 strip the AI slop out of this code | unslop
 
-# research / bugs (bug routing is provisional)
+# research / experiment loop (measurable metric — genuine autoresearch)
 optimize this function's runtime in an experiment loop | autoresearch
 run an autonomous experiment to hill-climb the metric | autoresearch
-the test suite fails with a clear stack trace, why | autoresearch
+
+# bugs (provisional — all bugs route to /ce-work until a dedicated debug skill exists)
+the test suite fails with a clear stack trace, why | ce-work
+why is this broken | ce-work
+this page doesn't work and I can't tell why | ce-work
 
 # browser / QA (special-cased first)
 does this page actually work in the browser | test-browser
