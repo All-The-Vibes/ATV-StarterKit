@@ -216,12 +216,16 @@ for (const rel of TOP2_SCAN) {
 // which imply the code prevents any sensitive value from being stored.
 const OVERCLAIM_PATTERNS = [
   /structurally impossible/i,
-  /impossible to (log|pass|record)/i,
+  /impossible to (log|pass|record|store)/i,
   /can never enter/i,
   /can'?t smuggle/i,
-  /never be (logged|recorded)/i,
-  /(is|are) (not|never) (recorded|logged)/i,
-  /raw request (text|sentence) is (not|never) (recorded|logged)/i,
+  /never be (logged|recorded|stored)/i,
+  /(is|are) (not|never) (recorded|logged|stored)/i,
+  /raw request (text|sentence) is (not|never) (recorded|logged|stored)/i,
+  // "raw request text cannot/will not/won't be recorded|logged|stored"
+  /raw request (text|sentence)[^.\n]*\b(cannot|can'?t|will not|won'?t|never)\b[^.\n]*\b(record|logg?|stor)(ed)?\b/i,
+  /\b(cannot|can'?t|will not|won'?t) be (recorded|logged|stored)\b/i,
+  /never (recorded|logged|stored)\b/i,
 ];
 for (const rel of PII_CLAIM_COPIES) {
   test(`Fix5: no absolute PII overclaim: ${rel}`, () => {
