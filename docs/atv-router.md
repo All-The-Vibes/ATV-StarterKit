@@ -37,9 +37,10 @@ It **routes** — it does not build (it holds no Edit/Write).
 Each routing decision is logged by `atv-route-log.js` as one OTel-shaped line to
 `~/.atv/analytics/routes.jsonl`. The writer accepts a **fixed schema** only —
 `--intent`, `--routed-to`, `--outcome` — with **no free-form field**, so the
-user's raw request sentence is not recorded. The two classifier tokens are
-additionally newline-stripped and capped at 64 characters. Writing is
-best-effort: it never throws and never blocks a route.
+full raw request sentence has nowhere to land. The two classifier tokens are
+additionally newline-stripped and capped at 64 characters (a bound — a <64-char
+string still passes — not full prevention). Writing is best-effort: it never
+throws and never blocks a route.
 
 > Note the honest bound: because `--intent`/`--routed-to` are caller-supplied
 > tokens, up to 64 characters of caller text *can* be recorded. The guarantee is

@@ -214,6 +214,8 @@ const OVERCLAIM_PATTERNS = [
   /can never enter/i,
   /can'?t smuggle/i,
   /never be (logged|recorded)/i,
+  /(is|are) (not|never) (recorded|logged)/i,
+  /raw request (text|sentence) is (not|never)/i,
 ];
 for (const rel of PII_CLAIM_COPIES) {
   test(`Fix5: no absolute PII overclaim: ${rel}`, () => {
@@ -239,13 +241,16 @@ const FIX5_BOUND_COPIES = [
   'README.md',
   'CHANGELOG.md',
   '.github/skills/atv/SKILL.md',
+  'docs/atv-router.md',
+  'docs/plans/2026-07-16-001-feat-atv-route-telemetry-plan.md',
+  '.github/hooks/scripts/atv-route-log.js',
 ];
 for (const rel of FIX5_BOUND_COPIES) {
   test(`Fix5: privacy copy states the caller-supplied / bounded caveat: ${rel}`, () => {
     const src = read(rel);
     assert.match(
       src,
-      /caller-supplied|a bound, not|not a blanket|contract the bound relies on/i,
+      /caller-supplied|a bound, not|not a blanket|not full prevention|contract the bound relies on/i,
       `${rel} must qualify the privacy claim (caller-supplied, length-bounded tokens), ` +
         `not just assert raw text is "never recorded"`,
     );
