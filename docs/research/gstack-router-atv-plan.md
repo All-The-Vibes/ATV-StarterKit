@@ -246,7 +246,7 @@ Synthesized from findings above. P1 blocks ship.
 - [ ] **T6 (P2, human: ~1h / CC: ~15min)** — release — Register `atv-skill-atv` in `marketplace.json` + relevant pack; document `/atv` in README/DOCS.
 - [ ] **T7 (P3, follow-up)** — debug skill — Build the custom `/investigate`-style skill (D4 gap).
 - [ ] **T8 (P3, follow-up)** — pipeline — Port autoplan 6 principles into `/lfg` `auto` mode.
-- [ ] **T9 (P2, human: ~1h / CC: ~10min)** — telemetry — Router appends one line per route to `~/.atv/analytics/routes.jsonl` in an **OTel-shaped** schema (`name`, `attributes`, `timestamp`). Logs **intent category + routed-to skill ONLY, never raw request text** (secret/PII safety). No otel dependency; forwardable by anyone with a collector.
+- [ ] **T9 (P2, human: ~1h / CC: ~10min)** — telemetry — Router appends one line per route to `~/.atv/analytics/routes.jsonl` in an **OTel-shaped** schema (`name`, `attributes`, `timestamp`). By contract the router logs **intent category + routed-to skill only, not raw request text** — enforced structurally by a fixed schema with no free-form field; the caller-supplied tokens are 64-char-bounded (a <64-char string still passes, not full prevention) (secret/PII safety). No otel dependency; forwardable by anyone with a collector.
   - Surfaced by: CEO E1 + Security §3
 - [ ] **T10 (P2, human: ~15min / CC: ~5min)** — copy — Bug-intent route to `/ce-work` carries a one-line "debugging skill is provisional / coming" note until T7 lands.
   - Surfaced by: CEO E3
@@ -265,7 +265,7 @@ Synthesized from findings above. P1 blocks ship.
 | E3 | Ship router now vs build debug skill first | — | **ACCEPTED: ship now** (→ T10) | Bias to action; gap stays honest/visible via provisional label. |
 
 ### Security (§3)
-- **Telemetry PII/secret leak** → resolved: log intent category + routed-to skill only, never raw request text. Baked into T9.
+- **Telemetry PII/secret leak** → resolved: by contract the router logs intent category + routed-to skill only, not raw request text — a fixed schema with no free-form field, caller tokens 64-char-bounded (not full prevention). Baked into T9.
 - Config/telemetry files live in `~/.atv/` (user home, 0600-appropriate); no new network surface.
 
 ### Trajectory (§10)

@@ -186,6 +186,7 @@ const TOP2_SCAN = [
   'docs/atv-router.md',
   'pkg/plugingen/testdata/routing-fixtures.txt',
   'docs/research/gstack-router-atv-plan.md',
+  'docs/plans/2026-07-16-001-feat-atv-route-telemetry-plan.md',
 ];
 for (const rel of TOP2_SCAN) {
   test(`Fix3: no stale "top-2" acceptance rule: ${rel}`, () => {
@@ -208,6 +209,11 @@ for (const rel of TOP2_SCAN) {
 // ---------------------------------------------------------------------------
 
 // Banned: absolute impossibility claims about logging/recording raw text.
+// NOTE: we intentionally do NOT ban "not/never raw request text" on its own —
+// that is a correct description of the caller contract (the router passes a
+// category, never the request text). We ban the ABSOLUTE guarantees that the
+// writer cannot enforce (impossible / can never enter / is-never-recorded),
+// which imply the code prevents any sensitive value from being stored.
 const OVERCLAIM_PATTERNS = [
   /structurally impossible/i,
   /impossible to (log|pass|record)/i,
@@ -215,7 +221,7 @@ const OVERCLAIM_PATTERNS = [
   /can'?t smuggle/i,
   /never be (logged|recorded)/i,
   /(is|are) (not|never) (recorded|logged)/i,
-  /raw request (text|sentence) is (not|never)/i,
+  /raw request (text|sentence) is (not|never) (recorded|logged)/i,
 ];
 for (const rel of PII_CLAIM_COPIES) {
   test(`Fix5: no absolute PII overclaim: ${rel}`, () => {
@@ -232,6 +238,51 @@ for (const rel of PII_CLAIM_COPIES) {
     }
   });
 }
+
+// Fix5 (repo-wide): rather than trust the hardcoded allowlist above, walk the
+// doc + skill + hook trees and fail if the overclaim family appears ANYWHERE.
+// This is what stops the wording from drifting back into a file we forgot to
+// list (e.g. a research/plan doc). The contract test itself is excluded (its
+// assertion strings legitimately name the banned phrases).
+function walk(dirRel, out = []) {
+  const abs = path.join(ROOT, dirRel);
+  if (!fs.existsSync(abs)) return out;
+  for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name === '.git') continue;
+    const relPath = path.join(dirRel, entry.name);
+    if (entry.isDirectory()) walk(relPath, out);
+    else if (/\.(md|js)$/.test(entry.name)) out.push(relPath);
+  }
+  return out;
+}
+
+test('Fix5: no absolute PII overclaim anywhere in docs/skills/hooks (repo-wide)', () => {
+  const SELF = '.github/hooks/scripts/tests/atv-router-contract.test.js';
+  const files = [
+    'README.md',
+    'CHANGELOG.md',
+    ...walk('docs'),
+    ...walk('.github/skills/atv'),
+    ...walk('.github/hooks/scripts'),
+    ...walk('pkg/scaffold/templates/skills/atv'),
+    ...walk('pkg/scaffold/templates/hooks/scripts'),
+  ].filter((f) => f !== SELF);
+
+  const offenders = [];
+  for (const rel of files) {
+    const src = read(rel);
+    for (const pat of OVERCLAIM_PATTERNS) {
+      const m = src.match(pat);
+      if (m) offenders.push(`${rel}: "${m[0]}"`);
+    }
+  }
+  assert.equal(
+    offenders.length,
+    0,
+    `Absolute privacy overclaim(s) found — use bounded framing instead:\n  ` +
+      offenders.join('\n  '),
+  );
+});
 
 // Fix5 (positive): the user-facing privacy copy must carry the honest bound —
 // naming that the logged tokens are caller-supplied and only length-capped, not
