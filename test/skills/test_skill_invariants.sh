@@ -69,27 +69,34 @@ check_land_step8_guard() {
       continue
     fi
 
-    # (b) Positive: the REPLACEMENT guard must be present IN STEP 8, or the check
-    # has been silently deleted rather than fixed. Extract the Step 8 section
-    # (from the "### Step 8" heading to the next "### Step" heading) and require
-    # all structural markers of the push-verification guard within it:
+    # (b) Positive: the REPLACEMENT guard must be present in the executable
+    # ```bash fence INSIDE Step 8 — not merely somewhere in the file, and not in
+    # prose/comments. Extract the first ```bash ... ``` fence that falls between
+    # the "### Step 8" and "### Step 9" headings, then require all structural
+    # markers of the push-verification guard within that fenced snippet:
     #   - the branch capture guard,
     #   - the upstream existence check,
     #   - a BLOCKED failure that stops the routine (exit 1) on unpushed/no-upstream.
-    # Scoping to Step 8 means an `exit 1` or branch reference elsewhere in the
-    # file cannot mask a deleted guard.
-    local step8
-    step8=$(awk '/^### Step 8/{grab=1} /^### Step 9/{grab=0} grab' "$f")
-    if [ -z "$step8" ]; then
-      fail "$f: Step 8 section not found (heading removed?)"
+    # Scoping to the fenced block means a stray marker in prose, a comment, or a
+    # different step cannot mask a deleted guard.
+    local step8fence
+    step8fence=$(awk '
+      /^### Step 8/ { in8=1 }
+      /^### Step 9/ { in8=0 }
+      in8 && /^```bash/ { infence=1; next }
+      in8 && infence && /^```/ { infence=0 }
+      in8 && infence { print }
+    ' "$f")
+    if [ -z "$step8fence" ]; then
+      fail "$f: Step 8 has no executable \`\`\`bash guard block (heading or fence removed?)"
       hit=1
       continue
     fi
     local missing=""
-    printf '%s\n' "$step8" | grep -qF 'branch="$(git branch --show-current)"' || missing="$missing branch-guard"
-    printf '%s\n' "$step8" | grep -qF 'git rev-parse --verify --quiet "refs/remotes/origin/$branch"' || missing="$missing upstream-check"
-    printf '%s\n' "$step8" | grep -qE 'BLOCKED:.*(push before landing|push the branch before landing)' || missing="$missing blocked-notice"
-    printf '%s\n' "$step8" | grep -qE '^[[:space:]]*exit 1' || missing="$missing hard-exit"
+    printf '%s\n' "$step8fence" | grep -qF 'branch="$(git branch --show-current)"' || missing="$missing branch-guard"
+    printf '%s\n' "$step8fence" | grep -qF 'git rev-parse --verify --quiet "refs/remotes/origin/$branch"' || missing="$missing upstream-check"
+    printf '%s\n' "$step8fence" | grep -qE 'BLOCKED:.*(push before landing|push the branch before landing)' || missing="$missing blocked-notice"
+    printf '%s\n' "$step8fence" | grep -qE '^[[:space:]]*exit 1' || missing="$missing hard-exit"
     if [ -n "$missing" ]; then
       fail "$f: Step 8 push-verification guard missing marker(s):$missing (guard removed, not just old string absent)"
       hit=1
@@ -111,24 +118,36 @@ check_takeoff_backlog_guard() {
       hit=1; continue
     fi
     # Positive: the guarded `backlog sequence list --plain` invocation must be
-    # present. Absence is a FAIL, not a pass — otherwise deleting the whole
-    # snippet (rather than guarding it) would silently satisfy the check.
+    # present inside an executable ```bash fence, guarded by `command -v backlog`
+    # in the SAME fence. Absence is a FAIL (deleting the snippet must not pass),
+    # and a match in prose or an unrelated `command -v backlog` elsewhere cannot
+    # satisfy the guard.
     if ! grep -qF 'backlog sequence list --plain' "$f"; then
       fail "$f: guarded 'backlog sequence list --plain' invocation missing (guard removed, not just old string absent)"
       hit=1
       continue
     fi
-    local lineno
-    lineno=$(grep -nF 'backlog sequence list --plain' "$f" | head -1 | cut -d: -f1)
-    # Scope the guard search to a ±6-line window around the matched line so
-    # an unrelated `command -v backlog` elsewhere in the file cannot mask a
-    # nearby unguarded invocation.
-    local win_lower=$((lineno - 6)); [ "$win_lower" -lt 1 ] && win_lower=1
-    local win_upper=$((lineno + 6))
-    if sed -n "${win_lower},${win_upper}p" "$f" | grep -qF 'command -v backlog'; then
-      ok "$f:$lineno: backlog invocation guarded by command -v backlog"
+    # Extract each ```bash ... ``` fence and check whether ANY fence contains
+    # both the invocation and its command -v backlog guard together.
+    local guarded
+    guarded=$(awk '
+      /^```bash/ { infence=1; buf=""; next }
+      infence && /^```/ {
+        infence=0
+        if (buf ~ /backlog sequence list --plain/ && buf ~ /command -v backlog/) { print "GUARDED" }
+        else if (buf ~ /backlog sequence list --plain/) { print "UNGUARDED" }
+        buf=""
+        next
+      }
+      infence { buf = buf "\n" $0 }
+    ' "$f")
+    if printf '%s\n' "$guarded" | grep -q 'UNGUARDED'; then
+      fail "$f: 'backlog sequence list --plain' appears in a \`\`\`bash fence without a command -v backlog guard in the same fence"
+      hit=1
+    elif printf '%s\n' "$guarded" | grep -q 'GUARDED'; then
+      ok "$f: backlog invocation guarded by command -v backlog (same fence)"
     else
-      fail "$f:$lineno: backlog sequence list --plain invoked without command -v backlog guard"
+      fail "$f: 'backlog sequence list --plain' not found inside an executable \`\`\`bash fence"
       hit=1
     fi
   done
