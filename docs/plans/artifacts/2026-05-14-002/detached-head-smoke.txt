@@ -1,0 +1,22 @@
+=== State 1: detached HEAD -> non-fatal skip (rc 0) ===
+(detached HEAD -- not on a branch; unpushed-commits check skipped)
+PASS: detached HEAD skips (rc 0)
+
+=== Contrast: pre-fix UNGUARDED one-liner on detached HEAD (errors) ===
+PASS: unguarded original errors (rc 128)
+
+=== State 2: branch with NO upstream -> BLOCKED (rc 1) ===
+BLOCKED: feature has no origin/feature upstream -- push the branch before landing.
+PASS: no-upstream blocks (rc 1)
+
+=== State 3: branch with UNPUSHED commit -> BLOCKED (rc 1) ===
+BLOCKED: unpushed commits on feature -- push before landing.
+<sha> unpushed work
+PASS: unpushed commit blocks (rc 1)
+
+=== State 4: branch fully pushed -> OK (rc 0) ===
+OK: all commits pushed to origin/feature.
+PASS: fully pushed passes (rc 0)
+
+=== Verdict ===
+PASS: all 5 Step 8 states behave correctly (detached skip, no-upstream/unpushed BLOCK, pushed OK).

@@ -51,7 +51,7 @@ If the user passed an argument, prefer that. If `PR_NUMBER` is still empty, ask 
 
 ```bash
 gh pr view "$PR_NUMBER" --json \
-  headRefOid,changedFiles,additions,deletions,mergeStateStatus,mergeable,baseRefName \
+  headRefOid,changedFiles,additions,deletions,mergeStateStatus,mergeable,baseRefName,state \
   > /tmp/ghcp-pr-meta.json
 ```
 
@@ -62,6 +62,11 @@ Extract into local variables:
 - `LINES_CHANGED` = additions + deletions
 - `MERGE_STATE_STATUS` — `CLEAN`, `DIRTY`, `BLOCKED`, `BEHIND`, `UNKNOWN`, etc.
 - `BASE_REF` — base branch name
+- `PR_STATE` — `OPEN`, `CLOSED`, or `MERGED`
+
+### 0c.1 Bail on non-OPEN PRs
+
+If `PR_STATE` is `CLOSED` or `MERGED`, this PR is no longer a review target — there is nothing to fix and any review comment would land on a frozen artifact. Emit the preflight table with a blocker note (`PR is <state> — no review needed`) and stop. Reviews on `CLOSED`/`MERGED` PRs are out of scope by design.
 
 ### 0d. Classify PR size
 
