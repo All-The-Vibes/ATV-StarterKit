@@ -118,10 +118,27 @@ coming." (Plan D4.)
 
 ## Telemetry (route logging)
 
-After routing, best-effort append ONE line to `~/.atv/analytics/routes.jsonl`
-(OTel-shaped: `name`, `attributes`, `timestamp`). Log the **intent category and
-the routed-to skill ONLY — never the raw request text** (secret/PII safety, plan
-Security §3). Never block on it.
+After every routing decision, record it with the telemetry writer — best-effort,
+never block on it:
+
+```
+node .github/hooks/scripts/atv-route-log.js \
+  --intent <intent-category> --routed-to <target> --outcome <outcome>
+```
+
+- `--intent` — a short classifier token you already computed (e.g. `code-review`,
+  `build`, `security`, `planning`, `no-match`). **A short label, never the user's
+  raw request text.**
+- `--routed-to` — the target: a skill name, or `emit:lfg` / `emit:slfg` /
+  `no-match` / `control:off` (same vocabulary as the routing table).
+- `--outcome` — one of `invoked` | `emitted` | `suggested` | `no-match` |
+  `control` (default `invoked` if omitted).
+
+The writer enforces the PII guarantee in code: it accepts only these three
+fields (no free-form text), caps each token at 64 chars, and writes one
+OTel-shaped line to `~/.atv/analytics/routes.jsonl`. It never throws, so a
+telemetry failure can never block a route. Do not hand-write the JSONL yourself —
+always call the writer.
 
 ## Not a router job
 
