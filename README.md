@@ -270,8 +270,10 @@ forcing a wrong route.
 - **Force a skill** — `/atv @ce-plan <args>` bypasses classification.
 - **Turn it off** — `/atv off` (suggest-only), `/atv on`, `/atv suggest`. The
   preference persists in `~/.atv/config.json` (via the `atv-config` shim).
-- **Private telemetry** — routes log intent category + target skill only, never
-  your raw request text, to `~/.atv/analytics/routes.jsonl`.
+- **Private telemetry** — each route is logged by a deterministic writer
+  (`atv-route-log.js`, fixed schema) as one OTel-shaped line to
+  `~/.atv/analytics/routes.jsonl`. It records the intent category + target skill
+  only — the raw request text is structurally impossible to log.
 
 `/atv` ships in the full install (`atv-everything`) and the shipping pack, so the
 router is always present alongside the skills it routes to.
