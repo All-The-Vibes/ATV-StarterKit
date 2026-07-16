@@ -19,7 +19,7 @@ func SetVersion(version, commit string) {
 }
 
 var rootCmd = &cobra.Command{
-	Use:     "atv-installer",
+	Use:     "atv-inst-tool",
 	Short:   "ATV Starter Kit — All The Vibes 2.0",
 	Long:    "Scaffold a complete GitHub Copilot agentic coding environment into any directory.",
 	Version: "dev",

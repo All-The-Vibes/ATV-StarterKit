@@ -13,6 +13,7 @@ import (
 // allowedPrefixes is the command allowlist. Only commands starting with these
 // prefixes may be executed. This prevents arbitrary command execution.
 var allowedPrefixes = []string{
+	"atv-inst-tool ",
 	"atv-installer ",
 	"atv ",
 	"gstack ",
