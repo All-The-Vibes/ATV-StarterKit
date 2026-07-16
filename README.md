@@ -100,7 +100,7 @@ The npm package downloads the correct platform binary from [GitHub Releases](htt
 
 ```bash
 git clone https://github.com/All-The-Vibes/ATV-StarterKit.git
-cd ATV-StarterKit && go build -o atv-installer .
+cd ATV-StarterKit && go build -o atv-inst-tool .
 ```
 
 ### Install — Windows
