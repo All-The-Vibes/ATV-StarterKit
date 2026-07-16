@@ -193,7 +193,7 @@ for (const rel of TOP2_SCAN) {
     if (!exists(rel)) return;
     assert.doesNotMatch(
       read(rel),
-      /top-2|top 2 |first or second choice/i,
+      /\btop[- ]2\b|first or second choice/i,
       `${rel} still describes a "top-2" match, but the router exposes one best ` +
         `route (no ranked list). Use single-route stable-choice adjudication.`,
     );
