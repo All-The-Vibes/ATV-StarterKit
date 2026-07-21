@@ -11,6 +11,11 @@ import (
 	"strings"
 )
 
+const (
+	flagshipBundleName = "atv-everything"
+	flagshipPluginName = "atv-starter-kit"
+)
+
 // pluginNameForSkill converts a template skill directory name into a
 // valid Copilot CLI plugin name. Plugin names must be kebab-case
 // (letters, numbers, hyphens only) per the spec. Template directories
@@ -392,8 +397,8 @@ func writePluginReadme(pluginDir string, m PluginManifest) error {
 	b.WriteString("```bash\n")
 	b.WriteString("copilot plugin marketplace add All-The-Vibes/ATV-StarterKit\n")
 	installName := m.Name
-	if installName == "atv-everything" {
-		installName = "atv-starter-kit"
+	if installName == flagshipBundleName {
+		installName = flagshipPluginName
 	}
 	fmt.Fprintf(&b, "copilot plugin install %s@atv-starter-kit\n", installName)
 	b.WriteString("```\n\n")
