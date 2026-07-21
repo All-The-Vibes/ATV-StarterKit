@@ -50,7 +50,7 @@ On Windows, `$HOME` may resolve through Git Bash and `%USERPROFILE%` may be clea
 | VS Code Stable | `$HOME/.vscode/agent-plugins/github.com`, `%USERPROFILE%\.vscode\agent-plugins\github.com` |
 | VS Code Insiders | `$HOME/.vscode-insiders/agent-plugins/github.com`, `%USERPROFILE%\.vscode-insiders\agent-plugins\github.com` |
 
-If `!hasProject && !hasMarketplace && !hasSourceAgentPlugins`: print "No ATV install detected. To install: `npx atv-starterkit init` (project scaffold), `copilot plugin marketplace add All-The-Vibes/ATV-StarterKit && copilot plugin install atv-everything@atv-starter-kit` (marketplace), or VS Code `Chat: Install Plugin from source` with `All-The-Vibes/ATV-StarterKit`." and stop.
+If `!hasProject && !hasMarketplace && !hasSourceAgentPlugins`: print "No ATV install detected. To install: `npx atv-starterkit init` (project scaffold), `copilot plugin marketplace add All-The-Vibes/ATV-StarterKit && copilot plugin install atv-starter-kit@atv-starter-kit` (marketplace), or VS Code `Chat: Install Plugin from source` with `All-The-Vibes/ATV-StarterKit`." and stop.
 
 Record what was detected for the report header.
 

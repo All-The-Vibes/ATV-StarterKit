@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -477,5 +478,72 @@ func assertFilesEqual(t *testing.T, leftPath, rightPath string) {
 	}
 	if !bytes.Equal(left, right) {
 		t.Errorf("files differ: %s and %s", leftPath, rightPath)
+	}
+}
+
+// TestGenerate_InstallCommandsResolveInCopilotCLI guards issue #66. The
+// Copilot CLI resolves plugin installs against the curated root
+// marketplace.json, which exposes exactly ONE installable plugin named
+// "atv-starter-kit". The only install command that resolves is
+// `copilot plugin install atv-starter-kit@atv-starter-kit`. Any generated
+// guidance recommending `atv-everything@atv-starter-kit` documents a command
+// that fails with "Plugin not found in marketplace".
+func TestGenerate_InstallCommandsResolveInCopilotCLI(t *testing.T) {
+	tmp := regenerateInto(t)
+
+	var root SourceInstallMarketplace
+	readJSON(t, filepath.Join(tmp, "marketplace.json"), &root)
+	installable := map[string]bool{}
+	for _, p := range root.Plugins {
+		installable[p.Name] = true
+	}
+	if !installable["atv-starter-kit"] {
+		t.Fatalf("root marketplace must expose an installable plugin named atv-starter-kit; got %v", root.Plugins)
+	}
+
+	const invalid = "atv-everything@atv-starter-kit"
+	guidancePaths := []string{
+		filepath.Join(tmp, "plugins", "atv-everything", "skills", "atv-doctor", "SKILL.md"),
+		filepath.Join(tmp, "plugins", "atv-pack-maintenance", "skills", "atv-doctor", "SKILL.md"),
+		filepath.Join(tmp, "plugins", "atv-skill-atv-doctor", "skills", "atv-doctor", "SKILL.md"),
+	}
+	for _, p := range guidancePaths {
+		data, err := os.ReadFile(p)
+		if err != nil {
+			t.Fatalf("read %s: %v", p, err)
+		}
+		body := string(data)
+		if strings.Contains(body, invalid) {
+			t.Errorf("%s documents unresolvable install command %q (issue #66)", p, invalid)
+		}
+		if strings.Contains(body, "@atv-starter-kit") && !strings.Contains(body, "atv-starter-kit@atv-starter-kit") {
+			t.Errorf("%s should recommend the resolvable command atv-starter-kit@atv-starter-kit", p)
+		}
+	}
+
+	// Every generated plugin README must recommend only the resolvable
+	// flagship install command, never a granular <name>@atv-starter-kit that
+	// the Copilot CLI cannot resolve.
+	badInstall := regexp.MustCompile(`copilot plugin install atv-(everything|agents|pack|skill)[a-z-]*@atv-starter-kit`)
+	pluginsDir := filepath.Join(tmp, "plugins")
+	entries, err := os.ReadDir(pluginsDir)
+	if err != nil {
+		t.Fatalf("read plugins dir: %v", err)
+	}
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		readmePath := filepath.Join(pluginsDir, e.Name(), "README.md")
+		data, err := os.ReadFile(readmePath)
+		if err != nil {
+			continue // not every plugin dir has a README
+		}
+		if loc := badInstall.FindString(string(data)); loc != "" {
+			t.Errorf("%s documents unresolvable install command %q (issue #66)", readmePath, loc)
+		}
+		if !strings.Contains(string(data), "atv-starter-kit@atv-starter-kit") {
+			t.Errorf("%s should recommend the resolvable flagship command", readmePath)
+		}
 	}
 }

@@ -44,18 +44,16 @@ copilot plugin marketplace browse atv-starter-kit
 ### 1. Flagship — install everything
 
 ```bash
-copilot plugin install atv-everything@atv-starter-kit
+copilot plugin install atv-starter-kit@atv-starter-kit
 ```
 
-Bundles **every** ATV skill (31) + **every** reviewer/specialist agent (51). Equivalent in coverage to the Full preset of `atv init` (scoped to skills + agents — no MCP servers, hooks, or instructions templates).
+Bundles **every** ATV skill (31) + **every** reviewer/specialist agent (51). Equivalent in coverage to the Full preset of `atv init` (scoped to skills + agents — no MCP servers, hooks, or instructions templates). The `atv-starter-kit` marketplace entry resolves to the complete internal `atv-everything` bundle.
 
-Advanced standalone agents-only install:
-
-```bash
-copilot plugin install atv-agents@atv-starter-kit   # agents for category-pack or single-skill installs
-```
+> **Copilot CLI exposes one installable plugin.** The curated root `marketplace.json` that Copilot CLI reads publishes a single entry — `atv-starter-kit` — pointing at the complete bundle. `copilot plugin marketplace browse atv-starter-kit` confirms this. The agents-only, category-pack, and single-skill entries below live in `.github/plugin/marketplace.json` for tooling/reference and are **not** individually installable through the Copilot CLI today. To get everything, install the flagship `atv-starter-kit@atv-starter-kit`.
 
 ### 2. Category packs — bundle related skills
+
+> **Reference only (not individually installable via Copilot CLI today).** These pack entries are defined in `.github/plugin/marketplace.json`, which the Copilot CLI does not currently consume. Installing `atv-pack-*@atv-starter-kit` fails with "Plugin not found in marketplace". Install the flagship `atv-starter-kit@atv-starter-kit` to get every skill listed below. The table documents which skills belong to each conceptual pack.
 
 | Pack | Skills | Use when |
 |---|---|---|
@@ -69,22 +67,29 @@ copilot plugin install atv-agents@atv-starter-kit   # agents for category-pack o
 | `atv-pack-learning` | learn, instincts, evolve, observe | Compounding institutional knowledge |
 
 ```bash
-copilot plugin install atv-pack-planning@atv-starter-kit
-copilot plugin install atv-pack-shipping@atv-starter-kit
-# ...etc
+# NOT installable via Copilot CLI today — see caveat above. Reference names only:
+#   atv-pack-planning@atv-starter-kit
+#   atv-pack-shipping@atv-starter-kit
+# Install the flagship instead:
+copilot plugin install atv-starter-kit@atv-starter-kit
 ```
 
 ### 3. Granular — single-skill plugins
 
+> **Reference only (not individually installable via Copilot CLI today).** Single-skill `atv-skill-*@atv-starter-kit` entries live in `.github/plugin/marketplace.json` and are not resolvable through the Copilot CLI. Install the flagship `atv-starter-kit@atv-starter-kit` for the full set.
+
 For each skill listed above (and a few utility skills like `setup`, `feature-video`, `resolve-todo-parallel`, `test-browser`), there is an `atv-skill-<name>` plugin:
 
 ```bash
-copilot plugin install atv-skill-autoresearch@atv-starter-kit
-copilot plugin install atv-skill-atv-security@atv-starter-kit
-copilot plugin install atv-skill-ce-plan@atv-starter-kit
+# NOT installable via Copilot CLI today — see caveat above. Reference names only:
+#   atv-skill-autoresearch@atv-starter-kit
+#   atv-skill-atv-security@atv-starter-kit
+#   atv-skill-ce-plan@atv-starter-kit
+# Install the flagship instead:
+copilot plugin install atv-starter-kit@atv-starter-kit
 ```
 
-> **Heads up:** category-pack and per-skill plugins include skills only. Several skills (`ce-plan`, `ce-ideate`, `deepen-plan`, `ce-review`, `document-review`) dispatch reviewer/research agents that are bundled separately in `atv-agents`. For the most predictable experience, install `atv-everything`. If you choose a category pack or single skill that dispatches agents, also install `atv-agents`.
+> **Heads up:** category-pack and per-skill plugins include skills only. Several skills (`ce-plan`, `ce-ideate`, `deepen-plan`, `ce-review`, `document-review`) dispatch reviewer/research agents that are bundled separately in `atv-agents`. For the most predictable experience, install the flagship `atv-starter-kit@atv-starter-kit`. If you choose a category pack or single skill that dispatches agents, also install `atv-agents`.
 
 ## Skill dependencies (subset)
 

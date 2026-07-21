@@ -131,13 +131,13 @@ Pre-built Windows binaries (amd64/arm64) are on the [latest release](https://git
 
 ### Marketplace bundles and per-skill plugins
 
-Or pick a category bundle / single skill — full tier breakdown in **[docs/marketplace.md](docs/marketplace.md)**:
+The Copilot CLI marketplace publishes a single flagship plugin — `atv-starter-kit` — that installs every skill and every reviewer/specialist agent in one shot:
 
 ```bash
-copilot plugin install atv-pack-planning@atv-starter-kit       # one category
-copilot plugin install atv-skill-autoresearch@atv-starter-kit  # one skill
-copilot plugin install atv-pack-security@atv-starter-kit       # security pack
+copilot plugin install atv-starter-kit@atv-starter-kit         # everything, one command
 ```
+
+A granular catalog of category packs (`atv-pack-*`) and single-skill plugins (`atv-skill-*`) is defined in `.github/plugin/marketplace.json` for reference, but those entries are **not individually installable through the Copilot CLI today** — see the full tier breakdown and roadmap in **[docs/marketplace.md](docs/marketplace.md)**.
 
 ### Prerequisites
 
