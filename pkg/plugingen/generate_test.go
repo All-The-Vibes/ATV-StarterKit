@@ -129,6 +129,18 @@ func TestGenerate_AtvEverythingBundlesAllSkillsAndAgents(t *testing.T) {
 	if len(m.Skills) == 0 || len(m.Agents) == 0 {
 		t.Errorf("atv-everything manifest should declare both skills and agents, got %+v", m)
 	}
+
+	readmePath := filepath.Join(tmp, "plugins", "atv-everything", "README.md")
+	assertFileContainsAll(t, readmePath, []string{
+		"copilot plugin install atv-starter-kit@atv-starter-kit",
+	})
+	data, err := os.ReadFile(readmePath)
+	if err != nil {
+		t.Fatalf("read flagship README: %v", err)
+	}
+	if strings.Contains(string(data), "copilot plugin install atv-everything@atv-starter-kit") {
+		t.Error("flagship README should use the plugin name exposed by the root marketplace")
+	}
 }
 
 func TestGenerate_AtvAgentsBundlesAllAgents(t *testing.T) {
@@ -277,6 +289,7 @@ func TestGenerate_MaintenanceSkillsCoverSourceAgentPlugins(t *testing.T) {
 		"hasSourceAgentPlugins",
 		"owner/repo",
 		"ahead/behind",
+		"copilot plugin install atv-starter-kit@atv-starter-kit",
 		"Never update, reset, delete, or reinstall VS Code AgentPlugin folders from `/atv-doctor`",
 	}
 	updateSnippets := []string{

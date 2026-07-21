@@ -44,10 +44,10 @@ copilot plugin marketplace browse atv-starter-kit
 ### 1. Flagship — install everything
 
 ```bash
-copilot plugin install atv-everything@atv-starter-kit
+copilot plugin install atv-starter-kit@atv-starter-kit
 ```
 
-Bundles **every** ATV skill (31) + **every** reviewer/specialist agent (51). Equivalent in coverage to the Full preset of `atv init` (scoped to skills + agents — no MCP servers, hooks, or instructions templates).
+The `atv-starter-kit` marketplace entry points to the `atv-everything` bundle: **every** ATV skill (31) + **every** reviewer/specialist agent (51). It is equivalent in coverage to the Full preset of `atv init` (scoped to skills + agents — no MCP servers, hooks, or instructions templates).
 
 Advanced standalone agents-only install:
 
@@ -84,7 +84,7 @@ copilot plugin install atv-skill-atv-security@atv-starter-kit
 copilot plugin install atv-skill-ce-plan@atv-starter-kit
 ```
 
-> **Heads up:** category-pack and per-skill plugins include skills only. Several skills (`ce-plan`, `ce-ideate`, `deepen-plan`, `ce-review`, `document-review`) dispatch reviewer/research agents that are bundled separately in `atv-agents`. For the most predictable experience, install `atv-everything`. If you choose a category pack or single skill that dispatches agents, also install `atv-agents`.
+> **Heads up:** category-pack and per-skill plugins include skills only. Several skills (`ce-plan`, `ce-ideate`, `deepen-plan`, `ce-review`, `document-review`) dispatch reviewer/research agents that are bundled separately in `atv-agents`. For the most predictable experience, install `atv-starter-kit`. If you choose a category pack or single skill that dispatches agents, also install `atv-agents`.
 
 ## Skill dependencies (subset)
 
