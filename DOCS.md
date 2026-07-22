@@ -350,7 +350,7 @@ Over weeks, your repo develops a memory that makes every Copilot session more ef
 ## How It Works Under the Hood
 
 ```text
-atv-installer init --guided
+atv-starterkit init --guided
         │
         ▼
  Detect stack + prerequisites (git, bun, node)
