@@ -3,6 +3,7 @@ package plugingen
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -545,5 +546,75 @@ func TestGenerate_InstallCommandsResolveInCopilotCLI(t *testing.T) {
 		if !strings.Contains(string(data), "atv-starter-kit@atv-starter-kit") {
 			t.Errorf("%s should recommend the resolvable flagship command", readmePath)
 		}
+	}
+}
+
+// TestRepoDocs_NoUnresolvableInstallCommands extends the issue #66 guard
+// beyond generated plugin READMEs to EVERY checked-in Markdown doc in the
+// repo (README.md, CHANGELOG.md, docs/**, release notes, etc.). The Copilot
+// CLI resolves plugin installs only against the flagship
+// `atv-starter-kit@atv-starter-kit`; any documented
+// `copilot plugin install <granular>@atv-starter-kit` fails with "Plugin not
+// found in marketplace". Hand-authored docs are not covered by the generated
+// tree tests, so a broken command there (e.g. CHANGELOG.md) regresses
+// silently. Reference-only mentions inside comment lines (a leading `#`) are
+// intentionally exempt — those are documentation, not runnable commands.
+func TestRepoDocs_NoUnresolvableInstallCommands(t *testing.T) {
+	root := repoRoot(t)
+
+	// A real, runnable install command targeting a granular plugin name.
+	badInstall := regexp.MustCompile(`copilot plugin install ([a-z0-9-]+)@atv-starter-kit`)
+
+	// Directories excluded from the scan:
+	//   plugins/          — generated tree, covered by TestGenerate_InstallCommandsResolveInCopilotCLI
+	//   .git/, .claude/   — VCS internals and local worktrees/config
+	//   node_modules/     — vendored deps
+	skipDir := func(rel string) bool {
+		return rel == "plugins" || rel == ".git" || rel == ".claude" || rel == "node_modules"
+	}
+
+	var offenders []string
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, _ := filepath.Rel(root, path)
+		if info.IsDir() {
+			if skipDir(rel) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if filepath.Ext(path) != ".md" {
+			return nil
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		for i, line := range strings.Split(string(data), "\n") {
+			trimmed := strings.TrimSpace(line)
+			// Skip reference-only comment lines (documentation, not commands).
+			if strings.HasPrefix(trimmed, "#") {
+				continue
+			}
+			m := badInstall.FindStringSubmatch(line)
+			if m == nil {
+				continue
+			}
+			if m[1] == "atv-starter-kit" {
+				continue // the one resolvable command
+			}
+			offenders = append(offenders, fmt.Sprintf("%s:%d recommends %q", rel, i+1, m[0]))
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk repo: %v", err)
+	}
+	if len(offenders) > 0 {
+		t.Errorf("documented install commands that fail to resolve in Copilot CLI (issue #66):\n  %s\n"+
+			"Use `copilot plugin install atv-starter-kit@atv-starter-kit`, or mark the granular name reference-only in a comment line.",
+			strings.Join(offenders, "\n  "))
 	}
 }
