@@ -1,1 +1,6 @@
 README.md whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Dogfood prompt shims are compared byte-for-byte against BuildPromptShim
+# output (LF) by TestDogfoodPromptParity. Pin them to LF so Windows checkouts
+# with core.autocrlf=true don't rewrite them to CRLF and fail the parity test.
+*.prompt.md text eol=lf
