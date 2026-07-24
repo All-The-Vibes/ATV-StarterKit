@@ -8,6 +8,12 @@ origin: docs/brainstorms/2026-03-11-agentic-coding-starter-kit-installer-brainst
 
 # feat: ATV Starter Kit — Guided CLI Installer
 
+> **Historical note (2026-07):** This plan predates the binary rename in PR #58.
+> The shipped binary file is now `atv-inst-tool` (renamed from `atv-installer`
+> to avoid a Windows UAC installer-detection heuristic). References to
+> `atv-installer` as the binary name below are retained as the original record;
+> the `atv-installer` command name also survives as an npm `bin` alias.
+
 ## Overview
 
 Build `atv-installer init` — a Go CLI command that scaffolds a complete GitHub Copilot agentic coding environment into any directory. One command, zero questions by default, all 6 Copilot lifecycle hooks configured. (see brainstorm: docs/brainstorms/2026-03-11-agentic-coding-starter-kit-installer-brainstorm.md)

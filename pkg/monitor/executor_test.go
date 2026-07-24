@@ -10,6 +10,7 @@ func TestValidateAction_Allowed(t *testing.T) {
 		name string
 		cmd  string
 	}{
+		{"atv-inst-tool", "atv-inst-tool init"},
 		{"atv-installer", "atv-installer init"},
 		{"atv", "atv dashboard"},
 		{"gstack", "gstack build"},

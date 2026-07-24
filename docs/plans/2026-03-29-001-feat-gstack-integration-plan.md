@@ -8,6 +8,13 @@ origin: docs/brainstorms/2026-03-29-gstack-integration-brainstorm.md
 
 # feat: Integrate gstack into ATV StarterKit Unified Installer
 
+> **Historical note (2026-07):** This plan predates the binary rename in PR #58.
+> The shipped binary file is now `atv-inst-tool` (renamed from `atv-installer`
+> to avoid a Windows UAC installer-detection heuristic), and the user-facing
+> command is `atv-starterkit`. References to `atv-installer` below are retained
+> as the original record; the `atv-installer` command name also survives as an
+> npm `bin` alias.
+
 ## Overview
 
 Add [garrytan/gstack](https://github.com/garrytan/gstack) as a bundled skill source in the ATV StarterKit installer. The guided TUI wizard presents a single categorized list of skills organized by **function** (Planning, Review, QA, Security, etc.) — mixing ATV and gstack skills together. Users don't need to know which system a skill came from. ATV skills take priority where both provide overlapping functionality.

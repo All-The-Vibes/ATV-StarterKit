@@ -110,7 +110,7 @@ Plus: `.vscode/extensions.json` and `docs/` structure.
 
 ## How It Works
 
-This npm package downloads the pre-built `atv-installer` binary for your platform (macOS, Linux, or Windows) from [GitHub Releases](https://github.com/All-The-Vibes/ATV-StarterKit/releases) during `npm install`. The `atv-starterkit` command then delegates to that binary.
+This npm package downloads the pre-built `atv-inst-tool` binary for your platform (macOS, Linux, or Windows) from [GitHub Releases](https://github.com/All-The-Vibes/ATV-StarterKit/releases) during `npm install`. The `atv-starterkit` command then delegates to that binary.
 
 ## Alternative Installation
 

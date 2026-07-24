@@ -15,7 +15,7 @@ var forceUninstall bool
 var uninstallCmd = &cobra.Command{
 	Use:   "uninstall",
 	Short: "Remove all ATV-installed files from current directory",
-	Long: `Remove all ATV Starter Kit files scaffolded by 'atv-installer init'.
+	Long: `Remove all ATV Starter Kit files scaffolded by 'atv-starterkit init'.
 
 Files that you've modified since installation are preserved by default.
 Use --force to remove everything regardless of modifications.

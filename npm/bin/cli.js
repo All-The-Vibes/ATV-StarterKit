@@ -7,7 +7,7 @@ const os = require("os");
 const { execFileSync } = require("child_process");
 const fs = require("fs");
 
-const BINARY_NAME = "atv-installer";
+const BINARY_NAME = "atv-inst-tool";
 const binaryExt = os.platform() === "win32" ? ".exe" : "";
 const binaryPath = path.join(__dirname, `${BINARY_NAME}${binaryExt}`);
 

@@ -32,7 +32,7 @@ One command. Full agentic coding setup. 45 skills, 29 agents, and a memory syste
 
 ```bash
 npx atv-starterkit init              # quick: ATV core only
-atv-installer init --guided          # choose: Starter / Pro / Full
+atv-starterkit init --guided         # choose: Starter / Pro / Full
 ```
 
 ### Links

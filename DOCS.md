@@ -350,7 +350,7 @@ Over weeks, your repo develops a memory that makes every Copilot session more ef
 ## How It Works Under the Hood
 
 ```text
-atv-installer init --guided
+atv-starterkit init --guided
         │
         ▼
  Detect stack + prerequisites (git, bun, node)
@@ -382,7 +382,7 @@ All templates are embedded at compile time — no runtime network calls for the 
 ## Development
 
 ```bash
-go build -o atv-installer .             # build
+go build -o atv-inst-tool .             # build
 go test ./...                            # all tests
 go test ./pkg/installstate/ -v           # manifest + recommendations tests
 go test ./pkg/monitor/ -v                # watcher + drift detection tests

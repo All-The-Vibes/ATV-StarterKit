@@ -1,10 +1,10 @@
 version: 2
 
-project_name: atv-installer
+project_name: atv-inst-tool
 
 builds:
   - main: .
-    binary: atv-installer
+    binary: atv-inst-tool
     env:
       - CGO_ENABLED=0
     goos:
