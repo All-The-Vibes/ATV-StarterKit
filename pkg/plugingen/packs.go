@@ -75,9 +75,16 @@ func Packs() []Pack {
 		{
 			Name:        "atv-pack-quality",
 			Category:    "quality",
-			Description: "Quality pack — Unslop and Ralph Loop for tightening up code and iterating on solutions.",
-			Keywords:    []string{"atv", "quality", "ralph-loop"},
-			SkillNames:  []string{"ralph-loop", "unslop"},
+			Description: "Quality pack — Unslop, Ralph Loop, and Solution Debranding for cleanup, iteration, portability, and release readiness.",
+			Keywords:    []string{"atv", "quality", "ralph-loop", "debranding", "release-readiness"},
+			SkillNames: []string{
+				"ralph-loop",
+				"solution-debranding",
+				"solution-debranding-apply",
+				"solution-debranding-plan",
+				"solution-debranding-verify",
+				"unslop",
+			},
 		},
 		{
 			Name:        "atv-pack-guidelines",
@@ -108,6 +115,35 @@ func Packs() []Pack {
 			SkillNames:  []string{"atv-doctor", "atv-update"},
 		},
 	}
+}
+
+var solutionDebrandingFamily = []string{
+	"solution-debranding",
+	"solution-debranding-apply",
+	"solution-debranding-plan",
+	"solution-debranding-verify",
+}
+
+func skillInstallSet(name string) []string {
+	if isSolutionDebrandingSkill(name) {
+		out := make([]string, len(solutionDebrandingFamily))
+		copy(out, solutionDebrandingFamily)
+		return out
+	}
+	return []string{name}
+}
+
+func isSolutionDebrandingSkill(name string) bool {
+	for _, member := range solutionDebrandingFamily {
+		if name == member {
+			return true
+		}
+	}
+	return false
+}
+
+func isCompleteSkillPackage(name string) bool {
+	return isSolutionDebrandingSkill(name) || name == "lfg" || name == "slfg"
 }
 
 // MiscSkills are skills that exist in pkg/scaffold/templates/skills/

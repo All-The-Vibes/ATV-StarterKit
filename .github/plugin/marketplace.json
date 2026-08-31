@@ -102,12 +102,14 @@
     {
       "name": "atv-pack-quality",
       "source": "atv-pack-quality",
-      "description": "Quality pack — Unslop and Ralph Loop for tightening up code and iterating on solutions.",
+      "description": "Quality pack — Unslop, Ralph Loop, and Solution Debranding for cleanup, iteration, portability, and release readiness.",
       "version": "2.6.3",
       "keywords": [
         "atv",
         "quality",
-        "ralph-loop"
+        "ralph-loop",
+        "debranding",
+        "release-readiness"
       ],
       "category": "quality"
     },
@@ -471,6 +473,54 @@
         "atv",
         "skill",
         "slfg"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-solution-debranding",
+      "source": "atv-skill-solution-debranding",
+      "description": "ATV `solution-debranding` skill — single-skill plugin (granular install). Some ATV skills dispatch agents bundled separately in `atv-agents`, so single-skill and category-pack installs may need `atv-agents` alongside them. For the full standalone kit, install `atv-everything`. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "solution-debranding"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-solution-debranding-apply",
+      "source": "atv-skill-solution-debranding-apply",
+      "description": "ATV `solution-debranding-apply` skill — single-skill plugin (granular install). Some ATV skills dispatch agents bundled separately in `atv-agents`, so single-skill and category-pack installs may need `atv-agents` alongside them. For the full standalone kit, install `atv-everything`. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "solution-debranding-apply"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-solution-debranding-plan",
+      "source": "atv-skill-solution-debranding-plan",
+      "description": "ATV `solution-debranding-plan` skill — single-skill plugin (granular install). Some ATV skills dispatch agents bundled separately in `atv-agents`, so single-skill and category-pack installs may need `atv-agents` alongside them. For the full standalone kit, install `atv-everything`. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "solution-debranding-plan"
+      ],
+      "category": "skill"
+    },
+    {
+      "name": "atv-skill-solution-debranding-verify",
+      "source": "atv-skill-solution-debranding-verify",
+      "description": "ATV `solution-debranding-verify` skill — single-skill plugin (granular install). Some ATV skills dispatch agents bundled separately in `atv-agents`, so single-skill and category-pack installs may need `atv-agents` alongside them. For the full standalone kit, install `atv-everything`. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+      "version": "2.6.3",
+      "keywords": [
+        "atv",
+        "skill",
+        "solution-debranding-verify"
       ],
       "category": "skill"
     },

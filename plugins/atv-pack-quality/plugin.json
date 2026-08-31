@@ -1,6 +1,6 @@
 {
   "name": "atv-pack-quality",
-  "description": "Quality pack — Unslop and Ralph Loop for tightening up code and iterating on solutions.",
+  "description": "Quality pack — Unslop, Ralph Loop, and Solution Debranding for cleanup, iteration, portability, and release readiness.",
   "version": "2.6.3",
   "author": {
     "name": "All The Vibes",
@@ -11,7 +11,9 @@
   "keywords": [
     "atv",
     "quality",
-    "ralph-loop"
+    "ralph-loop",
+    "debranding",
+    "release-readiness"
   ],
   "category": "quality",
   "skills": [

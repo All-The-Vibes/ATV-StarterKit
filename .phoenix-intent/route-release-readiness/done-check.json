@@ -1,0 +1,9 @@
+{
+  "kind": "command_exit",
+  "target": [
+    "node",
+    ".github/hooks/scripts/verify-solution-debranding.js",
+    "lifecycle"
+  ],
+  "expect": 0
+}

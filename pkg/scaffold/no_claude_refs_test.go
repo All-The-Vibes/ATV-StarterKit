@@ -80,6 +80,12 @@ func TestNoClaudeCodeReferencesInSkills(t *testing.T) {
 		// across providers; the regex pattern legitimately includes
 		// CLAUDE/ANTHROPIC alongside OPENAI.
 		".github/skills/onboarding/scripts/inventory.mjs": "secret-detection regex",
+
+		// The vendored upstream test fixture verifies discovery and classification
+		// across multiple agent harness layouts. Fidelity is lock-checked, so these
+		// fixture paths must remain byte-identical to upstream.
+		".github/skills/solution-debranding/tests/test_scripts.py":                "byte-identical upstream multi-harness test fixture",
+		"pkg/scaffold/templates/skills/solution-debranding/tests/test_scripts.py": "byte-identical upstream multi-harness test fixture",
 	}
 
 	// Fail fast if any allowlisted path no longer exists on disk. A

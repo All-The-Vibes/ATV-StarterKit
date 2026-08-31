@@ -47,7 +47,7 @@ copilot plugin marketplace browse atv-starter-kit
 copilot plugin install atv-starter-kit@atv-starter-kit
 ```
 
-Bundles **every** ATV skill (31) + **every** reviewer/specialist agent (51). Equivalent in coverage to the Full preset of `atv init` (scoped to skills + agents — no MCP servers, hooks, or instructions templates). The `atv-starter-kit` marketplace entry resolves to the complete internal `atv-everything` bundle.
+Bundles **every** ATV skill + **every** reviewer/specialist agent. Equivalent in coverage to the Full preset of `atv init` (scoped to skills + agents — no MCP servers, hooks, or instructions templates). The `atv-starter-kit` marketplace entry resolves to the complete internal `atv-everything` bundle.
 
 > **Copilot CLI exposes one installable plugin.** The curated root `marketplace.json` that Copilot CLI reads publishes a single entry — `atv-starter-kit` — pointing at the complete bundle. `copilot plugin marketplace browse atv-starter-kit` confirms this. The agents-only, category-pack, and single-skill entries below live in `.github/plugin/marketplace.json` for tooling/reference and are **not** individually installable through the Copilot CLI today. To get everything, install the flagship `atv-starter-kit@atv-starter-kit`.
 
@@ -61,7 +61,7 @@ Bundles **every** ATV skill (31) + **every** reviewer/specialist agent (51). Equ
 | `atv-pack-review` | ce-review, document-review | Multi-agent review passes |
 | `atv-pack-shipping` | takeoff, ce-work, ce-compound, ce-compound-refresh, land, lfg, slfg | Execute and ship |
 | `atv-pack-security` | atv-security | Config audit + OWASP/STRIDE |
-| `atv-pack-quality` | unslop, ralph-loop | Tighten up code, iterate |
+| `atv-pack-quality` | unslop, ralph-loop, solution-debranding, solution-debranding-plan, solution-debranding-apply, solution-debranding-verify | Tighten code and prepare portable, releasable solutions |
 | `atv-pack-guidelines` | karpathy-guidelines, autoresearch | Behavioral guardrails + autonomous experiment loop |
 | `atv-pack-easter-eggs` | meme-iq | Fun extras |
 | `atv-pack-learning` | learn, instincts, evolve, observe | Compounding institutional knowledge |
@@ -88,6 +88,10 @@ For each skill listed above (and a few utility skills like `setup`, `feature-vid
 # Install the flagship instead:
 copilot plugin install atv-starter-kit@atv-starter-kit
 ```
+
+The four `solution-debranding*` skills are an atomic family. Each generated
+granular debranding plugin includes all four sibling directories because the
+stage skills resolve the shared package by relative path.
 
 > **Heads up:** category-pack and per-skill plugins include skills only. Several skills (`ce-plan`, `ce-ideate`, `deepen-plan`, `ce-review`, `document-review`) dispatch reviewer/research agents that are bundled separately in `atv-agents`. For the most predictable experience, install the flagship `atv-starter-kit@atv-starter-kit`. If you choose a category pack or single skill that dispatches agents, also install `atv-agents`.
 

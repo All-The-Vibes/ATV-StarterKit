@@ -1,6 +1,6 @@
 # atv-pack-quality
 
-Quality pack — Unslop and Ralph Loop for tightening up code and iterating on solutions.
+Quality pack — Unslop, Ralph Loop, and Solution Debranding for cleanup, iteration, portability, and release readiness.
 
 ## Install
 

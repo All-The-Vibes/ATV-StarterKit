@@ -136,6 +136,122 @@ test('markDone rejects phase names containing path traversal', () => {
   assert.throws(() => S.markDone(runs, 'r1', '../escape', {}), /invalid phase/i);
 });
 
+test('quality release-readiness decision is resumable', () => {
+  const runs = tmpRuns();
+  S.init(runs, { runId: 'r1', skill: 'lfg', feature: 'demo' });
+  assert.equal(S.getDecision(runs, 'r1', 'quality-release-readiness'), null);
+  S.recordDecision(runs, 'r1', 'quality-release-readiness', 'declined', {});
+  assert.equal(
+    S.getDecision(runs, 'r1', 'quality-release-readiness').choice,
+    'declined'
+  );
+  assert.equal(S.status(runs, 'r1').decisions.length, 1);
+});
+
+test('quality release-readiness decision records an accepted plan artifact', () => {
+  const runs = tmpRuns();
+  S.init(runs, { runId: 'r1', skill: 'slfg', feature: 'demo' });
+  const artifact = 'docs/debranding/2026-08-28-001-contoso-plan.md';
+  const accepted = S.recordDecision(
+    runs,
+    'r1',
+    'quality-release-readiness',
+    'accepted',
+    {}
+  );
+  assert.equal(accepted.artifact, null);
+  const decision = S.recordDecision(
+    runs,
+    'r1',
+    'quality-release-readiness',
+    'accepted',
+    { artifact }
+  );
+  assert.equal(decision.artifact, artifact);
+});
+
+test('accepted debranding resumes apply and verify as independent phases', () => {
+  for (const skill of ['lfg', 'slfg']) {
+    const runs = tmpRuns();
+    const runId = `${skill}-accepted`;
+    S.init(runs, { runId, skill, feature: 'demo' });
+    const artifact = 'docs/debranding/2026-08-28-001-contoso-plan.md';
+    S.recordDecision(runs, runId, 'quality-release-readiness', 'accepted', {});
+    assert.throws(
+      () => S.markDone(runs, runId, 'quality-release-readiness', {}),
+      /plan artifact/
+    );
+
+    S.recordDecision(runs, runId, 'quality-release-readiness', 'accepted', { artifact });
+    assert.throws(
+      () => S.markDone(runs, runId, 'solution-debranding-verify', { artifact }),
+      /requires apply/
+    );
+    assert.throws(
+      () => S.markDone(runs, runId, 'quality-release-readiness', { artifact }),
+      /apply phase is incomplete/
+    );
+
+    S.markDone(runs, runId, 'solution-debranding-apply', { artifact });
+    assert.equal(S.isDone(runs, runId, 'solution-debranding-apply'), true);
+    assert.equal(S.isDone(runs, runId, 'solution-debranding-verify'), false);
+    assert.throws(
+      () => S.markDone(runs, runId, 'quality-release-readiness', { artifact }),
+      /verification is incomplete/
+    );
+
+    S.markDone(runs, runId, 'solution-debranding-verify', { artifact });
+    assert.throws(
+      () => S.markDone(runs, runId, 'quality-release-readiness', { artifact: 'wrong.md' }),
+      /must match/
+    );
+    S.markDone(runs, runId, 'quality-release-readiness', { artifact });
+    assert.equal(S.isDone(runs, runId, 'quality-release-readiness'), true);
+
+    const replacement = 'docs/debranding/replacement-plan.md';
+    S.recordDecision(runs, runId, 'quality-release-readiness', 'accepted', {
+      artifact: replacement,
+    });
+    assert.equal(S.isDone(runs, runId, 'solution-debranding-apply'), false);
+    assert.equal(S.isDone(runs, runId, 'solution-debranding-verify'), false);
+    assert.equal(S.isDone(runs, runId, 'quality-release-readiness'), false);
+  }
+});
+
+test('fresh release-readiness requires and honors non-applicable decisions', () => {
+  for (const choice of ['declined', 'not-applicable']) {
+    const runs = tmpRuns();
+    const runId = `fresh-${choice}`;
+    S.init(runs, { runId, skill: 'lfg', feature: 'demo' });
+    assert.throws(
+      () => S.markDone(runs, runId, 'quality-release-readiness', {}),
+      /recorded decision/
+    );
+    S.recordDecision(runs, runId, 'quality-release-readiness', choice, {});
+    S.markDone(runs, runId, 'quality-release-readiness', {});
+    assert.equal(S.isDone(runs, runId, 'quality-release-readiness'), true);
+  }
+});
+
+test('quality release-readiness decision rejects unsupported choices', () => {
+  const runs = tmpRuns();
+  S.init(runs, { runId: 'r1', skill: 'lfg', feature: 'demo' });
+  assert.throws(
+    () => S.recordDecision(runs, 'r1', 'quality-release-readiness', 'skipped', {}),
+    /invalid decision choice/
+  );
+});
+
+test('a recorded release-readiness choice cannot be changed on resume', () => {
+  const runs = tmpRuns();
+  S.init(runs, { runId: 'r1', skill: 'lfg', feature: 'demo' });
+  S.recordDecision(runs, 'r1', 'quality-release-readiness', 'declined', {});
+  assert.throws(
+    () => S.recordDecision(runs, 'r1', 'quality-release-readiness', 'accepted', {}),
+    /already "declined"/
+  );
+});
+
 // ---------------------------------------------------------------------------
 // status — compact view for the orchestrator (paths, not content)
 // ---------------------------------------------------------------------------

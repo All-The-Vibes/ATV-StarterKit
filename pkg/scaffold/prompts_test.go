@@ -165,6 +165,9 @@ func TestBuildFilteredCatalog_OrchestratorsOnlyIncludesOrchestratorShims(t *test
 	if got[".github/prompts/ce-plan.prompt.md"] {
 		t.Errorf("orchestrators layer should NOT include core-skill shim ce-plan.prompt.md")
 	}
+	if !componentPaths(comps)[".github/hooks/scripts/lfg-state.js"] {
+		t.Errorf("orchestrators layer missing required lfg-state.js runtime helper")
+	}
 }
 
 func TestBuildFilteredCatalog_NoLayersEmitsZeroShims(t *testing.T) {
@@ -201,6 +204,14 @@ func promptShimPaths(comps []Component) map[string]bool {
 		if isPromptShimPath(c.Path) {
 			out[filepathToSlash(c.Path)] = true
 		}
+	}
+	return out
+}
+
+func componentPaths(comps []Component) map[string]bool {
+	out := map[string]bool{}
+	for _, c := range comps {
+		out[filepathToSlash(c.Path)] = true
 	}
 	return out
 }

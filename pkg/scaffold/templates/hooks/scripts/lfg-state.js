@@ -131,10 +131,54 @@ function bindPlan(runsDir, runId, planPath) {
   return meta;
 }
 
+function getDone(runsDir, runId, phase) {
+  const safe = sanitizePhase(phase);
+  const sentinelPath = path.join(phasesDir(runsDir, runId), `${safe}.done.json`);
+  if (!fs.existsSync(sentinelPath)) return null;
+  return JSON.parse(fs.readFileSync(sentinelPath, "utf8"));
+}
+
 function markDone(runsDir, runId, phase, opts) {
   const safe = sanitizePhase(phase);
   const options = opts || {};
   fs.mkdirSync(phasesDir(runsDir, runId), { recursive: true });
+  if (safe === "solution-debranding-apply" || safe === "solution-debranding-verify") {
+    const decision = getDecision(runsDir, runId, "quality-release-readiness");
+    if (!decision || decision.choice !== "accepted" || !decision.artifact) {
+      throw new Error(`${safe} requires an accepted decision with a plan artifact`);
+    }
+    if (options.artifact !== decision.artifact) {
+      throw new Error(`${safe} artifact must match the accepted debranding plan`);
+    }
+    if (safe === "solution-debranding-verify") {
+      const apply = getDone(runsDir, runId, "solution-debranding-apply");
+      if (!apply || apply.artifact !== decision.artifact) {
+        throw new Error("solution-debranding-verify requires apply for the accepted plan");
+      }
+    }
+  }
+  if (safe === "quality-release-readiness") {
+    const decision = getDecision(runsDir, runId, safe);
+    if (!decision) {
+      throw new Error("quality-release-readiness requires a recorded decision");
+    }
+    if (decision.choice === "accepted") {
+      if (!decision.artifact) {
+        throw new Error("accepted debranding requires a recorded plan artifact");
+      }
+      const apply = getDone(runsDir, runId, "solution-debranding-apply");
+      if (!apply || apply.artifact !== decision.artifact) {
+        throw new Error("accepted debranding apply phase is incomplete");
+      }
+      const verify = getDone(runsDir, runId, "solution-debranding-verify");
+      if (!verify || verify.artifact !== decision.artifact) {
+        throw new Error("accepted debranding verification is incomplete");
+      }
+      if (options.artifact !== decision.artifact) {
+        throw new Error("release-readiness artifact must match the accepted debranding plan");
+      }
+    }
+  }
   const sentinel = {
     phase: safe,
     status: "done",
@@ -143,6 +187,50 @@ function markDone(runsDir, runId, phase, opts) {
   };
   atomicWriteJson(path.join(phasesDir(runsDir, runId), `${safe}.done.json`), sentinel);
   return sentinel;
+}
+
+function recordDecision(runsDir, runId, phase, choice, opts) {
+  const safe = sanitizePhase(phase);
+  const allowed = new Set(["accepted", "declined", "not-applicable"]);
+  if (!allowed.has(choice)) {
+    throw new Error(`invalid decision choice: ${JSON.stringify(choice)}`);
+  }
+  const options = opts || {};
+  fs.mkdirSync(phasesDir(runsDir, runId), { recursive: true });
+  const existing = getDecision(runsDir, runId, safe);
+  if (existing && existing.choice !== choice) {
+    throw new Error(`decision is already ${JSON.stringify(existing.choice)}`);
+  }
+  if (
+    choice === "accepted" &&
+    existing &&
+    existing.artifact !== (options.artifact == null ? null : options.artifact)
+  ) {
+    for (const dependent of [
+      "solution-debranding-apply",
+      "solution-debranding-verify",
+      "quality-release-readiness",
+    ]) {
+      fs.rmSync(path.join(phasesDir(runsDir, runId), `${dependent}.done.json`), {
+        force: true,
+      });
+    }
+  }
+  const decision = {
+    phase: safe,
+    choice,
+    artifact: options.artifact == null ? null : options.artifact,
+    decided_at: new Date().toISOString(),
+  };
+  atomicWriteJson(path.join(phasesDir(runsDir, runId), `${safe}.decision.json`), decision);
+  return decision;
+}
+
+function getDecision(runsDir, runId, phase) {
+  const safe = sanitizePhase(phase);
+  const decisionPath = path.join(phasesDir(runsDir, runId), `${safe}.decision.json`);
+  if (!fs.existsSync(decisionPath)) return null;
+  return JSON.parse(fs.readFileSync(decisionPath, "utf8"));
 }
 
 function isDone(runsDir, runId, phase) {
@@ -158,14 +246,19 @@ function status(runsDir, runId) {
   }
   const pdir = phasesDir(runsDir, runId);
   let phases = [];
+  let decisions = [];
   if (fs.existsSync(pdir)) {
-    phases = fs
-      .readdirSync(pdir)
+    const entries = fs.readdirSync(pdir);
+    phases = entries
       .filter((f) => f.endsWith(".done.json"))
       .map((f) => JSON.parse(fs.readFileSync(path.join(pdir, f), "utf8")))
       .sort((a, b) => String(a.ended_at).localeCompare(String(b.ended_at)));
+    decisions = entries
+      .filter((f) => f.endsWith(".decision.json"))
+      .map((f) => JSON.parse(fs.readFileSync(path.join(pdir, f), "utf8")))
+      .sort((a, b) => String(a.decided_at).localeCompare(String(b.decided_at)));
   }
-  return { run_id: runId, meta, phases };
+  return { run_id: runId, meta, phases, decisions };
 }
 
 // --- CLI -------------------------------------------------------------------
@@ -222,6 +315,18 @@ function main(argv) {
         artifact: flags.artifact,
       });
       break;
+    case "decision":
+      out = recordDecision(
+        runsDir,
+        flags["run-id"],
+        positional[0] || flags.phase,
+        flags.choice,
+        { artifact: flags.artifact }
+      );
+      break;
+    case "get-decision":
+      out = getDecision(runsDir, flags["run-id"], positional[0] || flags.phase);
+      break;
     case "is-done": {
       const phase = positional[0] || flags.phase;
       out = { phase, done: isDone(runsDir, flags["run-id"], phase) };
@@ -235,7 +340,7 @@ function main(argv) {
       break;
     default:
       process.stderr.write(
-        "usage: lfg-state.js <init|bind-plan|done|is-done|status|run-id-from-plan> [--run-id id] [--plan path] [--skill s] [--feature f] [--repo r] [--branch b] [--artifact path]\n"
+        "usage: lfg-state.js <init|bind-plan|done|decision|get-decision|is-done|status|run-id-from-plan> [--run-id id] [--plan path] [--skill s] [--feature f] [--repo r] [--branch b] [--choice accepted|declined|not-applicable] [--artifact path]\n"
       );
       process.exit(2);
   }
@@ -250,7 +355,10 @@ module.exports = {
   parseRunToken,
   init,
   bindPlan,
+  getDone,
   markDone,
+  recordDecision,
+  getDecision,
   isDone,
   status,
 };

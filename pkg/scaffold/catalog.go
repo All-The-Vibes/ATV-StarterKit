@@ -52,7 +52,8 @@ func BuildCatalog(stack detect.Stack) []Component {
 	// Hook 6: File Instructions
 	catalog = append(catalog, fileInstructions(stack)...)
 
-	// Observer hooks (copilot-hooks.json + scripts)
+	// Runtime support and observer hooks.
+	catalog = append(catalog, lfgStateHelper()...)
 	catalog = append(catalog, observerHooks()...)
 
 	// VS Code config
@@ -138,6 +139,9 @@ func BuildFilteredCatalogForPacks(packs []installstate.StackPack, primaryStack d
 	if layerSet["core-skills"] {
 		catalog = append(catalog, observerHooks()...)
 	}
+	if layerSet["orchestrators"] {
+		catalog = append(catalog, lfgStateHelper()...)
+	}
 
 	return catalog
 }
@@ -192,6 +196,10 @@ var coreSkillDirectories = []string{
 	"evolve",
 	"observe",
 	// ATV Quality
+	"solution-debranding",
+	"solution-debranding-apply",
+	"solution-debranding-plan",
+	"solution-debranding-verify",
 	"unslop",
 	// Behavioral Guidelines
 	"karpathy-guidelines",
@@ -360,6 +368,13 @@ func observerHooks() []Component {
 		{Path: ".github/hooks/copilot-hooks.json", Content: hookConfig, MergeJSON: true},
 		{Path: ".github/hooks/scripts/observe.js", Content: observeScript},
 	}
+}
+
+func lfgStateHelper() []Component {
+	return []Component{{
+		Path:    ".github/hooks/scripts/lfg-state.js",
+		Content: mustRead("templates/hooks/scripts/lfg-state.js"),
+	}}
 }
 
 func mustRead(path string) []byte {

@@ -119,7 +119,7 @@ The customize screen exposes opt-in skill layers grouped by intent:
 | Skill | What it does |
 |---|---|
 | `/ce-work` | Implements against the plan with incremental commits and system-wide sanity checks |
-| `/lfg` | Full pipeline: plan → deepen → work → review → unslop → resolve → test → video → compound |
+| `/lfg` | Full pipeline: plan → deepen → work → review → quality and release-readiness gate → resolve → test → video → compound |
 | `/slfg` | Parallelized version via swarm agents |
 | `/autoresearch` | Autonomous metric-driven experiment loop on a dedicated branch |
 
@@ -164,6 +164,9 @@ The customize screen exposes opt-in skill layers grouped by intent:
 | `/evolve` | Promotes mature instincts (confidence >0.8) into permanent Copilot skills |
 | `/observe` | Focused pattern analysis on a specific domain or file pattern |
 | `/unslop` | De-slop pass: code simplification + comment rot + design slop detection |
+| `/solution-debranding-plan` | Plan portable branding, white-labeling, handoff, and public-release work without changing product code |
+| `/solution-debranding-apply` | Apply approved debranding units in dependency order with validation |
+| `/solution-debranding-verify` | Independently verify debranding and report residual risk without remediation |
 | `/gstack-retro` | Team-aware weekly retro with per-person breakdowns |
 | `/gstack-learn` | Per-project self-learning infrastructure |
 | `/atv-doctor` | Diagnose ATV install drift, missing skills, and config issues |
@@ -265,6 +268,14 @@ AI coding assistants have a tell: over-abstraction, `// This function handles th
 `/unslop` is wired into both autonomous pipelines — `/lfg` runs `/unslop fix` after review, and `/slfg` runs the report pass in parallel with `ce-review` and browser testing for zero added wall-clock time.
 
 `/ce-review` asks "is this correct?" — `/unslop` asks "does this look human-written?" Run both.
+
+At the same post-review `quality-release-readiness` gate, both pipelines propose
+the opt-in Solution Debranding workflow when the user needs portability,
+white-labeling, ownership transfer, demo preparation, or public release. An
+accepted run preserves the upstream sequence:
+`/solution-debranding-plan` → approved `/solution-debranding-apply` units →
+`/solution-debranding-verify`. Declined and not-applicable decisions are saved
+in `.atv/runs/<run-id>/` so resumed pipelines do not prompt twice.
 
 ---
 

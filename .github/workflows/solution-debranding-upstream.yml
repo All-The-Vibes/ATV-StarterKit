@@ -1,0 +1,26 @@
+name: Solution debranding upstream check
+
+on:
+  schedule:
+    - cron: "17 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Check pinned upstream revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          pinned="$(node -p "require('./solution-debranding.lock.json').commit")"
+          latest="$(git ls-remote https://github.com/lshade/solution-debranding.git HEAD | cut -f1)"
+          if [[ "$pinned" != "$latest" ]]; then
+            echo "::error::solution-debranding update available: pinned=$pinned latest=$latest"
+            exit 1
+          fi

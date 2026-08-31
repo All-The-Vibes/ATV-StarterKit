@@ -23,6 +23,15 @@ jobs:
       - name: Test
         run: go test -v ./...
 
+      - name: Verify solution debranding vendor and distribution
+        run: node .github/hooks/scripts/verify-solution-debranding.js distribution
+
+      - name: Verify post-review lifecycle routing
+        run: node .github/hooks/scripts/verify-solution-debranding.js lifecycle
+
+      - name: Test lifecycle run state
+        run: node --test .github/hooks/scripts/tests/lfg-state.test.js
+
       - name: Plugin marketplace drift check
         run: go run ./cmd/plugingen -check
 
