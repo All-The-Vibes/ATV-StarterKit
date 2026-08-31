@@ -148,8 +148,10 @@ func Generate(cfg Config) error {
 	for _, name := range skillNames {
 		pluginName := pluginNameForSkill(name)
 		dir := filepath.Join(pluginsDir, pluginName)
-		if err := writeSkillFile(dir, name, skillBody[name]); err != nil {
-			return err
+		for _, bundledName := range skillInstallSet(name) {
+			if err := writeSkillPackage(dir, skillsDir, bundledName, skillBody[bundledName]); err != nil {
+				return err
+			}
 		}
 		manifest := PluginManifest{
 			Name:        pluginName,
@@ -173,7 +175,7 @@ func Generate(cfg Config) error {
 	for _, p := range packs {
 		dir := filepath.Join(pluginsDir, p.Name)
 		for _, sn := range p.SkillNames {
-			if err := writeSkillFile(dir, sn, skillBody[sn]); err != nil {
+			if err := writeSkillPackage(dir, skillsDir, sn, skillBody[sn]); err != nil {
 				return err
 			}
 		}
@@ -223,7 +225,7 @@ func Generate(cfg Config) error {
 	// 4. atv-everything — flagship bundle with every skill + every agent.
 	everythingDir := filepath.Join(pluginsDir, "atv-everything")
 	for _, name := range skillNames {
-		if err := writeSkillFile(everythingDir, name, skillBody[name]); err != nil {
+		if err := writeSkillPackage(everythingDir, skillsDir, name, skillBody[name]); err != nil {
 			return err
 		}
 	}
@@ -354,7 +356,13 @@ func listAgents(dir string) ([]string, error) {
 	return names, nil
 }
 
-func writeSkillFile(pluginDir, skillName, body string) error {
+func writeSkillPackage(pluginDir, skillsDir, skillName, body string) error {
+	if isCompleteSkillPackage(skillName) {
+		return mirrorTree(
+			filepath.Join(skillsDir, skillName),
+			filepath.Join(pluginDir, "skills", skillName),
+		)
+	}
 	dest := filepath.Join(pluginDir, "skills", skillName, "SKILL.md")
 	if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
 		return err

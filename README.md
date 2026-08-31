@@ -226,6 +226,7 @@ Each phase has skills for it; the table shows where each lives. Slash commands r
                      <code>/ce-compound</code><br />
                      <code>/learn</code> · <code>/instincts</code> · <code>/evolve</code><br />
                      <code>/unslop</code><br />
+                     <code>/solution-debranding-plan</code><br />
                      <code>/gstack-retro</code><br />
                      <code>/atv-doctor</code> <sub>— diagnose install drift</sub><br />
                      <code>/atv-update</code> <sub>— update marketplace plugins + safe source-installed AgentPlugins</sub>
@@ -238,8 +239,9 @@ Each phase has skills for it; the table shows where each lives. Slash commands r
 Each step must produce output before the next starts (plan file exists, plan was deepened, code was changed). Retries on failure.
 
 ```
-plan → deepen → work → review → unslop → resolve → test → video → compound
-  ✓       ✓       ✓
+plan → deepen → work → review → quality + release readiness → resolve → test → video → compound
+  ✓       ✓       ✓                  │
+                              unslop + debranding proposal
 ```
 
 ### `/slfg` — parallel swarm variant
@@ -247,14 +249,19 @@ plan → deepen → work → review → unslop → resolve → test → video �
 Same steps. Planning is sequential; review + test + unslop run in parallel.
 
 ```
-plan → deepen → work (swarm) ──→ review    ⎤              resolve → unslop fix → video → compound
-                                  test     ⎥ (parallel) →
-                                  unslop   ⎦
+plan → deepen → work (swarm) ──→ review    ⎤
+                                  test     ⎥ (parallel) → review fix → quality + release readiness
+                                  unslop   ⎦                                  │
+                                                                    unslop + debranding proposal
 ```
 
 `/unslop` reports code hygiene, comments/docs, frontend/design, and architecture slop.
 `/unslop fix` applies safe hygiene and comments/docs cleanup.
 `/unslop fix all` applies high-priority eligible fixes across all lanes.
+At the same post-review gate, Copilot proposes `/solution-debranding-plan` for
+reuse across brands, white-labeling, ownership transfer, demos, or public
+release. Debranding is opt-in and always runs plan, then approved apply units,
+then independent verify.
 `compound` saves learnings for future `ce-plan` runs.
 
 ### `/autoresearch` — hill-climb against a metric

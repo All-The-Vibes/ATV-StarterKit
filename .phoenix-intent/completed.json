@@ -1,0 +1,33 @@
+{
+  "intent": "Integrate lshade/solution-debranding into ATV StarterKit without changing its behavior, distribute the complete four-skill package, and propose it beside unslop at the post-review lifecycle gate.",
+  "completed_at": "2026-08-28",
+  "source_commit": "0a1f069020a949cdd4d647b82ea58a15a48ca330",
+  "repository_commit": "ad996736b879be87c7755df5c5017d5336203bbc",
+  "git_tag": null,
+  "composite_accept": {
+    "ok": true,
+    "goal_count": 3,
+    "goals_ok": 3,
+    "reason": "all 3 goals proven failure-first and currently green"
+  },
+  "goals": [
+    {
+      "id": "vendor-upstream-package",
+      "trace": ".phoenix-intent/vendor-upstream-package/.phoenix/trace.jsonl",
+      "check_digest": "cdeea3a60a3dd90c36f8287cfcf71405c0880d755a307b9dfef769bb2c6a4179",
+      "accepted": true
+    },
+    {
+      "id": "distribute-skill-family",
+      "trace": ".phoenix-intent/distribute-skill-family/.phoenix/trace.jsonl",
+      "check_digest": "126b3060d66c68171a585983b4063af443cefa4938b2bb4047fd97017f0a3a80",
+      "accepted": true
+    },
+    {
+      "id": "route-release-readiness",
+      "trace": ".phoenix-intent/route-release-readiness/.phoenix/trace.jsonl",
+      "check_digest": "71b3457237d35539888d9c7a20a2b5aba64411b98e6a72727da090fc9349d6a6",
+      "accepted": true
+    }
+  ]
+}

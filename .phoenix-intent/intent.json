@@ -1,0 +1,58 @@
+{
+  "intent": "Integrate lshade/solution-debranding into ATV StarterKit without changing its behavior, distribute the complete four-skill package, and propose it beside unslop at the post-review lifecycle gate.",
+  "source": {
+    "repository": "https://github.com/lshade/solution-debranding",
+    "commit": "0a1f069020a949cdd4d647b82ea58a15a48ca330"
+  },
+  "goals": [
+    {
+      "id": "vendor-upstream-package",
+      "title": "Vendor and maintain the complete upstream package unchanged",
+      "kind": "integrate",
+      "check": {
+        "kind": "command_exit",
+        "target": [
+          "node",
+          ".github/hooks/scripts/verify-solution-debranding.js",
+          "vendor"
+        ],
+        "expect": 0
+      },
+      "depends_on": []
+    },
+    {
+      "id": "distribute-skill-family",
+      "title": "Ship all four sibling skills through every ATV installation surface",
+      "kind": "integrate",
+      "check": {
+        "kind": "command_exit",
+        "target": [
+          "node",
+          ".github/hooks/scripts/verify-solution-debranding.js",
+          "distribution"
+        ],
+        "expect": 0
+      },
+      "depends_on": [
+        "vendor-upstream-package"
+      ]
+    },
+    {
+      "id": "route-release-readiness",
+      "title": "Propose debranding beside unslop at the post-review quality gate",
+      "kind": "integrate",
+      "check": {
+        "kind": "command_exit",
+        "target": [
+          "node",
+          ".github/hooks/scripts/verify-solution-debranding.js",
+          "lifecycle"
+        ],
+        "expect": 0
+      },
+      "depends_on": [
+        "distribute-skill-family"
+      ]
+    }
+  ]
+}

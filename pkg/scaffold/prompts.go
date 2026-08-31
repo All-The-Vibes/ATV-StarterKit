@@ -32,6 +32,9 @@ var promptShimSkillDirectories = []string{
 	"evolve",
 	"observe",
 	// ATV Quality
+	"solution-debranding-apply",
+	"solution-debranding-plan",
+	"solution-debranding-verify",
 	"unslop",
 	// Experimentation
 	"autoresearch",
@@ -61,6 +64,8 @@ var nonUserFacingSkills = []string{
 	"setup",
 	// Behavioral guideline reference text, not an invocable command.
 	"karpathy-guidelines",
+	// Shared package loaded by the three solution-debranding stage skills.
+	"solution-debranding",
 	// Orchestrator sub-skills — internal building blocks of /lfg.
 	"feature-video",
 	"ralph-loop",

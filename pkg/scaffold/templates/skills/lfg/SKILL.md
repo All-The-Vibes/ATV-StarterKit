@@ -12,6 +12,7 @@ CRITICAL: You MUST execute every step below IN ORDER. Do NOT skip any required s
 This workflow is **resumable**. A tiny helper tracks which phases are `done` and where each phase's output lives, so re-invoking `/lfg` continues from the first unfinished phase instead of restarting.
 
 - **Helper:** `node .github/hooks/scripts/lfg-state.js` — commands `init`, `bind-plan`, `done <phase> --run-id <id> [--artifact <repo-relative-path>]`, `status --run-id <id>`, `run-id-from-plan --plan <path>`. It writes `.atv/runs/<run-id>/` (gitignored, local-only).
+- **Helper resolution:** Prefer `.github/hooks/scripts/lfg-state.js` in the target repository. If it is absent, use `scripts/lfg-state.js` beside this loaded `SKILL.md` (the plugin-packaged fallback). In every helper command below, replace `.github/hooks/scripts/lfg-state.js` with the resolved path.
 - **On start (resume check):**
   1. If a recent plan for this feature already exists in `docs/plans/`, derive `RUN_ID` from it: `node .github/hooks/scripts/lfg-state.js run-id-from-plan --plan <plan-path>`. Otherwise create a provisional id: run `node .github/hooks/scripts/lfg-state.js init --skill lfg --feature "$ARGUMENTS" --repo <repo> --branch <branch>` and read `run_id`.
   2. Run `node .github/hooks/scripts/lfg-state.js status --run-id <RUN_ID>` and **skip every phase whose sentinel is already `done`**; resume at the first not-done phase.
@@ -33,9 +34,30 @@ This workflow is **resumable**. A tiny helper tracks which phases are `done` and
 
    Pass the plan file path from step 2 so ce-review can verify requirements completeness. Then `node .github/hooks/scripts/lfg-state.js done ce-review --run-id <RUN_ID> --artifact <review-artifact-path>`.
 
-5. `/unslop fix`
+## Quality and Release-Readiness Phase
 
-   Strip AI slop after review fixes land — removes commented-out code, filler comments, stale TODOs. Then `node .github/hooks/scripts/lfg-state.js done unslop --run-id <RUN_ID>`.
+5. Enter the `quality-release-readiness` phase after review:
+
+   a. Run `/unslop fix` to strip AI slop after review fixes land. Then run `node .github/hooks/scripts/lfg-state.js done unslop --run-id <RUN_ID>`.
+
+   b. Run `node .github/hooks/scripts/lfg-state.js get-decision quality-release-readiness --run-id <RUN_ID>`. If a decision already exists, reuse it and do not prompt again. Keep its `choice` and `artifact` as the current decision.
+
+   c. If no decision exists, propose the adjacent release-readiness option to the user:
+
+   > `/unslop fix` cleaned implementation slop. `/solution-debranding-plan` can now prepare this solution for reuse across brands, white-labeling, ownership transfer, demo use, or public release. Run solution debranding now?
+
+   If no decision exists, record exactly one choice:
+
+   - `declined` or `not-applicable`: `node .github/hooks/scripts/lfg-state.js decision quality-release-readiness --run-id <RUN_ID> --choice <choice>`.
+   - `accepted`: immediately record acceptance with `node .github/hooks/scripts/lfg-state.js decision quality-release-readiness --run-id <RUN_ID> --choice accepted`. Then invoke `/solution-debranding-plan` with the user's source brand and scope. Update the accepted decision with the returned plan path: `node .github/hooks/scripts/lfg-state.js decision quality-release-readiness --run-id <RUN_ID> --choice accepted --artifact <debranding-plan-path>`.
+
+   d. Resolve both new and resumed decisions:
+
+   - For `declined` or `not-applicable`, continue without debranding.
+   - For `accepted`, require the stored debranding plan artifact. If acceptance was recorded before planning completed and the artifact is absent, resume `/solution-debranding-plan` without prompting again, then update the decision with its returned plan path. Run `node .github/hooks/scripts/lfg-state.js is-done solution-debranding-apply --run-id <RUN_ID>`. If it is incomplete, run `/solution-debranding-apply <debranding-plan-path>` only after required approvals are recorded. If approval or another human decision is pending, stop and resume this same step later. Only when every approved, unblocked unit is complete, run `node .github/hooks/scripts/lfg-state.js done solution-debranding-apply --run-id <RUN_ID> --artifact <debranding-plan-path>`.
+   - Then run `node .github/hooks/scripts/lfg-state.js is-done solution-debranding-verify --run-id <RUN_ID>`. If it is incomplete, run `/solution-debranding-verify <debranding-plan-path>`. Only on a passing verdict, run `node .github/hooks/scripts/lfg-state.js done solution-debranding-verify --run-id <RUN_ID> --artifact <debranding-plan-path>`.
+
+   Never start with apply or verify. A missing plan artifact, missing approval, human-gated legal/security decision, or failed verify result blocks completion rather than being reported as success. When the decision is resolved and any accepted workflow verifies successfully, run `node .github/hooks/scripts/lfg-state.js done quality-release-readiness --run-id <RUN_ID> --artifact <debranding-plan-path-if-any>`.
 
 6. `/observe` on the areas of code that were changed — analyze patterns in the modified files to capture what was done and how.
 

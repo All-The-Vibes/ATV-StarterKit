@@ -62,6 +62,72 @@ func TestGenerate_ProducesEveryPerSkillPlugin(t *testing.T) {
 	}
 }
 
+func TestGenerate_PreservesNestedSkillPackageFiles(t *testing.T) {
+	tmp := regenerateInto(t)
+	want := filepath.Join(
+		repoRoot(t),
+		"pkg",
+		"scaffold",
+		"templates",
+		"skills",
+		"solution-debranding",
+		"scripts",
+		"scan-debranding.py",
+	)
+	for _, plugin := range []string{
+		"atv-everything",
+		"atv-pack-quality",
+		"atv-skill-solution-debranding-plan",
+	} {
+		got := filepath.Join(
+			tmp,
+			"plugins",
+			plugin,
+			"skills",
+			"solution-debranding",
+			"scripts",
+			"scan-debranding.py",
+		)
+		assertFilesEqual(t, want, got)
+	}
+}
+
+func TestGenerate_DebrandingGranularPluginsIncludeWholeFamily(t *testing.T) {
+	tmp := regenerateInto(t)
+	for _, requested := range solutionDebrandingFamily {
+		plugin := filepath.Join(tmp, "plugins", pluginNameForSkill(requested), "skills")
+		for _, sibling := range solutionDebrandingFamily {
+			if _, err := os.Stat(filepath.Join(plugin, sibling, "SKILL.md")); err != nil {
+				t.Errorf("%s plugin missing required sibling %s: %v", requested, sibling, err)
+			}
+		}
+	}
+}
+
+func TestGenerate_OrchestratorPluginsIncludeRunStateHelper(t *testing.T) {
+	tmp := regenerateInto(t)
+	for _, orchestrator := range []string{"lfg", "slfg"} {
+		for _, plugin := range []string{
+			"atv-everything",
+			"atv-pack-shipping",
+			pluginNameForSkill(orchestrator),
+		} {
+			helper := filepath.Join(
+				tmp,
+				"plugins",
+				plugin,
+				"skills",
+				orchestrator,
+				"scripts",
+				"lfg-state.js",
+			)
+			if _, err := os.Stat(helper); err != nil {
+				t.Errorf("%s missing packaged %s helper: %v", plugin, orchestrator, err)
+			}
+		}
+	}
+}
+
 // TestPluginNameForSkill_KebabCaseOnly is the regression guard for the
 // 2.6.1 marketplace bug where `resolve_todo_parallel` produced an
 // underscore-containing plugin name and the Copilot CLI rejected the

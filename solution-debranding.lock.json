@@ -1,0 +1,74 @@
+{
+  "repository": "https://github.com/lshade/solution-debranding",
+  "commit": "0a1f069020a949cdd4d647b82ea58a15a48ca330",
+  "files": [
+    {
+      "path": "solution-debranding/SKILL.md",
+      "sha256": "146595541a7b2bb82db38cc8f7f55f02499aac8bcf01f58d076cc05016eb37ed"
+    },
+    {
+      "path": "solution-debranding/evals/evals.json",
+      "sha256": "a3ada9d93bafb697bace7fddc64ef6a6d3aeeb452d5f98b27bb649ae98a1fc62"
+    },
+    {
+      "path": "solution-debranding/references/artifacts.md",
+      "sha256": "0bdf1311d796b7ee7d053092073a199f28a86e2aa48c444287ff00d98730e154"
+    },
+    {
+      "path": "solution-debranding/references/branding.md",
+      "sha256": "2cb1b2ee2db4f08c2a1e8fa4bf425735e3dbb2b7e9eb065df6757ec9dedc8531"
+    },
+    {
+      "path": "solution-debranding/references/coupling-review.md",
+      "sha256": "5c67675c99ec04ad34190cb0f071f4ea5bb1c8f1636af07ecea5e2b0167406da"
+    },
+    {
+      "path": "solution-debranding/references/discovery.md",
+      "sha256": "ce569e0a9c1943d1d1ed563d5214e3399d5f600e0aecc6cbbf460608e8c189dc"
+    },
+    {
+      "path": "solution-debranding/references/modernization.md",
+      "sha256": "b1822a4954af303a574e42e0da61176d291e6b914b28e90dab2a66018e02474a"
+    },
+    {
+      "path": "solution-debranding/references/public-release.md",
+      "sha256": "79d778322ef472224be8be59b44d922099791da2442dc2df240a2eedd3f61258"
+    },
+    {
+      "path": "solution-debranding/references/reporting.md",
+      "sha256": "1c378c60a299de39d0d4a38a3444557bfe014e422e24b374b805703ac3370cf5"
+    },
+    {
+      "path": "solution-debranding/scripts/check-readiness.py",
+      "sha256": "dec8eb80d493a0ea97a65da46d256192e00413d564f072326bf59fdaeb294ad2"
+    },
+    {
+      "path": "solution-debranding/scripts/merge-lens-findings.py",
+      "sha256": "935380c8b66671ea860ecb9e790279ca048bc51666407c939c5a2714b51a4c80"
+    },
+    {
+      "path": "solution-debranding/scripts/plan-lens-batches.py",
+      "sha256": "69257d6127b2d361fd456ab2a873352acc23c29f8381cf9fedef9907cf23af2b"
+    },
+    {
+      "path": "solution-debranding/scripts/scan-debranding.py",
+      "sha256": "f67cf9101a03ceb434cd1f4873e56b382cab2666ff76b9730c338fb00f21fa9f"
+    },
+    {
+      "path": "solution-debranding/tests/test_scripts.py",
+      "sha256": "02c524a816f83b6b0a4b45757fc644fbb9df4747280d0e2eb1c84e4437db6511"
+    },
+    {
+      "path": "solution-debranding-plan/SKILL.md",
+      "sha256": "c32d26dbc6a431bc747ddd48dc14479e92b0331949bdd5d66c1a2634a4ccd18f"
+    },
+    {
+      "path": "solution-debranding-apply/SKILL.md",
+      "sha256": "3683bbb2daa8ffc39a354fba675b1321bc15d0f6ef1237dd96462346e8457425"
+    },
+    {
+      "path": "solution-debranding-verify/SKILL.md",
+      "sha256": "d83cd9cefe4f07299ff25dabf16bf3bca4f63091c5e68a2ba5286a9e3bb5bb92"
+    }
+  ]
+}

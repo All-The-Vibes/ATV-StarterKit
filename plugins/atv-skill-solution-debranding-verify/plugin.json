@@ -1,0 +1,19 @@
+{
+  "name": "atv-skill-solution-debranding-verify",
+  "description": "ATV `solution-debranding-verify` skill — single-skill plugin (granular install). Some ATV skills dispatch agents bundled separately in `atv-agents`, so single-skill and category-pack installs may need `atv-agents` alongside them. For the full standalone kit, install `atv-everything`. See https://github.com/All-The-Vibes/ATV-StarterKit/blob/main/docs/marketplace.md.",
+  "version": "2.6.3",
+  "author": {
+    "name": "All The Vibes",
+    "url": "https://github.com/All-The-Vibes"
+  },
+  "repository": "https://github.com/All-The-Vibes/ATV-StarterKit",
+  "license": "MIT",
+  "keywords": [
+    "atv",
+    "skill",
+    "solution-debranding-verify"
+  ],
+  "skills": [
+    "./skills"
+  ]
+}
